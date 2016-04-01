@@ -1,9 +1,9 @@
 #' @include class_dmSQTLfit.R class_dmDStest.R
 NULL
 
-################################################################################
+###############################################################################
 ### dmSQTLtest class
-################################################################################
+###############################################################################
 
 #' dmSQTLtest object
 #' 
@@ -108,9 +108,9 @@ setMethod("show", "dmSQTLtest", function(object){
 })
 
 
-################################################################################
+###############################################################################
 ### dmTest
-################################################################################
+###############################################################################
 
 #' @rdname dmTest
 #' @export
@@ -130,8 +130,11 @@ setMethod("dmTest", "dmSQTLfit", function(x, prop_mode = "constrOptimG",
   
   results <- dmSQTL_test(fit_full = x@fit_full, fit_null = fit_null, 
     verbose = verbose, BPPARAM = BPPARAM)
+  
   colnames(results)[colnames(results) == "snp_id"] <- "block_id" 
-  results_spl <- split(results, factor(results$gene_id, levels = names(x@blocks)))
+  
+  results_spl <- split(results, factor(results$gene_id, 
+    levels = names(x@blocks)))
   
   inds <- 1:length(results_spl)
   
@@ -142,8 +145,9 @@ setMethod("dmTest", "dmSQTLfit", function(x, prop_mode = "constrOptimG",
     blo <- x@blocks[[i]]
     matching <- match(blo[, "block_id"], res[, "block_id"])
     snp_id <- blo[, "snp_id"]
-    res_new <- cbind(res[matching, c("gene_id", "block_id")], snp_id, 
-      res[matching, c("lr", "df", "pvalue", "adj_pvalue")])
+    res_new <- cbind(res[matching, c("gene_id", "block_id"), drop = FALSE], 
+      snp_id, 
+      res[matching, c("lr", "df", "pvalue", "adj_pvalue"), drop = FALSE])
     
     return(res_new)
     
@@ -153,7 +157,8 @@ setMethod("dmTest", "dmSQTLfit", function(x, prop_mode = "constrOptimG",
   
   return(new("dmSQTLtest", fit_null = fit_null, results = results_new, 
     dispersion = x@dispersion, fit_full = x@fit_full, 
-    mean_expression = x@mean_expression, common_dispersion = x@common_dispersion, 
+    mean_expression = x@mean_expression, 
+    common_dispersion = x@common_dispersion, 
     genewise_dispersion = x@genewise_dispersion, counts = x@counts, 
     genotypes = x@genotypes, blocks = x@blocks, samples = x@samples))
   
@@ -161,17 +166,18 @@ setMethod("dmTest", "dmSQTLfit", function(x, prop_mode = "constrOptimG",
 })
 
 
-################################################################################
+###############################################################################
 ### plotTest
-################################################################################
+###############################################################################
 
 #' @rdname plotTest
 #' @export
 #' @importFrom grDevices pdf dev.off
 setMethod("plotTest", "dmSQTLtest", function(x, out_dir = NULL){
   
+  ### Plot p-values for unique blocks (not SNPs)
   ggp <- dm_plotPvalues(pvalues = unique(x@results[, c("gene_id", "block_id", 
-    "pvalue")])[, "pvalue"])
+    "pvalue"), drop = FALSE])[, "pvalue"])
   
   if(!is.null(out_dir)){
     pdf(paste0(out_dir, "hist_pvalues.pdf"))

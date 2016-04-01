@@ -14,16 +14,20 @@ NULL
 #' 
 #' @return
 #' 
-#' \itemize{ \item \code{mean_expression(x)}: Get a data frame with mean gene
-#' expression. \item \code{common_dispersion(x), common_dispersion(x) <- value}:
-#' Get or set common dispersion. \code{value} must be numeric. \item
-#' \code{genewise_dispersion(x), genewise_dispersion(x) <- value}: Get a data
-#' frame with gene-wise dispersion or set new gene-wise dispersion. \code{value}
-#' must be a vector. }
+#' \itemize{ 
+#' \item \code{mean_expression(x)}: Get a data frame with mean gene
+#' expression. 
+#' \item \code{common_dispersion(x), common_dispersion(x) <- value}:
+#' Get or set common dispersion. \code{value} must be numeric of length 1. 
+#' \item \code{genewise_dispersion(x), genewise_dispersion(x) <- value}: 
+#' Get a data frame with gene-wise dispersion or set new gene-wise dispersion. 
+#' \code{value} must be a data frame with "gene_id" and "genewise_dispersion"
+#' columns. 
+#' }
 #' 
 #' 
 #' @param x dmDSdispersion object.
-#' @param value Values that replace current attributes.
+#' @param value Values that replace current attributes. 
 #' @param ... Other parameters that can be defined by methods using this
 #'   generic.
 #'   
@@ -69,6 +73,7 @@ setClass("dmDSdispersion",
 
 setValidity("dmDSdispersion", function(object){
   # has to return TRUE when valid object!
+  out <- TRUE
   
   if(length(object@mean_expression) > 0){
     if(length(object@mean_expression) == length(object@counts)){
@@ -143,7 +148,8 @@ setGeneric("common_dispersion<-", function(x, value)
 #' @rdname dmDSdispersion-class
 #' @export
 setMethod("common_dispersion<-", "dmDSdispersion", function(x, value){
-  
+  ### value must be a numeric of length 1
+  names(value) <- NULL
   return(new("dmDSdispersion", mean_expression = x@mean_expression, 
     common_dispersion = value, genewise_dispersion = x@genewise_dispersion, 
     counts = x@counts, samples = x@samples))
@@ -174,7 +180,7 @@ setGeneric("genewise_dispersion<-", function(x, value)
 #' @rdname dmDSdispersion-class
 #' @export
 setMethod("genewise_dispersion<-", "dmDSdispersion", function(x, value){
-  
+  ### value must be a data.frame with gene_id and genewise_dispersion columns
   stopifnot(all(c("gene_id", "genewise_dispersion") %in% colnames(value)))
   stopifnot(all(names(x@counts) %in% value[,"gene_id"]))
   order <- match(names(x@counts), value[,"gene_id"])
@@ -498,7 +504,7 @@ setMethod("plotDispersion", "dmDSdispersion", function(x, out_dir = NULL){
   }
   
   ggp <- dm_plotDispersion(genewise_dispersion = x@genewise_dispersion, 
-    mean_expression = x@mean_expression, nr_features = elementLengths(x@counts), 
+    mean_expression = x@mean_expression, nr_features = elementNROWS(x@counts), 
     common_dispersion = common_dispersion)
   
   if(!is.null(out_dir)){

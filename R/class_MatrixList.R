@@ -22,7 +22,7 @@ NULL
 #' column names of unlistData slot. 
 #' \item \code{length(x)}: Get the number of
 #' matrices in a list. 
-#' \item \code{elementLengths(x)}: Get the number of rows of each of
+#' \item \code{elementNROWS(x)}: Get the number of rows of each of
 #' the matrices. 
 #' \item \code{dim(x)}, \code{nrow(x)}, \code{ncol(x)}: Get the
 #' dimensions, number of rows or number of columns of unlistData slot. 
@@ -244,8 +244,8 @@ setMethod("length", "MatrixList", function(x){
 
 #' @rdname MatrixList-class
 #' @export
-#' @importFrom S4Vectors elementLengths
-setMethod("elementLengths", "MatrixList", function(x){
+#' @importFrom S4Vectors elementNROWS
+setMethod("elementNROWS", "MatrixList", function(x){
   
   sapply(x@partitioning, length)
   

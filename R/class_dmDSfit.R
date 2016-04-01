@@ -102,7 +102,7 @@ setGeneric("proportions", function(x, ...) standardGeneric("proportions"))
 #' @export
 setMethod("proportions", "dmDSfit", function(x){
   
-  data.frame(gene_id = rep(names(x@counts), elementLengths(x@counts)), 
+  data.frame(gene_id = rep(names(x@counts), elementNROWS(x@counts)), 
     feature_id = rownames(x@counts@unlistData), x@fit_full@unlistData, 
     stringsAsFactors = FALSE, row.names = NULL)
   

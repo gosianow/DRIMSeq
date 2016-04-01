@@ -1,51 +1,91 @@
 Package: DRIMSeq
 Type: Package
-Title: Differential splicing and sQTL analyses with
-        Dirichlet-multinomial model in RNA-Seq
-Version: 0.99.2
-Date: 2016-02-23
-Authors@R: c(person(given = "Malgorzata", family = "Nowicka", role =
-        c("aut", "cre"), email = "gosia.nowicka@uzh.ch"))
-Description: The package provides two frameworks. One for the
-        differential splicing analysis between different conditions and
-        one for the sQTL analysis. Both are based on modeling the
-        counts of genomic features (i.e., transcripts, exons or exonic
-        bins) with Dirichlet-multinomial distribution. The package also
-        makes available functions for visualization and exploration of
-        the data and results.
+Title: Differential splicing and sQTL analyses with Dirichlet-multinomial model
+    in RNA-Seq
+Version: 0.99.3
+Date: 2016-03-29
+Authors@R: c(person(given = "Malgorzata", family = "Nowicka", 
+    role = c("aut", "cre"),
+    email = "gosia.nowicka@uzh.ch"))
+Description: The package provides two frameworks. One for the differential
+    splicing analysis between different conditions and one for the sQTL analysis.
+    Both are based on modeling the counts of genomic features (i.e., transcripts,
+    exons or exonic bins) with Dirichlet-multinomial distribution. The package also
+    makes available functions for visualization and exploration of the data and
+    results.
 biocViews: SNP, AlternativeSplicing, DifferentialSplicing, Genetics,
-        RNASeq, Sequencing, WorkflowStep, MultipleComparison,
-        GeneExpression, DifferentialExpression
+    RNASeq, Sequencing, WorkflowStep, MultipleComparison, GeneExpression,
+    DifferentialExpression
 License: GPL (>= 3)
-Depends: R (>= 3.3.0)
-Imports: GenomicRanges, IRanges, S4Vectors, BiocGenerics, methods,
-        BiocParallel, edgeR, utils, stats, grDevices, ggplot2, reshape2
-Suggests: PasillaTranscriptExpr, GeuvadisTranscriptExpr, grid,
-        BiocStyle, knitr, testthat
+Depends:
+    R (>= 3.3.0)
+Imports:
+    GenomicRanges,
+    IRanges,
+    S4Vectors,
+    BiocGenerics,
+    methods,
+    BiocParallel,
+    edgeR,
+    utils,
+    stats,
+    grDevices,
+    ggplot2,
+    reshape2
+Suggests:
+    PasillaTranscriptExpr,
+    GeuvadisTranscriptExpr,
+    grid,
+    BiocStyle,
+    knitr,
+    testthat
 LazyData: true
 ByteCompile: false
 VignetteBuilder: knitr
-Collate: 'DRIMSeq.R' 'class_show_utils.R' 'class_MatrixList.R'
-        'class_dmDSdata.R' 'class_dmDSdispersion.R' 'class_dmDSfit.R'
-        'class_dmDStest.R' 'class_dmSQTLdata.R'
-        'class_dmSQTLdispersion.R' 'class_dmSQTLfit.R'
-        'class_dmSQTLtest.R' 'dmDS_adjustmentCommon.R'
-        'dmDS_estimateCommonDispersion.R'
-        'dmDS_estimateTagwiseDispersion.R' 'dmDS_filter.R'
-        'dmDS_fitOneModel.R' 'dmDS_plotFit.R' 'dmDS_profileLikCommon.R'
-        'dmDS_test.R' 'dmSQTL_adjustmentCommon.R'
-        'dmSQTL_estimateCommonDispersion.R'
-        'dmSQTL_estimateTagwiseDispersion.R' 'dmSQTL_filter.R'
-        'dmSQTL_fitOneModel.R' 'dmSQTL_plotFit.R'
-        'dmSQTL_profileLikCommon.R' 'dmSQTL_test.R' 'dm_Hessian.R'
-        'dm_NewtonRaphson.R' 'dm_adjustmentOneGeneManyGroups.R'
-        'dm_adjustmentOneGeneOneGroup.R' 'dm_colorb.R' 'dm_deviance.R'
-        'dm_estimateMeanExpression.R' 'dm_fitOneGeneManyGroups.R'
-        'dm_fitOneGeneOneGroup.R' 'dm_lik.R' 'dm_plotData.R'
-        'dm_plotDispersion.R' 'dm_plotProportions.R' 'dm_plotPvalues.R'
-        'dm_profileLikTagwise.R' 'dm_rdirichlet.R' 'dm_score.R'
-        'dm_weirMoM.R'
+Collate:
+    'DRIMSeq.R'
+    'class_show_utils.R'
+    'class_MatrixList.R'
+    'class_dmDSdata.R'
+    'class_dmDSdispersion.R'
+    'class_dmDSfit.R'
+    'class_dmDStest.R'
+    'class_dmSQTLdata.R'
+    'class_dmSQTLdispersion.R'
+    'class_dmSQTLfit.R'
+    'class_dmSQTLtest.R'
+    'dmDS_adjustmentCommon.R'
+    'dmDS_estimateCommonDispersion.R'
+    'dmDS_estimateTagwiseDispersion.R'
+    'dmDS_filter.R'
+    'dmDS_fitOneModel.R'
+    'dmDS_plotFit.R'
+    'dmDS_profileLikCommon.R'
+    'dmDS_test.R'
+    'dmSQTL_adjustmentCommon.R'
+    'dmSQTL_estimateCommonDispersion.R'
+    'dmSQTL_estimateTagwiseDispersion.R'
+    'dmSQTL_filter.R'
+    'dmSQTL_fitOneModel.R'
+    'dmSQTL_plotFit.R'
+    'dmSQTL_profileLikCommon.R'
+    'dmSQTL_test.R'
+    'dm_Hessian.R'
+    'dm_NewtonRaphson.R'
+    'dm_adjustmentOneGeneManyGroups.R'
+    'dm_adjustmentOneGeneOneGroup.R'
+    'dm_colorb.R'
+    'dm_deviance.R'
+    'dm_estimateMeanExpression.R'
+    'dm_fitOneGeneManyGroups.R'
+    'dm_fitOneGeneOneGroup.R'
+    'dm_lik.R'
+    'dm_plotData.R'
+    'dm_plotDispersion.R'
+    'dm_plotProportions.R'
+    'dm_plotPvalues.R'
+    'dm_profileLikTagwise.R'
+    'dm_rdirichlet.R'
+    'dm_score.R'
+    'dm_weirMoM.R'
 RoxygenNote: 5.0.1
-NeedsCompilation: no
-Author: Malgorzata Nowicka [aut, cre]
-Maintainer: Malgorzata Nowicka <gosia.nowicka@uzh.ch>

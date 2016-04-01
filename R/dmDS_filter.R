@@ -3,7 +3,7 @@ dmDS_filter <- function(counts, samples, min_samps_gene_expr = 6,
   min_gene_expr = 10, min_samps_feature_expr = 3, min_feature_expr = 10, 
   min_samps_feature_prop = 3, min_feature_prop = 0.01, max_features = Inf){
   
-  inds <- which(elementLengths(counts) > 1)
+  inds <- which(elementNROWS(counts) > 1)
   
   counts_new <- lapply(inds, function(g){
     # g = 117

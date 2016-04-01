@@ -311,17 +311,17 @@ dmSQTL_estimateTagwiseDispersion <- function(counts, genotypes,
           
           switch(disp_moderation, 
             
-            common={
+            common = {
               
               moderation <- colMeans(loglik)
               loglik <- sweep(loglik, 2, priorN * moderation, FUN = "+")
               
             },
             
-            trended={
+            trended = {
               
               mean_expression <- rep(mean_expression, 
-                elementLengths(genotypes))[NAs]
+                elementNROWS(genotypes))[NAs]
               o <- order(mean_expression)
               oo <- order(o)
               width <- floor(disp_span * nrow(loglik))

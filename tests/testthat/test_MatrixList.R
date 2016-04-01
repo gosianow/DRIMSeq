@@ -15,7 +15,7 @@ test_that("methods return correct arributes of MatrixList", {
   expect_equal(rownames(x), c(paste0("R1", 1:10), paste0("R2", 1:5)))
   expect_equal(colnames(x), paste0("C", 1:6))
   expect_equal(length(x), 2)
-  expect_equal(elementLengths(x), c(x1 = 10, x2 = 5))
+  expect_equal(elementNROWS(x), c(x1 = 10, x2 = 5))
   expect_equal(dim(x), c(15, 6))
   expect_equal(nrow(x), 15)
   expect_equal(ncol(x), 6)

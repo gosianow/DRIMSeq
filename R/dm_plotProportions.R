@@ -4,6 +4,10 @@ dm_plotProportions_barplot <- function(counts, group, pi_full = NULL,
   pi_null = NULL, main = NULL, order = TRUE){
   
   stopifnot(ncol(counts) == length(group))
+  ### Counts have to have rownames
+  stopifnot(length(rownames(counts)) > 0)
+  ### group must be a factor
+  stopifnot(is.factor(group))
   
   labels <- labels_org <- factor(rownames(counts), levels = rownames(counts))
   group_counts <- table(group)

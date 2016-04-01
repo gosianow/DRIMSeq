@@ -33,6 +33,8 @@ setClass("dmSQTLdispersion",
 setValidity("dmSQTLdispersion", function(object){
   # has to return TRUE when valid object!
   
+  out <- TRUE
+  
   if(length(object@mean_expression) > 0){
     if(length(object@mean_expression) == length(object@counts)){
       if(all(names(object@mean_expression) == names(object@counts)))
@@ -47,7 +49,7 @@ setValidity("dmSQTLdispersion", function(object){
   if(length(object@genewise_dispersion) > 0){
     if(length(object@genewise_dispersion) == length(object@counts)){
       if(all(lapply(object@genewise_dispersion, length) == 
-          elementLengths(object@genotypes)))
+          elementNROWS(object@genotypes)))
         out <- TRUE
       else
         return("Different numbers of blocks in 'genotypes' and in 
@@ -187,7 +189,7 @@ setMethod("dmDispersion", "dmSQTLdata", function(x, mean_expression = TRUE,
       
       ### because we keep only one SNP per gene (null model)
       genewise_dispersion <- relist(rep(unlist(genewise_dispersion), 
-        times = elementLengths(x@genotypes)), x@genotypes@partitioning)
+        times = elementNROWS(x@genotypes)), x@genotypes@partitioning)
       
     }else{
       
@@ -231,7 +233,7 @@ setMethod("plotDispersion", "dmSQTLdispersion", function(x, out_dir = NULL){
   w <- sapply(x@genewise_dispersion, length)
   
   mean_expression <- rep(x@mean_expression, w)
-  nr_features <- rep(elementLengths(x@counts), w)
+  nr_features <- rep(elementNROWS(x@counts), w)
   
   genewise_dispersion <- unlist(x@genewise_dispersion)
   

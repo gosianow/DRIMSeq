@@ -5,14 +5,13 @@
 dm_plotDataFeatures <- function(tt){
   
   df <- data.frame(tt = tt)
-  # binwidth <- ceiling(max(df$tt)/50)
-  binwidth <- 1
-  
+
   ggp <- ggplot(df, aes_string(x = "tt")) +
     theme_bw() +
     xlab("Number of features per gene") +
     ylab("Frequency") +
-    geom_histogram(fill = "seagreen4", binwidth = binwidth) +
+    geom_histogram(fill = "seagreen4", 
+      breaks = seq(min(df$tt), max(df$tt), by = 1)) +
     theme(axis.text = element_text(size=16), 
       axis.title = element_text(size=18, face="bold"), 
       plot.title = element_text(size=18, face="bold")) +
@@ -40,7 +39,8 @@ dm_plotDataBlocks <- function(tt){
     theme_bw() +
     xlab("Number of blocks per gene") +
     ylab("Frequency") +
-    geom_histogram(fill = "mediumpurple4", binwidth = binwidth) +
+    geom_histogram(fill = "mediumpurple4", 
+      breaks = seq(min(df$tt), max(df$tt), by = binwidth)) +
     theme(axis.text = element_text(size=16), 
       axis.title = element_text(size=18, face="bold"), 
       plot.title = element_text(size=18, face="bold")) +
@@ -66,7 +66,8 @@ dm_plotDataSnps <- function(tt){
     theme_bw() +
     xlab("Number of SNPs per gene") +
     ylab("Frequency") +
-    geom_histogram(fill = "royalblue4", binwidth = binwidth) +
+    geom_histogram(fill = "royalblue4", 
+      breaks = seq(min(df$tt), max(df$tt), by = binwidth)) +
     theme(axis.text = element_text(size=16), 
       axis.title = element_text(size=18, face="bold"), 
       plot.title = element_text(size=18, face="bold")) +

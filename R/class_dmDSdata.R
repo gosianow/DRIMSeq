@@ -111,7 +111,7 @@ setMethod("dm_samples", "dmDSdata", function(x) x@samples )
 #' @export
 setMethod("counts", "dmDSdata", function(object){
   
-  data.frame(gene_id = rep(names(object@counts), elementLengths(object@counts)), 
+  data.frame(gene_id = rep(names(object@counts), elementNROWS(object@counts)), 
     feature_id = rownames(object@counts), 
     object@counts@unlistData, stringsAsFactors = FALSE, 
     row.names = NULL)
@@ -455,7 +455,7 @@ setGeneric("plotData", function(x, ...) standardGeneric("plotData"))
 #' @importFrom grDevices pdf dev.off
 setMethod("plotData", "dmDSdata", function(x, out_dir = NULL){
   
-  tt <- elementLengths(dm_counts(x))
+  tt <- elementNROWS(dm_counts(x))
   
   ggp <- dm_plotDataFeatures(tt = tt)
   

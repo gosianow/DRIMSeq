@@ -1,0 +1,12 @@
+*._*
+*.DS_Store
+.Rproj.user
+*.Rhistory
+*.Rproj
+data-raw/*
+!data-raw/*.R
+vignettes/*
+!vignettes/*.Rnw
+!vignettes/*.Rmd
+!vignettes/*.pdf
+!vignettes/*.bib

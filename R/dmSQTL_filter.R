@@ -55,7 +55,7 @@ dmSQTL_filter <- function(counts, genotypes, blocks, samples,
   # filtering on counts, put NA for samples with low gene expression
   ########################################################
   
-  inds <- which(elementLengths(counts) > 1)
+  inds <- which(elementNROWS(counts) > 1)
   
   counts_new <- lapply(inds, function(g){
     # g = 1
