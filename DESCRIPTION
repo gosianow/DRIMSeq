@@ -2,7 +2,7 @@ Package: DRIMSeq
 Type: Package
 Title: Differential splicing and sQTL analyses with Dirichlet-multinomial model
     in RNA-Seq
-Version: 1.1.0
+Version: 1.1.1
 Date: 2016-03-29
 Authors@R: c(person(given = "Malgorzata", family = "Nowicka", 
     role = c("aut", "cre"),
