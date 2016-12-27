@@ -2,32 +2,25 @@
 % Please edit documentation in R/class_dmDSdata.R
 \name{dmDSdata}
 \alias{dmDSdata}
-\title{Create dmDSdata object
- 
-Constructor function for a \code{\linkS4class{dmDSdata}} object.}
+\title{Create dmDSdata object}
 \usage{
-dmDSdata(counts, gene_id, feature_id, sample_id, group)
+dmDSdata(counts, samples)
 }
 \arguments{
-\item{counts}{Numeric matrix or data frame of counts. 
-Rows represent features, for example, exons, exonic bins or transcripts. 
-Columns represent samples.}
+\item{counts}{Data frame with counts. Rows correspond to features, for
+example, transcripts or exons. This data frame has to contain a
+\code{gene_id} column with gene IDs, \code{feature_id} column with feature
+IDs and columns with counts for each sample. Column names corresponding to
+sample IDs must be the same as in the \code{sample} data frame.}
 
-\item{gene_id}{Vector of gene IDs corresponding to \code{counts}.}
-
-\item{feature_id}{Vector of feature IDs corresponding to \code{counts}.}
-
-\item{sample_id}{Vector of unique sample IDs corresponding to the columns 
-in \code{counts}.}
-
-\item{group}{Vector that defines the grouping of samples.}
+\item{samples}{Data frame where each row corresponds to one sample. Columns
+have to contain unique sample IDs in \code{sample_id} variable and a
+grouping variable \code{group}.}
 }
 \value{
 Returns a \linkS4class{dmDSdata} object.
 }
 \description{
-Create dmDSdata object
- 
 Constructor function for a \code{\linkS4class{dmDSdata}} object.
 }
 \examples{
@@ -41,18 +34,20 @@ library(PasillaTranscriptExpr)
 
 data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 
+# Load metadata
 metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
- as.is = TRUE)
-metadata
+as.is = TRUE)
 
+# Load counts
 counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
- as.is = TRUE)
-head(counts)
+as.is = TRUE)
+
+# Create a samples data frame
+samples <- data.frame(sample_id = metadata$SampleName, 
+group = metadata$condition)
 
 # Create a dmDSdata object
-d <- dmDSdata(counts = counts[, metadata$SampleName], 
- gene_id = counts$gene_id, feature_id = counts$feature_id, 
- sample_id = metadata$SampleName, group = metadata$condition)
+d <- dmDSdata(counts = counts, samples = samples)
 
 plotData(d)
 
@@ -69,6 +64,6 @@ Malgorzata Nowicka
 }
 \seealso{
 \code{\link{plotData}}, \code{\link{dmFilter}}, 
-\code{\link{dmDispersion}}, \code{\link{dmFit}}, \code{\link{dmTest}}
+  \code{\link{dmDispersion}}, \code{\link{dmFit}}, \code{\link{dmTest}}
 }
 

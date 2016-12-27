@@ -13,8 +13,8 @@ dmTest(x, ...)
   prop_mode = "constrOptimG", prop_tol = 1e-12, verbose = 0,
   BPPARAM = BiocParallel::MulticoreParam(workers = 1))
 
-\S4method{dmTest}{dmSQTLfit}(x, prop_mode = "constrOptimG",
-  prop_tol = 1e-12, verbose = 0,
+\S4method{dmTest}{dmSQTLfit}(x, permutations = "all_genes",
+  prop_mode = "constrOptimG", prop_tol = 1e-12, verbose = 0,
   BPPARAM = BiocParallel::MulticoreParam(workers = 1))
 }
 \arguments{
@@ -30,7 +30,7 @@ difference between any of the groups specified in \code{samples(x)$group}.
 Values in this vector should indicate levels or numbers of levels in
 \code{samples(x)$group}.}
 
-\item{prop_mode}{Optimization method used to estimate proportions. Possible
+\item{prop_mode}{Optimization method used to estimate proportions. Possible 
 values \code{"constrOptim"} and \code{"constrOptimG"}.}
 
 \item{prop_tol}{The desired accuracy when estimating proportions.}
@@ -38,8 +38,10 @@ values \code{"constrOptim"} and \code{"constrOptimG"}.}
 \item{verbose}{Numeric. Definie the level of progress messages displayed. 0 -
 no messages, 1 - main messages, 2 - message for every gene fitting.}
 
-\item{BPPARAM}{Parallelization method used by
+\item{BPPARAM}{Parallelization method used by 
 \code{\link[BiocParallel]{bplapply}}.}
+
+\item{permutations}{Character specifying which permutation scheme to apply for p-value calculation. When equal to \code{"all_genes"}, null distribution of p-values is calculated from all genes and the maximum number of permutation cycles is 10. When  \code{permutations = "per_gene"}, null distribution of p-values is calculated for each gene separately based on permutations of this individual gene. The latter approach may take a lot of computational time. We suggest using the first option.}
 }
 \value{
 Returns a \code{\linkS4class{dmDStest}} or

@@ -6,7 +6,7 @@
 
 # Installation 
 
-To install the latest development version, use the `devtool` package (available [here](https://github.com/hadley/devtools))
+To install the latest development version, use the `devtools` package (available [here](https://github.com/hadley/devtools))
 
 ```
 devtools::install_github("markrobinsonuzh/DRIMSeq")

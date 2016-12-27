@@ -190,17 +190,17 @@ setMethod("[", "dmDSdata", function(x, i, j){
 ###############################################################################
 
 #' Create dmDSdata object
-#'  
+#' 
 #' Constructor function for a \code{\linkS4class{dmDSdata}} object.
-#'  
-#' @param counts Numeric matrix or data frame of counts. 
-#' Rows represent features, for example, exons, exonic bins or transcripts. 
-#' Columns represent samples.
-#' @param gene_id Vector of gene IDs corresponding to \code{counts}.
-#' @param feature_id Vector of feature IDs corresponding to \code{counts}.
-#' @param sample_id Vector of unique sample IDs corresponding to the columns 
-#' in \code{counts}.
-#' @param group Vector that defines the grouping of samples.
+#' 
+#' @param counts Data frame with counts. Rows correspond to features, for
+#'   example, transcripts or exons. This data frame has to contain a
+#'   \code{gene_id} column with gene IDs, \code{feature_id} column with feature
+#'   IDs and columns with counts for each sample. Column names corresponding to
+#'   sample IDs must be the same as in the \code{sample} data frame.
+#' @param samples Data frame where each row corresponds to one sample. Columns
+#'   have to contain unique sample IDs in \code{sample_id} variable and a
+#'   grouping variable \code{group}.
 #' @return Returns a \linkS4class{dmDSdata} object.
 #' @examples
 #' 
@@ -213,18 +213,20 @@ setMethod("[", "dmDSdata", function(x, i, j){
 #' 
 #' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 #' 
+#' # Load metadata
 #' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
-#'  as.is = TRUE)
-#' metadata
-#' 
+#' as.is = TRUE)
+#'
+#' # Load counts
 #' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
-#'  as.is = TRUE)
-#' head(counts)
-#' 
+#' as.is = TRUE)
+#'
+#' # Create a samples data frame
+#' samples <- data.frame(sample_id = metadata$SampleName, 
+#' group = metadata$condition)
+#'
 #' # Create a dmDSdata object
-#' d <- dmDSdata(counts = counts[, metadata$SampleName], 
-#'  gene_id = counts$gene_id, feature_id = counts$feature_id, 
-#'  sample_id = metadata$SampleName, group = metadata$condition)
+#' d <- dmDSdata(counts = counts, samples = samples)
 #' 
 #' plotData(d)
 #' 
@@ -236,25 +238,44 @@ setMethod("[", "dmDSdata", function(x, i, j){
 #' 
 #' 
 #' @seealso \code{\link{plotData}}, \code{\link{dmFilter}}, 
-#' \code{\link{dmDispersion}}, \code{\link{dmFit}}, \code{\link{dmTest}}
+#'   \code{\link{dmDispersion}}, \code{\link{dmFit}}, \code{\link{dmTest}}
 #' @author Malgorzata Nowicka
 #' @export
-dmDSdata <- function(counts, gene_id, feature_id, sample_id, group){
+dmDSdata <- function(counts, samples){
   
-  stopifnot(class(counts) %in% c("matrix", "data.frame"))
-  counts <- as.matrix(counts)
-  stopifnot(mode(counts) %in% "numeric")
-  # counts <- ceiling(counts)
+  ### Check on samples
+  stopifnot(class(samples) == "data.frame")
+  stopifnot(all(c("sample_id", "group") %in% colnames(samples)))
+  stopifnot(sum(duplicated(samples$sample_id)) == 0)
+  
+  ### Check on counts
+  stopifnot(class(counts) == "data.frame")
+  stopifnot(all(c("gene_id", "feature_id") %in% colnames(counts)))
+  stopifnot(all(samples$sample_id %in% colnames(counts)))
+  
+  
+  sample_id <- samples$sample_id
+  group <- samples$group
+  gene_id <- counts$gene_id
+  feature_id <- counts$feature_id
   
   stopifnot( class( gene_id ) %in% c("character", "factor"))
   stopifnot( class( feature_id ) %in% c("character", "factor"))
   stopifnot( class( sample_id ) %in% c("character", "factor"))
   stopifnot( class( group ) %in% c("character", "factor"))
-  stopifnot( length(gene_id) == length( feature_id ) )
-  stopifnot( length(sample_id) == length( group ) )
-  stopifnot(nrow(counts) == length(feature_id))
-  stopifnot(ncol(counts) == length(sample_id))
   
+  stopifnot(all(!is.na(gene_id)))
+  stopifnot(all(!is.na(feature_id)))
+  stopifnot(all(!is.na(sample_id)))
+  stopifnot(all(!is.na(group)))
+  
+  
+  counts <- counts[, as.character(sample_id), drop = FALSE]
+  
+  counts <- as.matrix(counts)
+  stopifnot(mode(counts) %in% "numeric")
+  
+
   if(class(gene_id) == "character")
     gene_id <- factor(gene_id, levels = unique(gene_id))
   else 

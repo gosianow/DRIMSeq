@@ -28,7 +28,7 @@ generic.}
 fitting. Possible values \code{"genewise_dispersion"} or 
 \code{"common_dispersion"}.}
 
-\item{prop_mode}{Optimization method used to estimate proportions. Possible
+\item{prop_mode}{Optimization method used to estimate proportions. Possible 
 values \code{"constrOptim"} and \code{"constrOptimG"}.}
 
 \item{prop_tol}{The desired accuracy when estimating proportions.}
@@ -36,7 +36,7 @@ values \code{"constrOptim"} and \code{"constrOptimG"}.}
 \item{verbose}{Numeric. Definie the level of progress messages displayed. 0 -
 no messages, 1 - main messages, 2 - message for every gene fitting.}
 
-\item{BPPARAM}{Parallelization method used by
+\item{BPPARAM}{Parallelization method used by 
 \code{\link[BiocParallel]{bplapply}}.}
 }
 \value{

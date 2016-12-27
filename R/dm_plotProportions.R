@@ -184,7 +184,7 @@ dm_plotProportions_boxplot1 <- function(counts, group, pi_full = NULL,
     geom_boxplot(data = prop_samp, 
       aes_string(x = "feature_id", y = "proportion", colour = "group", 
         fill = "group"), 
-      outlier.size = 0, alpha = 0.2, lwd = 0.5) +
+      outlier.size = NA, alpha = 0.2, lwd = 0.5) +
     scale_fill_manual(name = "Groups", values = values, 
       breaks = names(values)) +
     scale_colour_manual(name = "Groups", values = values, 
@@ -556,6 +556,11 @@ dm_plotProportions_ribbonplot <- function(counts, group, pi_full = NULL,
 
 dm_plotProportions <- function(counts, group, pi_full = NULL, pi_null = NULL, 
   main = NULL, plot_type = "boxplot1", order = TRUE){
+  
+  if(all(is.na(pi_full)))
+    pi_full <- NULL
+  if(all(is.na(pi_null)))
+    pi_null <- NULL
   
   switch(plot_type, 
     

@@ -1,10 +1,11 @@
 # Prepare data for examples and vignette 
 
-setwd("/home/gosia/R/multinomial_project/package_devel/DRIMSeq")
+setwd("/home/gosia/R/package_devel/DRIMSeq")
 
 library(DRIMSeq)
 library(devtools)
 
+load_all("/home/gosia/R/package_devel/DRIMSeq")
 
 ########################################################
 # Examples
@@ -20,15 +21,20 @@ library(PasillaTranscriptExpr)
 
 data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 
-metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, as.is = TRUE)
-metadata
+# Load metadata
+metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
+  as.is = TRUE)
 
-counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, as.is = TRUE)
-head(counts)
+# Load counts
+counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
+  as.is = TRUE)
 
+# Create a samples data frame
+samples <- data.frame(sample_id = metadata$SampleName, 
+  group = metadata$condition)
 
 # Create a dmDSdata object
-d <- dmDSdata(counts = counts[, metadata$SampleName], gene_id = counts$gene_id, feature_id = counts$feature_id, sample_id = metadata$SampleName, group = metadata$condition)
+d <- dmDSdata(counts = counts, samples = samples)
 d
 
 plotData(d)
@@ -61,7 +67,8 @@ d[1:20, 1:3]
 ### Filtering
 # Check what is the minimal number of replicates per condition 
 table(samples(d)$group)
-d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3, min_samps_feature_prop = 0)
+d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3, 
+  min_samps_feature_prop = 0)
 plotData(d)
 
 ### Calculate dispersion

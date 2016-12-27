@@ -31,7 +31,8 @@ dmSQTL_test_per_gene <- function(g, fit_full, fit_null, gene_list){
 
 
 
-dmSQTL_test <- function(fit_full, fit_null, verbose = FALSE, 
+dmSQTL_test <- function(fit_full, fit_null, return_list = FALSE, 
+  verbose = FALSE, 
   BPPARAM = BiocParallel::MulticoreParam(workers = 1)){
   
   ## calculate lr
@@ -44,6 +45,9 @@ dmSQTL_test <- function(fit_full, fit_null, verbose = FALSE,
   table_list <- BiocParallel::bplapply(inds, dmSQTL_test_per_gene, 
     fit_full = fit_full, fit_null = fit_null, gene_list = gene_list, 
     BPPARAM = BPPARAM)
+  
+  if(return_list)
+    return(table_list)
   
   table <- do.call(rbind, table_list)
   

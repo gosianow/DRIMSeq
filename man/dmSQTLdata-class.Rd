@@ -21,35 +21,33 @@
 \item{i, j}{Parameters used for subsetting.}
 }
 \value{
-\itemize{ 
-\item \code{names(x)}: Get the gene names. 
-\item \code{length(x)}: Get the number of genes. 
-\item \code{x[i, j]}: Get a subset of dmDSdata object that consists of 
-counts, genotypes and blocks corresponding to genes i and samples j. 
-}
+\itemize{ \item \code{names(x)}: Get the gene names. \item \code{length(x)}:
+Get the number of genes. \item \code{x[i, j]}: Get a subset of dmDSdata
+object that consists of counts, genotypes and blocks corresponding to genes i
+and samples j. }
 }
 \description{
 dmSQTLdata contains genomic feature expression (counts), genotypes and sample
 information needed for the sQTL analysis. It can be created with function
-\code{\link{dmSQTLdataFromRanges}} or \code{\link{dmSQTLdata}}.
+\code{\link{dmSQTLdata}}.
 }
 \section{Slots}{
 
 \describe{
-\item{\code{counts}}{\code{\linkS4class{MatrixList}} of expression, in counts, of
-genomic features. Rows correspond to genomic features, such as exons or
-transcripts. Columns correspond to samples. MatrixList is partitioned in a
+\item{\code{counts}}{\code{\linkS4class{MatrixList}} of expression, in counts, of 
+genomic features. Rows correspond to genomic features, such as exons or 
+transcripts. Columns correspond to samples. MatrixList is partitioned in a 
 way that each of the matrices in a list contains counts for a single gene.}
 
-\item{\code{genotypes}}{MatrixList of unique genotypes. Rows correspond to blocks,
-columns to samples. Each matrix in this list is a collection of unique
+\item{\code{genotypes}}{MatrixList of unique genotypes. Rows correspond to blocks, 
+columns to samples. Each matrix in this list is a collection of unique 
 genotypes that are matched with a given gene.}
 
-\item{\code{blocks}}{MatrixList with two columns \code{block_id} and \code{snp_id}.
-For each gene, it identifies SNPs with identical genotypes across the
+\item{\code{blocks}}{MatrixList with two columns \code{block_id} and \code{snp_id}. 
+For each gene, it identifies SNPs with identical genotypes across the 
 samples and assigns them to blocks.}
 
-\item{\code{samples}}{Data frame with information about samples. It contains unique
+\item{\code{samples}}{Data frame with information about samples. It contains unique 
 sample names \code{sample_id}.}
 }}
 \examples{
@@ -69,9 +67,8 @@ d[1:10, 1:10]
 Malgorzata Nowicka
 }
 \seealso{
-\code{\link{data_dmSQTLdata}},
-  \code{\linkS4class{dmSQTLdispersion}}, 
-  \code{\linkS4class{dmSQTLfit}},
+\code{\link{data_dmSQTLdata}}, 
+  \code{\linkS4class{dmSQTLdispersion}}, \code{\linkS4class{dmSQTLfit}}, 
   \code{\linkS4class{dmSQTLtest}}
 }
 

@@ -1,9 +1,11 @@
 # Prepare data for examples and vignette 
 
-setwd("/home/gosia/R/multinomial_project/package_devel/DRIMSeq")
+setwd("/home/gosia/R/package_devel/DRIMSeq")
 
 library(DRIMSeq)
 library(devtools)
+
+load_all("/home/gosia/R/package_devel/DRIMSeq")
 
 
 ########################################################
@@ -22,10 +24,13 @@ genotypes <- GeuvadisTranscriptExpr::genotypes
 gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
 snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
 
-# Make sure that samples in counts and genotypes are in the same order
-sample_id <- colnames(counts[, -(1:2)])
+colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
+colnames(genotypes)[4] <- "snp_id"
+samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
 
-d <- dmSQTLdataFromRanges(counts = counts[, sample_id], gene_id = counts$Gene_Symbol, feature_id = counts$TargetID, gene_ranges = gene_ranges, genotypes = genotypes[, sample_id], snp_id = genotypes$snpId, snp_ranges = snp_ranges, sample_id = sample_id, window = 5e3, BPPARAM = BiocParallel::SerialParam())
+d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
+  genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
+  window = 5e3, BPPARAM = BiocParallel::SerialParam())
 
 plotData(d)
 
@@ -45,7 +50,9 @@ d[1:10, ]
 d[1:10, 1:10]
 
 ### Filtering
-d <- dmFilter(d, min_samps_gene_expr = 70, min_samps_feature_expr = 5,  min_samps_feature_prop = 0, minor_allele_freq = 5, BPPARAM = BiocParallel::SerialParam())
+d <- dmFilter(d, min_samps_gene_expr = 70, min_samps_feature_expr = 5,  
+  min_samps_feature_prop = 0, minor_allele_freq = 5, 
+  BPPARAM = BiocParallel::SerialParam())
 plotData(d)
 
 

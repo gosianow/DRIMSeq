@@ -2,68 +2,57 @@
 % Please edit documentation in R/class_dmSQTLdata.R
 \name{dmSQTLdata}
 \alias{dmSQTLdata}
-\alias{dmSQTLdataFromRanges}
 \title{Create dmSQTLdata object}
 \usage{
-dmSQTLdata(counts, gene_id, feature_id, genotypes, gene_id_genotypes, snp_id,
-  sample_id, BPPARAM = BiocParallel::MulticoreParam(workers = 1))
-
-dmSQTLdataFromRanges(counts, gene_id, feature_id, gene_ranges, genotypes,
-  snp_id, snp_ranges, sample_id, window = 5000,
+dmSQTLdata(counts, gene_ranges, genotypes, snp_ranges, samples, window = 5000,
   BPPARAM = BiocParallel::MulticoreParam(workers = 1))
 }
 \arguments{
-\item{counts}{Numeric matrix or data frame of counts. 
-Rows represent features, for example, exons, exonic bins or transcripts. 
-Columns represent samples.}
-
-\item{gene_id}{Vector of gene IDs corresponding to \code{counts}.}
-
-\item{feature_id}{Vector of feature IDs corresponding to \code{counts}.}
-
-\item{genotypes}{Numeric matrix with genotypes. Rows represent SNPs, columns
-represent samples. The genotype of each sample is coded in the following
-way: 0 for ref/ref, 1 for ref/not ref, 2 for not ref/not ref, -1 or
-\code{NA} for missing value.}
-
-\item{gene_id_genotypes}{Vector of gene IDs corresponding to
-\code{genotypes}.}
-
-\item{snp_id}{Vector of SNP IDs corresponding to \code{genotypes}.}
-
-\item{sample_id}{Vector of unique sample IDs corresponding to the columns 
-in \code{counts}.}
-
-\item{BPPARAM}{Parallelization method used by
-\code{\link[BiocParallel]{bplapply}}.}
+\item{counts}{Data frame with counts. Rows correspond to features, for
+example, transcripts or exons. This data frame has to contain a
+\code{gene_id} column with gene IDs, \code{feature_id} column with feature
+IDs and columns with counts for each sample. Column names corresponding to
+sample IDs must be the same as in the \code{sample} data frame.}
 
 \item{gene_ranges}{\code{\linkS4class{GRanges}} object with gene location. It
 must contain gene names when calling names().}
 
-\item{snp_ranges}{\code{\linkS4class{GRanges}} object with SNP location. It
+\item{genotypes}{Data frame with genotypes. Rows correspond to SNPs. This 
+data frame has to contain a \code{snp_id} column with SNP IDs and columns 
+with genotypes for each sample. Column names corresponding to sample IDs 
+must be the same as in the \code{sample} data frame. The genotype of each 
+sample is coded in the following way: 0 for ref/ref, 1 for ref/not ref, 2 
+for not ref/not ref, -1 or \code{NA} for missing value.}
+
+\item{snp_ranges}{\code{\linkS4class{GRanges}} object with SNP location. It 
 must contain SNP names when calling names().}
 
-\item{window}{Size of a down and up stream window, which is defining the
-surrounding for a gene. Only SNPs that are located within a gene or its
+\item{samples}{Data frame with column \code{sample_id} corresponding to 
+unique sample IDs}
+
+\item{window}{Size of a down and up stream window, which is defining the 
+surrounding for a gene. Only SNPs that are located within a gene or its 
 surrounding are considered in the sQTL analysis.}
+
+\item{BPPARAM}{Parallelization method used by 
+\code{\link[BiocParallel]{bplapply}}.}
 }
 \value{
 Returns a \code{\linkS4class{dmSQTLdata}} object.
 }
 \description{
-Constructor functions for a \code{\linkS4class{dmSQTLdata}} object.
-dmSQTLdata requires that SNPs are already matched to corresponding genes.
-dmSQTLdataFromRanges does the matching by assigning to a gene all the SNPs
-that are located in a given surrounding (\code{window}) of this gene.
+Constructor functions for a \code{\linkS4class{dmSQTLdata}} object. 
+dmSQTLdata assignes to a gene all the SNPs that are located in a given
+surrounding (\code{window}) of this gene.
 }
 \details{
-It is quite common that sample grouping defined by some of the SNPs is
-identical. Compare \code{dim(genotypes)} and \code{dim(unique(genotypes))}.
-In our sQTL analysis, we do not repeat tests for the SNPs that define the
+It is quite common that sample grouping defined by some of the SNPs is 
+identical. Compare \code{dim(genotypes)} and \code{dim(unique(genotypes))}. 
+In our sQTL analysis, we do not repeat tests for the SNPs that define the 
 same grouping of samples. Each grouping is tested only once. SNPs that define
-such unique groupings are aggregated into blocks. P-values and adjusted
-p-values are estimated at the block level, but the returned results are
-extended to a SNP level by repeating the block statistics for each SNP that
+such unique groupings are aggregated into blocks. P-values and adjusted 
+p-values are estimated at the block level, but the returned results are 
+extended to a SNP level by repeating the block statistics for each SNP that 
 belongs to a given block.
 }
 \examples{
@@ -80,14 +69,13 @@ genotypes <- GeuvadisTranscriptExpr::genotypes
 gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
 snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
 
-# Make sure that samples in counts and genotypes are in the same order
-sample_id <- colnames(counts[, -(1:2)])
+colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
+colnames(genotypes)[4] <- "snp_id"
+samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
 
-d <- dmSQTLdataFromRanges(counts = counts[, sample_id], 
-   gene_id = counts$Gene_Symbol, feature_id = counts$TargetID, 
-   gene_ranges = gene_ranges, genotypes = genotypes[, sample_id], 
-   snp_id = genotypes$snpId, snp_ranges = snp_ranges, sample_id = sample_id, 
-   window = 5e3, BPPARAM = BiocParallel::SerialParam())
+d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
+genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
+window = 5e3, BPPARAM = BiocParallel::SerialParam())
 
 plotData(d)
 
@@ -96,7 +84,7 @@ plotData(d)
 Malgorzata Nowicka
 }
 \seealso{
-\code{\link{data_dmSQTLdata}}, \code{\link{dmFilter}},
+\code{\link{data_dmSQTLdata}}, \code{\link{dmFilter}}, 
   \code{\link{dmDispersion}}, \code{\link{dmFit}}, \code{\link{dmTest}}
 }
 

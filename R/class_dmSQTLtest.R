@@ -7,10 +7,10 @@ NULL
 
 #' dmSQTLtest object
 #' 
-#' dmSQTLtest extends the \code{\linkS4class{dmSQTLfit}} class by adding the
+#' dmSQTLtest extends the \code{\linkS4class{dmSQTLfit}} class by adding the 
 #' null model Dirichlet-multinomial feature proportion estimates and the results
-#' of testing for sQTLs. Proportions are calculated for each gene-block pair
-#' from pooled (no grouping into conditions) counts. Result of
+#' of testing for sQTLs. Proportions are calculated for each gene-block pair 
+#' from pooled (no grouping into conditions) counts. Result of 
 #' \code{\link{dmTest}}.
 #' 
 #' @return
@@ -19,16 +19,17 @@ NULL
 #' }
 #' 
 #' @param x dmSQTLtest object.
-#' @param ... Other parameters that can be defined by methods using this
+#' @param ... Other parameters that can be defined by methods using this 
 #'   generic.
 #'   
 #' @slot fit_null List of \code{\linkS4class{MatrixList}}. Each of them contains
-#'   null proportions, likelihoods and degrees of freedom for all the blocks
+#'   null proportions, likelihoods and degrees of freedom for all the blocks 
 #'   (unique SNPs) assigned to a given gene.
-#' @slot results Data frame with \code{gene_id} - gene IDs, \code{block_id} -
-#'   block IDs, \code{snp_id} - SNP IDs, \code{lr} - likelihood ratio
-#'   statistics, \code{df} - degrees of freedom, \code{pvalue} - p-values and
-#'   \code{adj_pvalue} - Benjamini & Hochberg adjusted p-values.
+#' @slot results Data frame with \code{gene_id} - gene IDs, \code{block_id} - 
+#'   block IDs, \code{snp_id} - SNP IDs, \code{lr} - likelihood ratio 
+#'   statistics, \code{df} - degrees of freedom, \code{pvalue} - p-values
+#'   estimated based on permutations and \code{adj_pvalue} - Benjamini &
+#'   Hochberg adjusted p-values.
 #'   
 #' @examples 
 #' 
@@ -58,7 +59,7 @@ NULL
 #' 
 #' }
 #' @author Malgorzata Nowicka
-#' @seealso \code{\link{data_dmSQTLdata}}, \code{\linkS4class{dmSQTLdata}},
+#' @seealso \code{\link{data_dmSQTLdata}}, \code{\linkS4class{dmSQTLdata}}, 
 #'   \code{\linkS4class{dmSQTLdispersion}}, \code{\linkS4class{dmSQTLfit}}
 setClass("dmSQTLtest", 
   contains = "dmSQTLfit",
@@ -112,9 +113,11 @@ setMethod("show", "dmSQTLtest", function(object){
 ### dmTest
 ###############################################################################
 
+#' @param permutations Character specifying which permutation scheme to apply for p-value calculation. When equal to \code{"all_genes"}, null distribution of p-values is calculated from all genes and the maximum number of permutation cycles is 10. When  \code{permutations = "per_gene"}, null distribution of p-values is calculated for each gene separately based on permutations of this individual gene. The latter approach may take a lot of computational time. We suggest using the first option.
 #' @rdname dmTest
 #' @export
-setMethod("dmTest", "dmSQTLfit", function(x, prop_mode = "constrOptimG", 
+setMethod("dmTest", "dmSQTLfit", function(x, permutations = "all_genes", 
+  prop_mode = "constrOptimG", 
   prop_tol = 1e-12, verbose = 0, 
   BPPARAM = BiocParallel::MulticoreParam(workers = 1)){
   
@@ -123,20 +126,55 @@ setMethod("dmTest", "dmSQTLfit", function(x, prop_mode = "constrOptimG",
   stopifnot(length(prop_tol) == 1)
   stopifnot(is.numeric(prop_tol) && prop_tol > 0)
   stopifnot(verbose %in% 0:2)
+  stopifnot(permutations %in% c("all_genes", "per_gene"))
+  
   
   fit_null <- dmSQTL_fitOneModel(counts = x@counts, genotypes = x@genotypes, 
     dispersion = slot(x, x@dispersion), model = "null", prop_mode = prop_mode, 
     prop_tol = prop_tol, verbose = verbose, BPPARAM = BPPARAM)
   
+  ### For "per_gene" approach, results is returned as a list, 
+  ### so I do not have to split it in dmSQTL_permutations_per_gene
+  if(permutations == "all_genes")
+    return_list <- FALSE
+  if(permutations == "per_gene")
+    return_list <- TRUE
+  
+  
   results <- dmSQTL_test(fit_full = x@fit_full, fit_null = fit_null, 
+    return_list = return_list, 
     verbose = verbose, BPPARAM = BPPARAM)
   
-  colnames(results)[colnames(results) == "snp_id"] <- "block_id" 
   
+  if(verbose)
+    message("\n** Running permutations..\n")
+  
+  ### Calculate adjusted p-values using permutations
+  
+  # P-value for a gene computed using all the permutations
+  if(permutations == "all_genes")
+    pval_adj_perm <- dmSQTL_permutations_all_genes(x = x, fit_null = fit_null, 
+      results = results, max_nr_perm_cycles = 10, max_nr_min_nr_sign_pval = 1e3, 
+      prop_mode = prop_mode, prop_tol = prop_tol, 
+      verbose = verbose, BPPARAM = BPPARAM)
+  
+  # P-value for a gene computed using permutations of that gene 
+  if(permutations == "per_gene")
+    pval_adj_perm <- dmSQTL_permutations_per_gene(x = x, fit_null = fit_null, 
+      results = results, max_nr_perm = 1e6, max_nr_sign_pval = 1e2, 
+      prop_mode = prop_mode, prop_tol = prop_tol, 
+      verbose = verbose, BPPARAM = BPPARAM)
+  
+  
+  results$pvalue <- pval_adj_perm
+  results$adj_pvalue <- p.adjust(pval_adj_perm, method="BH")
+  
+  
+  colnames(results)[colnames(results) == "snp_id"] <- "block_id" 
   results_spl <- split(results, factor(results$gene_id, 
     levels = names(x@blocks)))
-  
   inds <- 1:length(results_spl)
+  
   
   results_new <- lapply(inds, function(i){
     # i = 1
@@ -145,9 +183,8 @@ setMethod("dmTest", "dmSQTLfit", function(x, prop_mode = "constrOptimG",
     blo <- x@blocks[[i]]
     matching <- match(blo[, "block_id"], res[, "block_id"])
     snp_id <- blo[, "snp_id"]
-    res_new <- cbind(res[matching, c("gene_id", "block_id"), drop = FALSE], 
-      snp_id, 
-      res[matching, c("lr", "df", "pvalue", "adj_pvalue"), drop = FALSE])
+    res_new <- cbind(res[matching, c("gene_id", "block_id")], snp_id, 
+      res[matching, c("lr", "df", "pvalue", "adj_pvalue")])
     
     return(res_new)
     

@@ -12,21 +12,21 @@ NULL
 ### Data documentation
 ################################################################################
 
-#' Sample data for differential splicing analysis
-#' 
-#' We use a subset of kallisto transcript counts from 
-#' \code{PasillaTranscriptExpr} package.
-#' 
-#' @format \code{data_dmDSdata} is a \code{\linkS4class{dmDSdata}} object. See 
-#'   Examples.
-#'   
-#' @source Brooks AN, Yang L, Duff MO, et al. Conservation of an RNA regulatory 
-#'   map between Drosophila and mammals. Genome Res. 2011;21(2):193-202
-#'   
-#'   \code{PasillaTranscriptExpr} package
-#'   
-#' @return \code{data_dmDSdata}
-#'   
+#'Sample data for differential splicing analysis
+#'
+#'We use a subset of kallisto transcript counts from 
+#'\code{PasillaTranscriptExpr} package.
+#'
+#'@format \code{data_dmDSdata} is a \code{\linkS4class{dmDSdata}} object. See 
+#'  Examples.
+#'  
+#'@source Brooks AN, Yang L, Duff MO, et al. Conservation of an RNA regulatory 
+#'  map between Drosophila and mammals. Genome Res. 2011;21(2):193-202
+#'  
+#'  \code{PasillaTranscriptExpr} package
+#'  
+#'@return \code{data_dmDSdata}
+#'  
 #' @examples 
 #' 
 #' #############################
@@ -38,18 +38,20 @@ NULL
 #' 
 #' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 #' 
-#' metadata <- read.table(file.path(data_dir, "metadata.txt"), 
-#'  header = TRUE, as.is = TRUE)
-#' metadata
-#' 
-#' counts <- read.table(file.path(data_dir, "counts.txt"), 
-#'  header = TRUE, as.is = TRUE)
-#' head(counts)
-#' 
+#' # Load metadata
+#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
+#' as.is = TRUE)
+#'
+#' # Load counts
+#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
+#' as.is = TRUE)
+#'
+#' # Create a samples data frame
+#' samples <- data.frame(sample_id = metadata$SampleName, 
+#' group = metadata$condition)
+#'
 #' # Create a dmDSdata object
-#' d <- dmDSdata(counts = counts[, metadata$SampleName], 
-#'  gene_id = counts$gene_id, feature_id = counts$feature_id, 
-#'  sample_id = metadata$SampleName, group = metadata$condition)
+#' d <- dmDSdata(counts = counts, samples = samples)
 #' 
 #' plotData(d)
 #' 
@@ -155,14 +157,13 @@ NULL
 #' gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
 #' snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
 #' 
-#' # Make sure that samples in counts and genotypes are in the same order
-#' sample_id <- colnames(counts[, -(1:2)])
+#' colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
+#' colnames(genotypes)[4] <- "snp_id"
+#' samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
 #' 
-#' d <- dmSQTLdataFromRanges(counts = counts[, sample_id], 
-#'    gene_id = counts$Gene_Symbol, feature_id = counts$TargetID, 
-#'    gene_ranges = gene_ranges, genotypes = genotypes[, sample_id], 
-#'    snp_id = genotypes$snpId, snp_ranges = snp_ranges, sample_id = sample_id, 
-#'    window = 5e3, BPPARAM = BiocParallel::SerialParam())
+#' d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
+#' genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
+#' window = 5e3, BPPARAM = BiocParallel::SerialParam())
 #' 
 #' plotData(d)
 #' 

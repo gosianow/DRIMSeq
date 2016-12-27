@@ -5,12 +5,12 @@
 \alias{data_dmDSdata}
 \title{Sample data for differential splicing analysis}
 \format{\code{data_dmDSdata} is a \code{\linkS4class{dmDSdata}} object. See 
-  Examples.}
+ Examples.}
 \source{
 Brooks AN, Yang L, Duff MO, et al. Conservation of an RNA regulatory 
-  map between Drosophila and mammals. Genome Res. 2011;21(2):193-202
-  
-  \code{PasillaTranscriptExpr} package
+ map between Drosophila and mammals. Genome Res. 2011;21(2):193-202
+ 
+ \code{PasillaTranscriptExpr} package
 }
 \usage{
 data_dmDSdata
@@ -33,18 +33,20 @@ library(PasillaTranscriptExpr)
 
 data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 
-metadata <- read.table(file.path(data_dir, "metadata.txt"), 
- header = TRUE, as.is = TRUE)
-metadata
+# Load metadata
+metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
+as.is = TRUE)
 
-counts <- read.table(file.path(data_dir, "counts.txt"), 
- header = TRUE, as.is = TRUE)
-head(counts)
+# Load counts
+counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
+as.is = TRUE)
+
+# Create a samples data frame
+samples <- data.frame(sample_id = metadata$SampleName, 
+group = metadata$condition)
 
 # Create a dmDSdata object
-d <- dmDSdata(counts = counts[, metadata$SampleName], 
- gene_id = counts$gene_id, feature_id = counts$feature_id, 
- sample_id = metadata$SampleName, group = metadata$condition)
+d <- dmDSdata(counts = counts, samples = samples)
 
 plotData(d)
 

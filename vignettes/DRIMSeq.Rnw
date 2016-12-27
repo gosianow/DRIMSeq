@@ -88,16 +88,16 @@ on a single core computer. In practice, the package is designed to take
 advantage of multicore computing for larger data sets.
 
 Both pipelines consist of the initial steps where objects containing the data 
-for the analysis are initiated and then filtered. Functions used for this 
+for the analysis are created and then filtered. Functions used for this 
 purpose, such as \Rfunction{dmDSdata} or \Rfunction{dmSQTLdata} and
 \Rfunction{dmFilter}, have some parameters (like \Robject{counts}, 
-\Robject{gene\_id}, \Robject{min\_samps\_gene\_expr}, etc.) for which no 
+\Robject{genotypes}, \Robject{min\_samps\_gene\_expr}, etc.) for which no 
 default values are predefined. These parameters must be specified by user in 
 order to proceed with the pipeline.
 
 Functions \Rfunction{dmDispersion}, \Rfunction{dmFit} and \Rfunction{dmTest}, 
 which perform the actual statistical analyses described above, require that 
-only one parameter \Robject{x} containing the data is specified by user. 
+only one parameter \Robject{x}, containing the data, is specified by user. 
 These functions have many other parameters available for tweaking, but they 
 do have default values, which were chosen based on many real data analyses.
 
@@ -184,18 +184,19 @@ library(DRIMSeq)
 @
 
 Create a \Rcode{dmDSdata} object (saved as variable \Robject{d}), which 
-contains counts and information about samples such as sample IDs and a 
-variable \Robject{group} defining the experimental groups/conditions. 
-Make sure that samples in \Rcode{counts} have the same order as in 
-\Rcode{metadata}. When printing variable \Robject{d}, you can see its 
+contains counts and information about samples, such as sample IDs and a 
+variable \Robject{group} defining the experimental groups/conditions, 
+which has to be stored in a data frame \Robject{samples}. 
+When printing variable \Robject{d}, you can see its 
 class, size and which accessor methods can be applied. For \Rcode{dmDSdata} 
 object, there are two methods that return data frames with counts and samples.
 
 
 <<DSdmDSdata_create>>=
-d <- dmDSdata(counts = counts[, metadata$SampleName], gene_id = counts$gene_id,
-  feature_id = counts$feature_id, sample_id = metadata$SampleName,
+samples <- data.frame(sample_id = metadata$SampleName, 
   group = metadata$condition)
+
+d <- dmDSdata(counts = counts, samples = samples)
 d
 head(counts(d), 3)
 head(samples(d), 3)
@@ -296,7 +297,7 @@ This step of our pipeline is the most time consuming. Thus consider using
 \Rcode{BPPARAM = BiocParallel::MulticoreParam()} with more than one worker.
 
 <<DSdmDispersion>>=
-d <- dmDispersion(d, verbose = 1, BPPARAM = BiocParallel::SerialParam())
+d <- dmDispersion(d, BPPARAM = BiocParallel::SerialParam())
 d
 head(mean_expression(d), 3)
 common_dispersion(d)
@@ -358,7 +359,7 @@ Now, if you call \Rfunction{proportions} or \Rfunction{statistics} function,
 results of null estimation are added to the previous data frames.
 
 <<DSdmTest>>=
-d <- dmTest(d, verbose = 1, BPPARAM = BiocParallel::SerialParam())
+d <- dmTest(d, BPPARAM = BiocParallel::SerialParam())
 d
 
 head(proportions(d), 3)
@@ -449,8 +450,8 @@ reference, the \Rpackage{DRIMSeq} work-flow for sQTL analysis is the same
 as for differential splicing.
 
 First, we have to create a \Rclass{dmSQTLdata} object, which contains feature 
-counts and genotypes. Similarly as in differential splicing pipeline, results 
-from every step are added to this object and at the end of the analysis, 
+counts and genotypes. Similarly as in the differential splicing pipeline, 
+results from every step are added to this object and at the end of the analysis, 
 it contains dispersion estimates, proportions estimates, likelihood ratio 
 statistics, p-values, adjusted p-values. As new elements are added, 
 the object also changes its name \Rclass{dmSQTLdata} $\rightarrow$ 
@@ -486,22 +487,26 @@ In the sQTL analysis, an initial data object \Robject{d} is of
 \Robject{dmSQTLdata} class and, additionally to feature counts, 
 it contains genotypes of SNPs that are in some surrounding of genes. 
 This surrounding is defined with the parameter \Rcode{window}. 
-In order to find out which SNPs should be tested with which genes we 
-can use the \Rfunction{dmSQTLdataFromRanges} functions which requires as 
-an input the location of genes and SNPs stored as \Rclass{GRanges} objects. 
-In the case you already know the match of SNPs and genes, you can use 
-the \Rfunction{dmSQTLdata} function.
+In order to find out which SNPs should be tested with which genes, 
+the \Rfunction{dmSQTLdata} functions requires as 
+an input the location of genes (\Rcode{gene\_ranges}) and 
+SNPs (\Rcode{snp\_ranges}) stored as \Rclass{GRanges} objects. 
+Variables with transcripts and genes in the \Robject{counts} data frame must 
+have names \Rcode{feature\_id} and \Rcode{gene\_id}, respectively. 
+In the \Robject{genotypes} data frame, the variable with SNP IDs 
+must have name \Rcode{snp\_id}.
 
 
 <<SQTLdmSQTLdata_create, message=FALSE>>=
-# Make sure that samples in counts and genotypes are in the same order
-sample_id <- colnames(counts[, -(1:2)])
+colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
+colnames(genotypes)[4] <- "snp_id"
 
-d <- dmSQTLdataFromRanges(counts = counts[, sample_id],
-  gene_id = counts$Gene_Symbol, feature_id = counts$TargetID,
-  gene_ranges = gene_ranges, genotypes = genotypes[, sample_id],
-  snp_id = genotypes$snpId, snp_ranges = snp_ranges, sample_id = sample_id,
+samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
+
+d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
+  genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
   window = 5e3, BPPARAM = BiocParallel::SerialParam())
+
 d
 @
 
@@ -622,7 +627,7 @@ worker when performing real data analysis.
 
 
 <<SQTLdmDispersion>>=
-d <- dmDispersion(d, verbose = 1, BPPARAM = BiocParallel::SerialParam())
+d <- dmDispersion(d, BPPARAM = BiocParallel::SerialParam())
 d
 @
 
@@ -655,7 +660,7 @@ p-values for each gene-block/SNP pair.
 
 
 <<SQTLdmTest>>=
-d <- dmTest(d, verbose = 1, BPPARAM = BiocParallel::SerialParam())
+d <- dmTest(d, BPPARAM = BiocParallel::SerialParam())
 d
 head(results(d), 3)
 plotTest(d)
