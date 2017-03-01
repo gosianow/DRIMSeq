@@ -84,8 +84,8 @@ Collate:
     'dm_fitRegression.R'
     'dm_plotData.R'
     'dm_plotDispersion.R'
-    'dm_plotPValues.R'
     'dm_plotProportions.R'
+    'dm_plotPvalues.R'
     'dm_profileLikModeration.R'
     'dm_twoStageTest.R'
 RoxygenNote: 5.0.1

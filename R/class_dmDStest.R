@@ -342,7 +342,6 @@ setGeneric("plotPValues", function(x, ...) standardGeneric("plotPValues"))
 #'   \code{\link{plotData}}, \code{\link{plotDispersion}}, \code{\link{plotProportions}}
 #' @rdname plotPValues
 #' @export
-#' @importFrom grDevices pdf dev.off
 setMethod("plotPValues", "dmDStest", function(x, level = "gene"){
   
   stopifnot(length(level) == 1)
