@@ -4,20 +4,20 @@
 
 dm_estimateMeanExpression <- function(counts, verbose = FALSE){
   
-  ### calculate mean expression of genes 
+  # Calculate mean expression of genes 
+  time_start <- Sys.time()
   if(verbose) message("* Calculating mean gene expression.. \n")
   
   inds <- 1:length(counts)
   
-  time <- system.time(mean_expression <- unlist(lapply(inds, function(g){ 
-    
+  mean_expression <- unlist(lapply(inds, function(g){ 
     mean(colSums(counts[[g]]), na.rm = TRUE)
-    
-  })))
+  }))
   
   names(mean_expression) <- names(counts)
   
-  if(verbose) message("Took ", round(time["elapsed"], 2), " seconds.\n")
+  time_end <- Sys.time()
+  if(verbose) message("Took ", round(time_end - time_start, 4), " seconds.\n")
   
   return(mean_expression)
   

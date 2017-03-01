@@ -23,6 +23,7 @@ dmDS_fit <- function(counts, design, dispersion,
   prop_mode = "constrOptimG", prop_tol = 1e-12, verbose = FALSE, 
   BPPARAM = BiocParallel::SerialParam()){
   
+  time_start <- Sys.time()
   if(verbose) message("* Fitting the DM model.. \n")
   
   inds <-  1:length(counts)
@@ -45,11 +46,11 @@ dmDS_fit <- function(counts, design, dispersion,
     igroups <- lapply(lgroups, function(gr){which(groups == gr)})
     names(igroups) <- lgroups
     
-    time <- system.time(ff <- BiocParallel::bplapply(inds, 
+    ff <- BiocParallel::bplapply(inds, 
       dmDS_fitGroups_gene, counts = counts, 
       ngroups = ngroups, lgroups = lgroups, igroups = igroups, 
       gamma0 = gamma0, prop_mode = prop_mode, prop_tol = prop_tol, 
-      verbose = verbose, BPPARAM = BPPARAM))
+      verbose = verbose, BPPARAM = BPPARAM)
     
     names(ff) <- names(counts)
     
@@ -77,9 +78,9 @@ dmDS_fit <- function(counts, design, dispersion,
     stop("Currently, regression framework is not implemented!")
   }
   
-  
+  time_end <- Sys.time()
   if(verbose >= 2) message("\n")
-  if(verbose) message("Took ", round(time["elapsed"], 4), " seconds.\n")
+  if(verbose) message("Took ", round(time_end - time_start, 4), " seconds.\n")
   
   # fit is a MatrixList
   # lik is a vector

@@ -65,13 +65,17 @@ setValidity("dmDSdata", function(object){
   
   if(!ncol(object@counts) == nrow(object@samples))
     return(paste0("Unequal number of samples in 'counts' and 'samples' ", 
-      ncol(object@counts), " and ", nrow(object@samples)))
+      ncol(object@counts), " and ", nrow(object@samples), "!"))
   
-  if(!all(c("sample_id", "group") %in% colnames(object@samples)))
-    return("'samples' must contain 'sample_id' and 'group' variables")
+  if(!all(c("sample_id") %in% colnames(object@samples)))
+    return("'samples' must contain 'sample_id' variable!")
   
   if(!length(unique(object@samples$sample_id)) == nrow(object@samples))
-    return("There must be a unique 'sample_id' for each sample")
+    return("There must be a unique 'sample_id' for each sample!")
+    
+  if(!all(colnames(object@counts) == object@samples$sample_id))
+    return("Column names of 'counts' must be the same as 'sample_id' 
+      in 'samples'!")
   
   return(TRUE)
   
@@ -149,8 +153,13 @@ setMethod("[", "dmDSdata", function(x, i, j){
     samples <- x@samples
     rownames(samples) <- samples$sample_id
     samples <- samples[j, , drop = FALSE]
-    samples$sample_id <- factor(samples$sample_id)
-    samples$group <- factor(samples$group)
+    
+    # Drop unused levels for factors
+    for(i in 1:ncol(samples)){
+      if(class(samples[, i]) == "factor")
+        samples[, i] <- factor(samples[, i])
+    }
+
     rownames(samples) <- NULL
     
   }
@@ -220,76 +229,58 @@ dmDSdata <- function(counts, samples){
   
   ### Check on samples
   stopifnot(class(samples) == "data.frame")
-  stopifnot(all(c("sample_id", "group") %in% colnames(samples)))
+  stopifnot("sample_id" %in% colnames(samples))
   stopifnot(sum(duplicated(samples$sample_id)) == 0)
   
   ### Check on counts
   stopifnot(class(counts) == "data.frame")
   stopifnot(all(c("gene_id", "feature_id") %in% colnames(counts)))
-  stopifnot(all(samples$sample_id %in% colnames(counts)))
+  stopifnot(all(samples$sample_id == colnames(counts)))
+  stopifnot(sum(duplicated(counts$feature_id)) == 0)
   
-  
-  sample_id <- samples$sample_id
-  group <- samples$group
   gene_id <- counts$gene_id
   feature_id <- counts$feature_id
   
   stopifnot( class( gene_id ) %in% c("character", "factor"))
   stopifnot( class( feature_id ) %in% c("character", "factor"))
-  stopifnot( class( sample_id ) %in% c("character", "factor"))
-  stopifnot( class( group ) %in% c("character", "factor"))
+  stopifnot( class( samples$sample_id ) %in% c("character", "factor"))
   
   stopifnot(all(!is.na(gene_id)))
   stopifnot(all(!is.na(feature_id)))
-  stopifnot(all(!is.na(sample_id)))
-  stopifnot(all(!is.na(group)))
+  stopifnot(all(!is.na(samples$sample_id)))
   
-  
-  counts <- counts[, as.character(sample_id), drop = FALSE]
+  counts <- counts[, as.character(samples$sample_id), drop = FALSE]
   
   counts <- as.matrix(counts)
   stopifnot(mode(counts) %in% "numeric")
-  
 
   if(class(gene_id) == "character")
     gene_id <- factor(gene_id, levels = unique(gene_id))
   else 
     gene_id <- factor(gene_id)
   
-  if(class(group) == "character")
-    group <- factor(group, levels = unique(group))
-  else 
-    group <- factor(group)
+  for(i in 1:ncol(samples)){
+    
+    if(class(samples[, i]) == "character")
+      samples[, i] <- factor(samples[, i], levels = unique(samples[, i]))
+    else if(class(samples[, i]) == "factor")
+      samples[, i] <- factor(samples[, i])
+    
+  }
   
-  if(class(sample_id) == "character")
-    sample_id <- factor(sample_id, levels = unique(sample_id))
-  else 
-    sample_id <- factor(sample_id)
-  
-  
-  tbl <- table(group)
-  if(all(tbl < 2))
-    stop("There must be at least one group with two replicates!")
-  
-  ### ordering
+  # Ordering
   or <- order(gene_id)
-  oc <- order(group)
-  
-  counts <- counts[or, oc, drop = FALSE]
+
+  counts <- counts[or, , drop = FALSE]
   gene_id <- gene_id[or]
   feature_id <- feature_id[or]
-  group <- group[oc]
-  sample_id <- sample_id[oc]
   
-  colnames(counts) <- sample_id
   rownames(counts) <- feature_id
   
   inds <- 1:length(gene_id)
   names(inds) <- feature_id
   
   partitioning <- split(inds, gene_id)
-  
-  samples <- data.frame(sample_id = sample_id, group = group)
   
   data <- new("dmDSdata", counts = new("MatrixList", unlistData = counts, 
     partitioning = partitioning), samples = samples)
@@ -354,9 +345,6 @@ setGeneric("dmFilter", function(x, ...) standardGeneric("dmFilter"))
 #'   be expressed. See details.
 #' @param min_feature_prop Minimal proportion for feature expression. This value
 #'   should be between 0 and 1.
-#' @param max_features Maximum number of features, which pass the filtering 
-#'   criteria, that should be kept for each gene. If equal to \code{Inf}, all
-#'   features that pass the filtering criteria are kept.
 #' @return Returns filtered \code{\linkS4class{dmDSdata}} or 
 #'   \code{\linkS4class{dmSQTLdata}} object.
 #' @examples 
@@ -381,7 +369,7 @@ setGeneric("dmFilter", function(x, ...) standardGeneric("dmFilter"))
 #' @export
 setMethod("dmFilter", "dmDSdata", function(x, min_samps_gene_expr, 
   min_samps_feature_expr, min_samps_feature_prop, min_gene_expr = 10, 
-  min_feature_expr = 10, min_feature_prop = 0, max_features = Inf){
+  min_feature_expr = 10, min_feature_prop = 0){
   
   stopifnot(min_samps_gene_expr >= 0 && 
       min_samps_gene_expr <= ncol(x@counts))
@@ -392,17 +380,16 @@ setMethod("dmFilter", "dmDSdata", function(x, min_samps_gene_expr,
   stopifnot(min_samps_feature_prop >= 0 && 
       min_samps_feature_prop <= ncol(x@counts))
   stopifnot(min_feature_prop >= 0 && min_feature_prop <= 1)
-  stopifnot(max_features >= 2)
   
-  data_filtered <- dmDS_filter(counts = x@counts, samples = x@samples, 
-    min_samps_gene_expr = min_samps_gene_expr,  min_gene_expr = min_gene_expr, 
+  counts_filtered <- dmDS_filter(counts = x@counts, 
+    min_samps_gene_expr = min_samps_gene_expr,  
+    min_gene_expr = min_gene_expr, 
     min_samps_feature_expr = min_samps_feature_expr, 
     min_feature_expr = min_feature_expr,
     min_samps_feature_prop = min_samps_feature_prop, 
-    min_feature_prop = min_feature_prop,  max_features = max_features)
+    min_feature_prop = min_feature_prop)
   
-  return(data_filtered)
-  
+  return(new("dmDSdata", counts = counts_filtered, samples = samples))
   
 })
 

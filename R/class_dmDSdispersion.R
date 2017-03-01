@@ -34,7 +34,9 @@ NULL
 #' @slot mean_expression Numeric vector of mean gene expression.
 #' @slot common_dispersion Numeric value of estimated common dispersion.
 #' @slot genewise_dispersion Numeric vector of estimated gene-wise dispersions.
-#'   
+#' @slot design_dispersion Numeric matrix of the desing 
+#' used to estimate dispersion.
+#' 
 #' @examples 
 #' 
 #' ###################################
@@ -65,8 +67,10 @@ NULL
 #'   \code{\linkS4class{dmDSfit}}, \code{\linkS4class{dmDStest}}
 setClass("dmDSdispersion", 
   contains = "dmDSdata",
-  representation(mean_expression = "numeric", common_dispersion = "numeric",
-    genewise_dispersion = "numeric"))
+  representation(mean_expression = "numeric", 
+    common_dispersion = "numeric",
+    genewise_dispersion = "numeric",
+    design_dispersion = "matrix"))
 
 
 ####################################
@@ -102,6 +106,13 @@ setValidity("dmDSdispersion", function(object){
       out <- TRUE
     else
       return(paste0("'common_dispersion' must be a vector of length 1'"))
+  }
+  
+  if(nrow(object@design_dispersion) == ncol(object@counts)){
+    out <- TRUE
+  }else{
+    return(paste0("Number of rows in design matrix must equal 
+      to the number of columns in counts"))
   }
   
   return(out)
@@ -152,6 +163,7 @@ setMethod("common_dispersion<-", "dmDSdispersion", function(x, value){
   names(value) <- NULL
   return(new("dmDSdispersion", mean_expression = x@mean_expression, 
     common_dispersion = value, genewise_dispersion = x@genewise_dispersion, 
+    design_dispersion = x@design_dispersion,
     counts = x@counts, samples = x@samples))
   
 })
@@ -180,14 +192,16 @@ setGeneric("genewise_dispersion<-", function(x, value)
 #' @rdname dmDSdispersion-class
 #' @export
 setMethod("genewise_dispersion<-", "dmDSdispersion", function(x, value){
-  ### value must be a data.frame with gene_id and genewise_dispersion columns
+  
+  # Value must be a data.frame with gene_id and genewise_dispersion columns
   stopifnot(all(c("gene_id", "genewise_dispersion") %in% colnames(value)))
   stopifnot(all(names(x@counts) %in% value[,"gene_id"]))
   order <- match(names(x@counts), value[,"gene_id"])
   
   return(new("dmDSdispersion", mean_expression = x@mean_expression, 
     common_dispersion = x@common_dispersion, 
-    genewise_dispersion = value[order, "genewise_dispersion"], 
+    genewise_dispersion = value[order, "genewise_dispersion"],
+    design_dispersion = x@design_dispersion,  
     counts = x@counts, samples = x@samples))
   
 })
@@ -228,10 +242,9 @@ setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
 #'   prefix \code{disp_}, and those that are used for the proportion estimation 
 #'   start with \code{prop_}.
 #'   
-#'   There are 4 optimization methods implemented within dmDispersion 
-#'   (\code{"optimize"}, \code{"optim"}, \code{"constrOptim"} and \code{"grid"})
-#'   that can be used to estimate the gene-wise dispersion. Common dispersion is
-#'   estimated with \code{"optimize"}.
+#'   There are 2 optimization methods implemented within dmDispersion 
+#'   \code{"optimize"} for the common dispersion and \code{"grid"}
+#'   for the gene-wise dispersion. 
 #'   
 #'   Arguments that are used by all the methods are:
 #'   
@@ -248,30 +261,15 @@ setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
 #'   \code{\link{constrOptim}}. }
 #'   
 #'   Only some of the rest of dispersion parameters in dmDispersion have an 
-#'   influence on the output for a given \code{disp_mode}. Here is a list of
-#'   such active parameters for different modes:
+#'   influence on a given optimization method. Here is a list of
+#'   such active parameters:
 #'   
-#'   \code{"optimize"}, which uses \code{\link{optimize}} to maximize the
-#'   profile likelihood.
+#'   \code{"optimize"}:
 #'   
 #'   \itemize{ \item \code{disp_interval}: Passed as \code{interval}. \item 
 #'   \code{disp_tol}: The accuracy defined as \code{tol}. }
 #'   
-#'   \code{"optim"}, which uses \code{\link{optim}} to maximize the profile 
-#'   likelihood.
-#'   
-#'   \itemize{ \item \code{disp_init} and \code{disp_init_weirMoM}: The initial 
-#'   value \code{par}. \item \code{disp_tol}: The accuracy defined as 
-#'   \code{factr}. }
-#'   
-#'   \code{"constrOptim"}, which uses \code{\link{constrOptim}} to maximize the 
-#'   profile likelihood.
-#'   
-#'   \itemize{ \item \code{disp_init} and \code{disp_init_weirMoM}: The initial 
-#'   value \code{theta}.. \item \code{disp_tol}: The accuracy defined as 
-#'   \code{reltol}. }
-#'   
-#'   \code{"grid"}, which uses the grid approach from \code{\link{edgeR}}.
+#'   \code{"grid"}, which uses the grid approach from \code{\link{edgeR}}:
 #'   
 #'   \itemize{ \item \code{disp_init}, \code{disp_grid_length}, 
 #'   \code{disp_grid_range}: Parameters used to construct the search grid 
@@ -292,18 +290,16 @@ setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
 #'   dispersion.
 #' @param disp_adjust Logical. Whether to use the Cox-Reid adjusted or 
 #'   non-adjusted profile likelihood.
-#' @param disp_mode Optimization method used to maximize the profile likelihood.
-#'   Possible values are \code{"optimize"}, \code{"optim"}, 
-#'   \code{"constrOptim"}, \code{"grid"}. See Details.
+#' @param disp_subset Value from 0 to 1 defining the percentage of genes used in
+#' common dispersion estimation. The default is 0.1, which uses 10% of randomly 
+#' selected genes to speed up the dispersion estimation process. 
+#' Use \code{set.seed} function to make the analysis reproducible. See Examples.
 #' @param  disp_interval Numeric vector of length 2 defining the interval of 
-#'   possible values for the dispersion.
-#' @param disp_tol The desired accuracy when estimating dispersion.
+#'   possible values for the common dispersion.
+#' @param disp_tol The desired accuracy when estimating common dispersion.
 #' @param disp_init Initial dispersion. If \code{common_dispersion} is 
 #'   \code{TRUE}, then \code{disp_init} is overwritten by common dispersion 
 #'   estimate.
-#' @param disp_init_weirMoM Logical. Whether to use the Weir moment estimator as
-#'   an initial value for dispersion. If \code{TRUE}, then \code{disp_init} is 
-#'   replaced by Weir estimates.
 #' @param  disp_grid_length Length of the search grid.
 #' @param  disp_grid_range Vector giving the limits of grid interval.
 #' @param disp_moderation Dispersion moderation method. One can choose to shrink
@@ -354,28 +350,28 @@ setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
 #' @author Malgorzata Nowicka
 #' @rdname dmDispersion
 #' @export
-setMethod("dmDispersion", "dmDSdata", function(x, mean_expression = TRUE, 
-  common_dispersion = TRUE, genewise_dispersion = TRUE, disp_adjust = TRUE, 
-  disp_mode = "grid", disp_interval = c(0, 1e+5), disp_tol = 1e-08, 
-  disp_init = 100, disp_init_weirMoM = TRUE, disp_grid_length = 21, 
-  disp_grid_range = c(-10, 10), disp_moderation = "trended", disp_prior_df = 0, 
-  disp_span = 0.1, prop_mode = "constrOptimG", prop_tol = 1e-12, verbose = 0, 
-  BPPARAM = BiocParallel::MulticoreParam(workers = 1)){
+setMethod("dmDispersion", "dmDSdata", function(x, design, 
+  mean_expression = TRUE, common_dispersion = TRUE, genewise_dispersion = TRUE,
+  disp_adjust = TRUE, disp_subset = 0.1, 
+  disp_interval = c(0, 1e+5), disp_tol = 1e+01, 
+  disp_init = 100, disp_grid_length = 21, disp_grid_range = c(-10, 10), 
+  disp_moderation = "trended", disp_prior_df = 0, disp_span = 0.1, 
+  prop_mode = "constrOptimG", prop_tol = 1e-12, 
+  verbose = 0, BPPARAM = BiocParallel::MulticoreParam(workers = 1)){
   
   ### Parameter checks:
   stopifnot(is.logical(mean_expression))
   stopifnot(is.logical(common_dispersion))
   stopifnot(is.logical(genewise_dispersion))
   stopifnot(is.logical(disp_adjust))
-  stopifnot(length(disp_mode) == 1)
-  stopifnot(disp_mode %in% c("optimize", "optim", "constrOptim", "grid"))
+  stopifnot(length(disp_subset) == 1)
+  stopifnot(is.numeric(disp_subset) && disp_subset > 0 && disp_subset <= 1)
   stopifnot(length(disp_interval) == 2)
   stopifnot(disp_interval[1] < disp_interval[2])
   stopifnot(length(disp_tol) == 1)
   stopifnot(is.numeric(disp_tol) && disp_tol > 0)
   stopifnot(length(disp_init) == 1)
   stopifnot(is.numeric(disp_init))
-  stopifnot(is.logical(disp_init_weirMoM))
   stopifnot(disp_grid_length > 2)
   stopifnot(length(disp_grid_range) == 2)
   stopifnot(disp_grid_range[1] < disp_grid_range[2])
@@ -391,9 +387,8 @@ setMethod("dmDispersion", "dmDSdata", function(x, mean_expression = TRUE,
   stopifnot(is.numeric(prop_tol) && prop_tol > 0)
   stopifnot(verbose %in% 0:2)
   
-  
-  if(mean_expression || (genewise_dispersion && disp_mode == "grid" && 
-      disp_moderation == "trended")){
+  if(mean_expression || (genewise_dispersion && 
+    disp_moderation == "trended")){
     mean_expression <- dm_estimateMeanExpression(counts = x@counts, 
       verbose = verbose)
   }else{
@@ -401,11 +396,25 @@ setMethod("dmDispersion", "dmDSdata", function(x, mean_expression = TRUE,
   }
   
   if(common_dispersion){
-    common_dispersion <- dmDS_estimateCommonDispersion(counts = x@counts, 
-      samples = x@samples, disp_adjust = disp_adjust, 
-      disp_interval = disp_interval, 
-      disp_tol = 1e+01, prop_mode = prop_mode, prop_tol = prop_tol, 
+
+    if(disp_subset < 1){
+      
+      message(paste0("! Using a subset of ", disp_subset, 
+        " genes to estimate common dispersion !\n"))
+      
+      genes2keep <- sample(1:length(x@counts), 
+        max(round(disp_subset * length(x@counts)), 1), replace = FALSE)
+    }else{
+      genes2keep <- 1:length(x@counts)
+    }
+    
+    common_dispersion <- dmDS_estimateCommonDispersion(
+      counts = x@counts[genes2keep, ], 
+      design = design, disp_adjust = disp_adjust, 
+      disp_interval = disp_interval, disp_tol = disp_tol,
+      prop_mode = prop_mode, prop_tol = prop_tol, 
       verbose = verbose, BPPARAM = BPPARAM)
+    
   }else{
     common_dispersion <- numeric()
   }
@@ -413,23 +422,20 @@ setMethod("dmDispersion", "dmDSdata", function(x, mean_expression = TRUE,
   
   if(genewise_dispersion){
     
-    if(length(common_dispersion)){
-      message("! Using common_dispersion = ", round(common_dispersion, 2), 
-        " as disp_init !")
+    if(length(common_dispersion) == 1){
+      message("! Using common_dispersion = ", round(common_dispersion, 4), 
+        " as disp_init !\n")
       disp_init <- common_dispersion
     }
     
     genewise_dispersion <- dmDS_estimateTagwiseDispersion(counts = x@counts, 
-      samples = x@samples, mean_expression = mean_expression, 
-      disp_adjust = disp_adjust, disp_mode = disp_mode, 
-      disp_interval = disp_interval, disp_tol = disp_tol, 
-      disp_init = disp_init, 
-      disp_init_weirMoM = disp_init_weirMoM, 
-      disp_grid_length = disp_grid_length, 
-      disp_grid_range = disp_grid_range, disp_moderation = disp_moderation, 
+      design = design, mean_expression = mean_expression, 
+      disp_adjust = disp_adjust, disp_init = disp_init, 
+      disp_grid_length = disp_grid_length, disp_grid_range = disp_grid_range, 
+      disp_moderation = disp_moderation, 
       disp_prior_df = disp_prior_df, disp_span = disp_span, 
-      prop_mode = prop_mode, 
-      prop_tol = prop_tol, verbose = verbose, BPPARAM = BPPARAM)
+      prop_mode = prop_mode, prop_tol = prop_tol, 
+      verbose = verbose, BPPARAM = BPPARAM)
     
   }else{
     genewise_dispersion <- numeric()
@@ -439,6 +445,7 @@ setMethod("dmDispersion", "dmDSdata", function(x, mean_expression = TRUE,
   return(new("dmDSdispersion", mean_expression = mean_expression, 
     common_dispersion = common_dispersion, 
     genewise_dispersion = genewise_dispersion, 
+    design_dispersion = design,
     counts = x@counts, samples = x@samples))
   
   

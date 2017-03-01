@@ -8,34 +8,33 @@ dmDS_estimateTagwiseDispersion <- function(counts, design, mean_expression,
   prop_mode = "constrOptimG", prop_tol = 1e-12, verbose = FALSE, 
   BPPARAM = BiocParallel::SerialParam()){
   
+  time_start <- Sys.time()
   if(verbose) message("* Estimating genewise dispersion.. \n")
   
-  
   ### Standard grid like in edgeR
-  splinePts <- seq(from = disp_grid_range[1], to = disp_grid_range[2], 
+  spline_pts <- seq(from = disp_grid_range[1], to = disp_grid_range[2], 
     length = disp_grid_length)
   
-  splineDisp <- disp_init * 2^splinePts
-  seq_disp_grid_length <- seq(disp_grid_length)
+  spline_disp <- disp_init * 2^spline_pts
   
-  ### calculate the likelihood for each gene at the spline dispersion points
-  loglikL <- BiocParallel::bplapply(inds, dmDS_grid_dm_profileLikTagwise, 
-    seq_disp_grid_length = seq_disp_grid_length, splineDisp = splineDisp,
-    counts = counts, 
-    ngroups = ngroups, lgroups = lgroups, igroups = igroups,
-    disp_adjust = disp_adjust, prop_mode = prop_mode, prop_tol = prop_tol, 
-    verbose = verbose, disp_grid_length = disp_grid_length, 
-    BPPARAM = BPPARAM)
+  # Calculate the likelihood for each gene at the spline dispersion points
+  loglik <- matrix(NA, nrow = length(counts), ncol = disp_grid_length)
   
-  
-  loglik <- do.call(rbind, loglikL)
-  
+  for(i in seq(disp_grid_length)){
+    # i = 1
+    
+    loglik[, i] <- dmDS_profileLik(gamma0 = spline_disp[i], counts = counts, 
+      design = design, disp_adjust = disp_adjust, 
+      prop_mode = prop_mode, prop_tol = prop_tol, 
+      verbose = max(0, verbose - 1), BPPARAM = BPPARAM)
+
+  }
   
   not_nas <- complete.cases(loglik)        
   loglik <- loglik[not_nas, , drop = FALSE]
   
   if(nrow(loglik) == 0){
-    dispersion <- rep(NA, length(inds))
+    dispersion <- rep(NA, length(counts))
     names(dispersion) <- names(counts)
     return(dispersion)
   }
@@ -49,19 +48,17 @@ dmDS_estimateTagwiseDispersion <- function(counts, design, mean_expression,
       disp_moderation = disp_moderation, 
       disp_prior_df = disp_prior_df, disp_span = disp_span)
     
-    
   }
   
-  out <- edgeR::maximizeInterpolant(splinePts, loglik)
+  out <- edgeR::maximizeInterpolant(spline_pts, loglik)
   
-  ### set NA for genes that tagwise disp could not be calculated 
-  dispersion <- rep(NA, length(inds))
+  # Set NA for genes that tagwise disp could not be calculated 
+  dispersion <- rep(NA, length(counts))
   names(dispersion) <- names(counts)
   dispersion[not_nas] <- disp_init * 2^out
   
-  
-  
-  if(verbose) message("Took ", round(time["elapsed"], 2), " seconds.\n")
+  time_end <- Sys.time()
+  if(verbose) message("Took ", round(time_end - time_start, 4), " seconds.\n")
   
   return(dispersion)
   

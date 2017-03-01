@@ -54,7 +54,7 @@ dm_profileLikModeration <- function(loglik, mean_expression,
       
 
         message(paste0("! Using ", round(priorN, 4), 
-          " as a shrinkage factor !"))
+          " as a shrinkage factor !\n"))
         
         loglik <- sweep(loglik, 2, priorN * moderation, FUN = "+")
 
@@ -104,9 +104,9 @@ dm_profileLikModeration <- function(loglik, mean_expression,
       
       if(length(priorN) == 1){
         message(paste0("! Using ", round(priorN, 4), 
-          " as a shrinkage factor !"))
+          " as a shrinkage factor !\n"))
       }else{
-        message(paste0("! Using loess fit as a shrinkage factor !"))
+        message(paste0("! Using loess fit as a shrinkage factor !\n"))
       }
       
       loglik <- loglik + priorN * moderation

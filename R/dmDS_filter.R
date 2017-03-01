@@ -1,7 +1,7 @@
 
-dmDS_filter <- function(counts, samples, min_samps_gene_expr = 6, 
+dmDS_filter <- function(counts, min_samps_gene_expr = 6, 
   min_gene_expr = 10, min_samps_feature_expr = 3, min_feature_expr = 10, 
-  min_samps_feature_prop = 3, min_feature_prop = 0.01, max_features = Inf){
+  min_samps_feature_prop = 3, min_feature_prop = 0.01){
   
   inds <- which(elementNROWS(counts) > 1)
   
@@ -57,20 +57,6 @@ dmDS_filter <- function(counts, samples, min_samps_gene_expr = 6,
     if(sum(features2keep) <= 1)
       return(NULL)
     
-    if(!max_features == Inf){
-      if(sum(features2keep) > max_features){
-        
-        tr_order <- order(apply(aggregate(t(prop[features2keep, , drop = FALSE]), 
-          by = list(group = samples$group[samps2keep]), median)[, -1], 2, max), 
-          decreasing = TRUE)
-        
-        features2keep <- features2keep[features2keep]
-        
-        features2keep <- names(features2keep[sort(tr_order[1:max_features])])
-        
-      }
-    }
-    
     expr <- expr_features[features2keep, , drop = FALSE] 
     
     return(expr)
@@ -85,9 +71,7 @@ dmDS_filter <- function(counts, samples, min_samps_gene_expr = 6,
   
   counts_new <- MatrixList(counts_new)
   
-  data <- new("dmDSdata", counts = counts_new, samples = samples)
-  
-  return(data)
+  return(counts_new)
   
 }
 

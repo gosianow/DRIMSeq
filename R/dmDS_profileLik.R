@@ -1,24 +1,22 @@
 
 
-dmDS_profileLik <- function(gamma0, y, design, 
+dmDS_profileLik <- function(gamma0, counts, design, 
   disp_adjust = TRUE, prop_mode = "constrOptimG", prop_tol = 1e-12, 
-  verbose = FALSE){
+  verbose = FALSE, BPPARAM = BiocParallel::SerialParam()){
   
-  fit <- dm_fitOneGeneManyGroups(y = y, ngroups = ngroups, 
-    lgroups = lgroups, igroups = igroups, gamma0 = gamma0, 
-    prop_mode = prop_mode, prop_tol = prop_tol, verbose = verbose) 
-  
-  lik <- sum(fit$lik, na.rm = TRUE)
+  fit <- dmDS_fit(counts = counts, design = design, dispersion = gamma0,
+  prop_mode = prop_mode, prop_tol = prop_tol, verbose = verbose, 
+  BPPARAM = BPPARAM)
   
   if(!disp_adjust)
-    return(lik)
+    return(fit$lik)
   
-  adj <- dm_adjustmentOneGeneManyGroups(y = y, ngroups = ngroups, 
-    lgroups = lgroups, igroups = igroups, gamma0 = gamma0, pi = fit$pi) 
+  adj <- dmDS_CRadjustment(counts = counts, fit = fit$fit, design = design, 
+    dispersion = gamma0, verbose = verbose, BPPARAM = BPPARAM) 
   
-  adjLik <- lik - adj
+  adj_lik <- fit$lik - adj
   
-  return(adjLik)
+  return(adj_lik)
   
 }
 
