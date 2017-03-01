@@ -8,4 +8,4 @@ data-raw/*
 vignettes/*
 !vignettes/DRIMSeq.Rnw
 !vignettes/DRIMSeq.pdf
-!vignettes/DRIMSeq.bib
+!vignettes/References.bib
