@@ -27,12 +27,12 @@ NULL
 #' @slot fit_full \code{\linkS4class{MatrixList}} containing estimated feature 
 #'   ratios in each sample based on the full Dirichlet-multinomial (DM) model.
 #' @slot lik_full Numeric vector of the per gene DM full model likelihoods.
-#' @slot coeffs_full \code{\linkS4class{MatrixList}} with the regression 
+#' @slot coef_full \code{\linkS4class{MatrixList}} with the regression 
 #'   coefficients based on the DM model
 #' @slot fit_full_bb \code{\linkS4class{MatrixList}} containing estimated
 #'   feature ratios in each sample based on the full beta-binomial (BB) model.
 #' @slot lik_full_bb Numeric vector of the per gene BB full model likelihoods.
-#' @slot coeffs_full_bb \code{\linkS4class{MatrixList}} with the regression 
+#' @slot coef_full_bb \code{\linkS4class{MatrixList}} with the regression 
 #'   coefficients based on the BB model
 #'   
 #' @examples 
@@ -68,10 +68,10 @@ setClass("dmDSfit",
   representation(design_fit_full = "matrix",
     fit_full = "MatrixList",
     lik_full = "numeric",
-    coeffs_full = "MatrixList",
+    coef_full = "MatrixList",
     fit_full_bb = "MatrixList",
     lik_full_bb = "numeric",
-    coeffs_full_bb = "MatrixList"))
+    coef_full_bb = "MatrixList"))
 
 
 # ------------------------------------------------------------------------------
@@ -92,8 +92,8 @@ setValidity("dmDSfit", function(object){
   if(!length(object@lik_full) == length(object@counts))
     return("Different length of 'counts' and 'lik_full'")
   
-  if(!length(object@coeffs_full) == length(object@counts))
-    return("Different length of 'counts' and 'coeffs_full'")
+  if(!length(object@coef_full) == length(object@counts))
+    return("Different length of 'counts' and 'coef_full'")
   
   # TODO: Add more checks
   
@@ -107,7 +107,7 @@ setValidity("dmDSfit", function(object){
 ### accessing methods
 ################################################################################
 
-# TODO: Change the accessing methods to return coeffs, liks and fit
+# TODO: Change the accessing methods to return coef, liks and fit
 
 #' @rdname dmDSfit-class
 #' @export
@@ -214,6 +214,8 @@ setMethod("dmFit", "dmDSdispersion", function(x, design,
   
   # Check design as in edgeR
   design <- as.matrix(design)
+  stopifnot(nrow(design) == ncol(x@counts))
+  
   ne <- limma::nonEstimable(design)
   if(!is.null(ne)) 
     stop(paste("Design matrix not of full rank. 
@@ -243,11 +245,8 @@ setMethod("dmFit", "dmDSdispersion", function(x, design,
     verbose = verbose, BPPARAM = BPPARAM)
   
   return(new("dmDSfit", design_fit_full = design, 
-    fit_full = fit[["fit"]], 
-    lik_full = fit[["lik"]], 
-    coeffs_full = fit[["coeffs"]],
-    lik_full_bb = fit_bb[["lik"]], 
-    coeffs_full_bb = fit_bb[["coeffs"]],
+    fit_full = fit[["fit"]], lik_full = fit[["lik"]], coef_full = fit[["coef"]],
+    lik_full_bb = fit_bb[["lik"]], coef_full_bb = fit_bb[["coef"]],
     mean_expression = x@mean_expression, 
     common_dispersion = x@common_dispersion, 
     genewise_dispersion = x@genewise_dispersion, 

@@ -70,9 +70,9 @@ dmDS_fit <- function(counts, design, dispersion,
       t(t(f[["pi"]])/f[["pi"]][nrow(f[["pi"]]), ])))
     logit_pi <- log(logit_pi@unlistData)
     
-    coeffs <- t(solve(design_unique, t(logit_pi)))
+    coef <- t(solve(design_unique, t(logit_pi)))
     
-    coeffs <- new("MatrixList", unlistData = coeffs, 
+    coef <- new("MatrixList", unlistData = coef, 
       partitioning = pi@partitioning)
     
     
@@ -86,8 +86,8 @@ dmDS_fit <- function(counts, design, dispersion,
   
   # fit is a MatrixList
   # lik is a vector
-  # coeffs is a MatrixList
-  return(list(fit = fit, lik = lik, coeffs = coeffs))
+  # coef is a MatrixList
+  return(list(fit = fit, lik = lik, coef = coef))
   
   
 }
@@ -164,12 +164,12 @@ bbDS_fit <- function(counts, fit, design, dispersion,
     
     logit_pi <- MatrixList(lapply(ff, function(f){
       f[["pi"]]/(1 - f[["pi"]])
-      }))
+    }))
     logit_pi <- log(logit_pi@unlistData)
     
-    coeffs <- t(solve(design_unique, t(logit_pi)))
+    coef <- t(solve(design_unique, t(logit_pi)))
     
-    coeffs <- new("MatrixList", unlistData = coeffs, 
+    coef <- new("MatrixList", unlistData = coef, 
       partitioning = pi@partitioning)
     
     
@@ -183,8 +183,8 @@ bbDS_fit <- function(counts, fit, design, dispersion,
   
   # fit is a MatrixList
   # lik is a vector
-  # coeffs is a MatrixList
-  return(list(fit = fit, lik = lik, coeffs = coeffs))
+  # coef is a MatrixList
+  return(list(fit = fit, lik = lik, coef = coef))
   
   
 }

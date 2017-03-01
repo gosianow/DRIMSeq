@@ -72,11 +72,9 @@ NULL
 #'   \code{\linkS4class{dmDSdispersion}}, \code{\linkS4class{dmDSfit}}
 setClass("dmDStest", 
   contains = "dmDSfit",
-  representation(compared_groups = "character",
-    fit_null = "MatrixList",
-    lik_null = "matrix",
-    fit_null_bb = "MatrixList",
-    lik_null_bb = "matrix",
+  representation(design_fit_null = "matrix",
+    lik_null = "numeric",
+    lik_null_bb = "numeric",
     results_gene = "data.frame",
     results_feature = "data.frame"))
 
@@ -85,10 +83,9 @@ setClass("dmDStest",
 
 
 setValidity("dmDStest", function(object){
-  # has to return TRUE when valid object!
+  # Has to return TRUE when valid object!
   
-  if(!length(object@fit_null) == length(object@counts))
-    return("Different number of genes in 'counts' and in 'fit_null' elements")
+  # TODO: set some validation!
   
   return(TRUE)
   
@@ -212,80 +209,133 @@ setGeneric("dmTest", function(x, ...) standardGeneric("dmTest"))
 #' @rdname dmTest
 #' @export
 setMethod("dmTest", "dmDSfit", function(x, 
-  compared_groups = levels(samples(x)$group), 
+  coef = NULL, design = NULL, contrast = NULL,
   prop_mode = "constrOptimG", prop_tol = 1e-12, verbose = 0, 
-  BPPARAM = BiocParallel::MulticoreParam(workers = 1)){
+  BPPARAM = BiocParallel::SerialParam()){
   
+  # Check parameters
   stopifnot(length(prop_mode) == 1)
   stopifnot(prop_mode %in% c("constrOptimG", "constrOptim"))
   stopifnot(length(prop_tol) == 1)
   stopifnot(is.numeric(prop_tol) && prop_tol > 0)
   stopifnot(verbose %in% 0:2)
   
+  if(!sum(!unlist(lapply(list(coef, design, contrast), is.null))) == 1)
+    stop(paste0("One of the ways to define the null model 'coef', 
+      'design' or 'contrast' must be used!"))
   
-  if(is.numeric(compared_groups)){
+  # Check coef
+  if(!is.null(coef)){
     
-    if(!all(compared_groups %in% as.numeric(x@samples$group)))
-      stop("Levels in 'compare_groups' do not match groups defined in samples")
+    # Check the full model design matrix
+    nbeta <- ncol(x@design_fit_full)
+    if(nbeta < 2) 
+      stop("Need at least two columns for design, usually the first is 
+        the intercept column!")
     
-    compared_groups <- levels(x@samples$group)[compared_groups]
+    if(length(coef) > 1) 
+      coef <- unique(coef)
+    
+    if(is.numeric(coef)){
+      stopifnot(max(coef) <= nbeta)
+    }else if(is.character(coef)){
+      if(all(coef %in% colnames(x@design_fit_full))) 
+        stop("'coef' does not match the columns of the design matrix!")
+      coef <- match(coef, colnames(x@design_fit_full))
+    }
+    
+    # Null design matrix
+    design0 <- x@design_fit_full[, -coef, drop = FALSE]
     
   }
   
-  if(is.character(compared_groups)){
+  # Check design
+  if(!is.null(design)){
     
-    if(!all(compared_groups %in% x@samples$group))
-      stop("Levels in 'compare_groups' do not match groups defined in samples")
+    # Check design as in edgeR
+    design <- as.matrix(design)
+    stopifnot(nrow(design) == ncol(x@counts))
+    
+    ne <- limma::nonEstimable(design)
+    if(!is.null(ne)) 
+      stop(paste("Design matrix not of full rank. 
+        The following coefficients not estimable:\n", 
+        paste(ne, collapse = " ")))
+    
+    # Null design matrix
+    design0 <- design
     
   }
   
-  samps <- x@samples$group %in% compared_groups
+  # Check contrast exactly as in edgeR in glmLRT()
+  if(!is.null(contrast)){
+    
+    contrast <- as.matrix(contrast)
+    qrc <- qr(contrast)
+    ncontrasts <- qrc$rank
+    
+    if(ncontrasts == 0) 
+      stop("Contrasts are all zero!")
+    
+    coef <- 1:ncontrasts
+    
+    Dvec <- rep.int(1, nlibs)
+    Dvec[coef] <- diag(qrc$qr)[coef]
+    Q <- qr.Q(qrc, complete = TRUE, Dvec = Dvec)
+    design <- design %*% Q
+    
+    # Null design matrix
+    design0 <- design[, -coef, drop = FALSE]
+    
+  }
   
-  samples = x@samples[samps, , drop = FALSE]
-  samples$sample_id <- factor(samples$sample_id)
-  samples$group <- factor(samples$group)
+  # Fit the DM null model: proportions and likelihoods
+  fit0 <- dmDS_fit(counts = x@counts, design = design0, 
+    dispersion = x@genewise_dispersion,
+    prop_mode = prop_mode, prop_tol = prop_tol, 
+    verbose = verbose, BPPARAM = BPPARAM)
   
-  message("Running comparison between groups: ", paste0(levels(samples$group), 
-    collapse = ", "))
+  # Calculate the DM degrees of freedom for the LR test: df_full - df_null
+  df <- (ncol(x@design_fit_full) - ncol(design0)) * 
+    (elementNROWS(x@coef_full) - 1)
   
-  fit <- dmDS_fitOneModel(counts = x@counts[, samps, drop = FALSE], 
-    samples = samples, 
-    dispersion = slot(x, x@dispersion), model = "null", prop_mode = prop_mode, 
-    prop_tol = prop_tol, verbose = verbose, BPPARAM = BPPARAM)
-  
-  results_gene <- dmDS_test(
-    lik_full = x@lik_full[, compared_groups, drop = FALSE], 
-    lik_null = fit[["lik"]], df = fit[["df"]], verbose = verbose)
+  results_gene <- dm_LRT(lik_full = x@lik_full, 
+    lik_null = fit0[["lik"]], df = df, verbose = verbose)
   
   results_gene <- data.frame(gene_id = rownames(results_gene), 
     results_gene, stringsAsFactors = FALSE, row.names = NULL)
   
-  fit_bb <- bbDS_fitOneModel(counts = x@counts[, samps, drop = FALSE], 
-    samples = samples, 
-    pi = fit[["fit"]], dispersion = slot(x, x@dispersion), model = "null", 
+  
+  # Calculate the Beta-Binomial null likelihoods for each feature
+  fit0_bb <- bbDS_fit(counts = x@counts, fit = fit0[["fit"]], design = design0, 
+    dispersion = x@genewise_dispersion,
+    prop_mode = prop_mode, prop_tol = prop_tol, 
     verbose = verbose, BPPARAM = BPPARAM)
   
-  results_feature <- dmDS_test(
-    lik_full = x@lik_full_bb[, compared_groups, drop = FALSE], 
-    lik_null = fit_bb[["lik"]], df = fit_bb[["df"]], verbose = verbose)
+  # Calculate the BB degrees of freedom for the LR test
+  df <- rep(ncol(x@design_fit_full) - ncol(design0), length(x@lik_full_bb))
+  
+  results_feature <- dm_LRT(lik_full = x@lik_full_bb, 
+    lik_null = fit0_bb[["lik"]], df = df, verbose = verbose)
   
   results_feature <- data.frame(
     gene_id = rep(names(x@counts), elementNROWS(x@counts)), 
     feature_id = rownames(results_feature), 
     results_feature, stringsAsFactors = FALSE, row.names = NULL)
   
-  return(new("dmDStest", compared_groups = compared_groups, 
-    fit_null = fit[["fit"]], lik_null = fit[["lik"]],
-    lik_null_bb = fit_bb[["lik"]],
+  return(new("dmDStest", 
     results_gene = results_gene, results_feature = results_feature,
-    dispersion = x@dispersion, 
-    fit_full = x@fit_full, lik_full = x@lik_full,
-    lik_full_bb = x@lik_full_bb,
+    design_fit_null = design0, 
+    lik_null = fit0[["lik"]],
+    lik_null_bb = fit0_bb[["lik"]],
+    design_fit_full = x@design_fit_full, 
+    fit_full = x@fit_full, lik_full = x@lik_full, coef_full = x@coef_full,
+    lik_full_bb = x@lik_full_bb,  coef_full_bb = x@coef_full_bb,
     mean_expression = x@mean_expression, 
     common_dispersion = x@common_dispersion, 
-    genewise_dispersion = x@genewise_dispersion, counts = x@counts, 
-    samples = x@samples))
-  
+    genewise_dispersion = x@genewise_dispersion, 
+    design_dispersion = x@design_dispersion,
+    counts = x@counts, samples = x@samples))
   
 })
 
@@ -429,7 +479,7 @@ setMethod("dmTwoStageTest", "dmDStest", function(x, FDR = 0.05, verbose = 0){
   stopifnot(length(FDR) == 1)
   stopifnot(class(FDR) == "numeric")
   
-  table <- dmDS_two_stage_test(pvalue_gene = x@results_gene, 
+  table <- dm_twoStageTest(pvalue_gene = x@results_gene, 
     pvalue_feature = x@results_feature, FDR = FDR, verbose = verbose)
   
   return(table)

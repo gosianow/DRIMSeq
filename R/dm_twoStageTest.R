@@ -12,7 +12,7 @@
 #' @return Returns a data frame with adjusted feature level p-values
 #' @importFrom stats pchisq p.adjust
 #' 
-dmDS_two_stage_test <- function(pvalue_gene, pvalue_feature, FDR = 0.05, 
+dm_twoStageTest <- function(pvalue_gene, pvalue_feature, FDR = 0.05, 
   verbose = FALSE){
   
   if(verbose) message("* Perform the two stage test.. \n")

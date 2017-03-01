@@ -362,6 +362,8 @@ setMethod("dmDispersion", "dmDSdata", function(x, design,
   
   # Check design as in edgeR
   design <- as.matrix(design)
+  stopifnot(nrow(design) == ncol(x@counts))
+  
   ne <- limma::nonEstimable(design)
   if(!is.null(ne)) 
     stop(paste("Design matrix not of full rank. 

@@ -1,24 +1,14 @@
-#######################################################
-#  group testing
-#######################################################
-
 #' @importFrom stats pchisq p.adjust
 
-dmDS_test <- function(lik_full, lik_null, df, verbose = FALSE){
+
+dm_LRT <- function(lik_full, lik_null, df, verbose = FALSE){
   
-  ## calculate lr
-  if(verbose) message("* Calculating likelihood ratio statistics.. \n")
+  if(verbose) 
+    message("* Calculating likelihood ratio statistics.. \n")
   
   time_start <- Sys.time()
   
-  lr <- as.numeric(2*(rowSums(lik_full) - lik_null))
-  
-  nrgroups <- rowSums(!is.na(lik_full))
-  
-  df <- (nrgroups - 1) * df
-  
-  df[nrgroups == 0] <- NA 
-  lr[nrgroups == 0] <- NA 
+  lr <- 2*(lik_full - lik_null)
   
   pvalue <- pchisq(lr, df = df , lower.tail = FALSE)
   
@@ -37,4 +27,6 @@ dmDS_test <- function(lik_full, lik_null, df, verbose = FALSE){
   return(table)
   
 }
+
+
 

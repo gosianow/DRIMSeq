@@ -61,8 +61,6 @@ Collate:
     'dmDS_fit.R'
     'dmDS_plotFit.R'
     'dmDS_profileLik.R'
-    'dmDS_test.R'
-    'dmDS_two_stage_test.R'
     'dmSQTL_estimateCommonDispersion.R'
     'dmSQTL_estimateTagwiseDispersion.R'
     'dmSQTL_filter.R'
@@ -72,6 +70,7 @@ Collate:
     'dmSQTL_test.R'
     'dm_CRadjustmentGroups.R'
     'dm_CRadjustmentOneGroup.R'
+    'dm_LRT.R'
     'dm_core_Hessian.R'
     'dm_core_colorb.R'
     'dm_core_deviance.R'
@@ -85,4 +84,5 @@ Collate:
     'dm_plotProportions.R'
     'dm_plotPvalues.R'
     'dm_profileLikModeration.R'
+    'dm_twoStageTest.R'
 RoxygenNote: 5.0.1
