@@ -2,18 +2,18 @@
 dm_fitOneGeneManyGroups <- function(y, ngroups, lgroups, igroups, 
   gamma0, prop_mode = "constrOptimG", prop_tol = 1e-12, verbose = FALSE) {
   
-  k <- nrow(y)
+  q <- nrow(y)
   
-  pi <- matrix(NA, nrow = k, ncol = ngroups, dimnames = list(rownames(y), 
+  pi <- matrix(NA, nrow = q, ncol = ngroups, dimnames = list(rownames(y), 
     lgroups))
   lik <- rep(NA, ngroups)
   names(lik) <- lgroups
   
-  if (is.na(gamma0) || k < 2) 
+  if(is.na(gamma0) || q < 2) 
     return(list(pi = pi, lik = lik))
   
   
-  for (gr in 1:ngroups) {
+  for(gr in 1:ngroups){
     # gr = 1
     
     fit_gr <- dm_fitOneGeneOneGroup(y = y[, igroups[[gr]], 
@@ -21,8 +21,8 @@ dm_fitOneGeneManyGroups <- function(y, ngroups, lgroups, igroups,
       prop_tol = prop_tol, verbose = verbose)
     
     
-    if (is.na(fit_gr[["lik"]])) {
-      pi <- matrix(NA, nrow = k, ncol = ngroups, dimnames = list(rownames(y), 
+    if(is.na(fit_gr[["lik"]])) {
+      pi <- matrix(NA, nrow = q, ncol = ngroups, dimnames = list(rownames(y), 
         lgroups))
       lik <- rep(NA, ngroups)
       names(lik) <- lgroups
@@ -38,5 +38,49 @@ dm_fitOneGeneManyGroups <- function(y, ngroups, lgroups, igroups,
   return(list(pi = pi, lik = lik))  ### pi and lik can have NAs
   
 }
+
+
+bb_fitOneGeneManyGroups <- function(y, ngroups, lgroups, igroups, 
+  pi, gamma0, verbose = FALSE) {
+  
+  q <- nrow(y)
+  
+  lik <- matrix(NA, nrow = q, ncol = ngroups, dimnames = list(rownames(y), 
+    lgroups))
+
+  
+  if(is.na(gamma0) || q < 2) 
+    return(list(pi = pi, lik = lik))
+  
+  
+  for(gr in 1:ngroups){
+    # gr = 1
+    
+    fit_gr <- bb_fitOneGeneOneGroup(y = y[, igroups[[gr]], drop = FALSE], 
+      gamma0 = gamma0, pi = pi[, gr], verbose = verbose)
+    
+    lik[, gr] <- fit_gr[["lik"]]
+    
+  }
+  
+  lik[rowSums(is.na(lik)) > 0, ] <- rep(NA, ngroups)
+  
+  
+  return(list(pi = pi, lik = lik))  ### pi and lik can have NAs
+  
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

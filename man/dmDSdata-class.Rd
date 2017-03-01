@@ -6,24 +6,12 @@
 \alias{[,dmDSdata-method}
 \alias{counts,dmDSdata-method}
 \alias{dmDSdata-class}
-\alias{dm_counts}
-\alias{dm_counts,dmDSdata-method}
-\alias{dm_samples}
-\alias{dm_samples,dmDSdata-method}
 \alias{length,dmDSdata-method}
 \alias{names,dmDSdata-method}
 \alias{samples}
 \alias{samples,dmDSdata-method}
 \title{dmDSdata object}
 \usage{
-dm_counts(x, ...)
-
-\S4method{dm_counts}{dmDSdata}(x)
-
-dm_samples(x, ...)
-
-\S4method{dm_samples}{dmDSdata}(x)
-
 \S4method{counts}{dmDSdata}(object)
 
 samples(x, ...)
@@ -37,10 +25,10 @@ samples(x, ...)
 \S4method{[}{dmDSdata,ANY}(x, i, j)
 }
 \arguments{
+\item{object, x}{dmDSdata object.}
+
 \item{...}{Other parameters that can be defined by methods using 
 this generic.}
-
-\item{object, x}{dmDSdata object.}
 
 \item{i, j}{Parameters used for subsetting.}
 }

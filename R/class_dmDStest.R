@@ -77,7 +77,8 @@ setClass("dmDStest",
     lik_null = "matrix",
     fit_null_bb = "MatrixList",
     lik_null_bb = "matrix",
-    results = "data.frame"))
+    results_gene = "data.frame",
+    results_feature = "data.frame"))
 
 
 ##################################
@@ -88,9 +89,6 @@ setValidity("dmDStest", function(object){
   
   if(!length(object@fit_null) == length(object@counts))
     return("Different number of genes in 'counts' and in 'fit_null' elements")
-  
-  if(!nrow(object@results) == length(object@counts))
-    return("Different number of genes in 'results' and 'counts'")
   
   return(TRUE)
   
@@ -131,7 +129,7 @@ setGeneric("results", function(x, ...) standardGeneric("results"))
 
 #' @rdname dmDStest-class
 #' @export
-setMethod("results", "dmDStest", function(x) x@results )
+setMethod("results", "dmDStest", function(x, level = "gene") slot(x, paste0("results_", level)))
 
 
 
@@ -255,14 +253,32 @@ setMethod("dmTest", "dmDSfit", function(x,
     dispersion = slot(x, x@dispersion), model = "null", prop_mode = prop_mode, 
     prop_tol = prop_tol, verbose = verbose, BPPARAM = BPPARAM)
   
-  results <- dmDS_test(lik_full = x@lik_full[, compared_groups, drop = FALSE], 
+  results_gene <- dmDS_test(
+    lik_full = x@lik_full[, compared_groups, drop = FALSE], 
     lik_null = fit[["lik"]], df = fit[["df"]], verbose = verbose)
+  results_gene <- data.frame(gene_id = rownames(results_gene), 
+    results_gene, stringsAsFactors = FALSE, row.names = NULL)
   
+  fit_bb <- bbDS_fitOneModel(counts = x@counts[, samps, drop = FALSE], 
+    samples = samples, 
+    pi = fit[["fit"]], dispersion = slot(x, x@dispersion), model = "null", 
+    verbose = verbose, BPPARAM = BPPARAM)
+  
+  results_feature <- dmDS_test(
+    lik_full = x@lik_full_bb[, compared_groups, drop = FALSE], 
+    lik_null = fit_bb[["lik"]], df = fit_bb[["df"]], verbose = verbose)
+  results_feature <- data.frame(
+    gene_id = rep(names(x@counts), elementNROWS(x@counts)), 
+    feature_id = rownames(results_feature), 
+    results_feature, stringsAsFactors = FALSE, row.names = NULL)
   
   return(new("dmDStest", compared_groups = compared_groups, 
     fit_null = fit[["fit"]], lik_null = fit[["lik"]],
-    results = results, dispersion = x@dispersion, 
+    lik_null_bb = fit_bb[["lik"]],
+    results_gene = results_gene, results_feature = results_feature,
+    dispersion = x@dispersion, 
     fit_full = x@fit_full, lik_full = x@lik_full,
+    lik_full_bb = x@lik_full_bb,
     mean_expression = x@mean_expression, 
     common_dispersion = x@common_dispersion, 
     genewise_dispersion = x@genewise_dispersion, counts = x@counts, 
@@ -383,9 +399,40 @@ setMethod("plotFit", "dmDStest", function(x, gene_id, plot_type = "barplot",
 
 
 
+###############################################################################
+### dmTwoStageTest
+###############################################################################
+
+#' Two-stage test
+#' 
+#' Two-stage test
+#' 
+#' @param x \code{\linkS4class{dmDStest}} or \code{\linkS4class{dmSQTLtest}}
+#'   object.
+#' @param ... Other parameters that can be defined by methods using this
+#'   generic.
+#' @export
+setGeneric("dmTwoStageTest", function(x, ...) standardGeneric("dmTwoStageTest"))
 
 
-
+#' @inheritParams dmTest
+#' @param FDR Numeric. Cutoff for the FDR.
+#' @return Returns a data frame with adjusted feature level p-values.
+#' @author Malgorzata Nowicka
+#' @rdname dmTwoStageTest
+#' @export
+setMethod("dmTwoStageTest", "dmDStest", function(x, FDR = 0.05, verbose = 0){
+  
+  stopifnot(verbose %in% 0:2)
+  stopifnot(length(FDR) == 1)
+  stopifnot(class(FDR) == "numeric")
+  
+  table <- dmDS_two_stage_test(pvalue_gene = x@results_gene, 
+    pvalue_feature = x@results_feature, FDR = FDR, verbose = verbose)
+  
+  return(table)
+  
+})
 
 
 

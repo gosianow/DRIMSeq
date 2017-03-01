@@ -62,6 +62,7 @@ Collate:
     'dmDS_plotFit.R'
     'dmDS_profileLikCommon.R'
     'dmDS_test.R'
+    'dmDS_two_stage_test.R'
     'dmSQTL_adjustmentCommon.R'
     'dmSQTL_estimateCommonDispersion.R'
     'dmSQTL_estimateTagwiseDispersion.R'

@@ -26,6 +26,28 @@ dm_likG <- function(pi, gamma0, y){
 }
 
 
+bb_likG <- function(pi, gamma0, y){
+  # pi has length of q
+  # gamma0 has length 1
+  # y has q rows and n number of columns
+ 
+ m_i <- colSums(y)
+ 
+ l <- rep(NA, length(pi))
+ 
+ for(i in 1:length(pi)){
+   
+  l[i] <- dm_likG(pi[i], gamma0, y = rbind(y[i, ], m_i - y[i, ]))
+  
+ }
+  
+ return(l)
+  
+}
+
+
+
+
 dm_lik_regG <- function(b, x, gamma0, y){
   ## b has length of p * (q-1)
   ## gamma0 has length 1

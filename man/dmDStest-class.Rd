@@ -15,7 +15,7 @@
 
 results(x, ...)
 
-\S4method{results}{dmDStest}(x)
+\S4method{results}{dmDStest}(x, level = "gene")
 }
 \arguments{
 \item{x}{dmDStest object.}

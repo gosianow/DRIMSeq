@@ -211,12 +211,21 @@ setMethod("dmFit", "dmDSdispersion", function(x,
   stopifnot(is.numeric(prop_tol) && prop_tol > 0)
   stopifnot(verbose %in% 0:2)
   
+  ### Fit the DM model: proportions and likelihoods
   fit <- dmDS_fitOneModel(counts = x@counts, samples = x@samples, 
     dispersion = slot(x, dispersion), model = "full", prop_mode = prop_mode, 
     prop_tol = prop_tol, verbose = verbose, BPPARAM = BPPARAM)
   
+  
+  ### Calculate the Beta-Binomial likelihoods for each feature
+  fit_bb <- bbDS_fitOneModel(counts = x@counts, samples = x@samples, 
+    pi = fit[["fit"]], dispersion = slot(x, dispersion), model = "full", 
+    verbose = verbose, BPPARAM = BPPARAM)
+  
+  
   return(new("dmDSfit", dispersion = dispersion, 
     fit_full = fit[["fit"]], lik_full = fit[["lik"]], 
+    lik_full_bb = fit_bb[["lik"]],
     mean_expression = x@mean_expression, 
     common_dispersion = x@common_dispersion, 
     genewise_dispersion = x@genewise_dispersion, counts = x@counts, 

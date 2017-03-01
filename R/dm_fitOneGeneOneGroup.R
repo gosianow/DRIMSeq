@@ -91,6 +91,38 @@ dm_fitOneGeneOneGroup <- function(y, gamma0, prop_mode = c("constrOptim",
 
 
 
+bb_fitOneGeneOneGroup <- function(y, pi, gamma0, verbose = FALSE){
+  
+  # NAs for genes with one feature
+  kk <- nrow(y)
+  if(kk < 2 || is.na(gamma0)) 
+    return(list(pi = rep(NA, kk), lik = NA, df = NA))
+  
+  ### check for 0s in rows (features)
+  keep_row <- rowSums(y) > 0
+  ### must be at least two features
+  if(sum(keep_row) < 2) 
+    return(list(pi = rep(NA, kk), lik = NA, df = NA))
+  
+  y <- y[keep_row, , drop=FALSE]
+  pi <- pi[keep_row]
+  
+  ### check for 0s in columns (replicates)
+  keep_col <- colSums(y) > 0
+  y <- y[, keep_col, drop=FALSE]
+  
+  lik <- rep(NA, length(keep_row))
+  
+  lik[keep_row] <- bb_likG(pi = pi, gamma0 = gamma0, y = y)
+    
+  keep_row[keep_row] <- pi
+  pi <- keep_row
+  
+  df <- rep(1, length(keep_row))
+  
+  return(list(pi = pi, lik = lik, df = df))
+  
+}
 
 
 

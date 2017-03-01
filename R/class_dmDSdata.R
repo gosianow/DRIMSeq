@@ -86,29 +86,6 @@ setValidity("dmDSdata", function(object){
 
 #' @rdname dmDSdata-class
 #' @export
-setGeneric("dm_counts", function(x, ...) standardGeneric("dm_counts"))
-
-
-#' @rdname dmDSdata-class
-#' @export
-setMethod("dm_counts", "dmDSdata", function(x) x@counts )
-
-
-
-#' @rdname dmDSdata-class
-#' @export
-setGeneric("dm_samples", function(x, ...) standardGeneric("dm_samples"))
-
-
-#' @rdname dmDSdata-class
-#' @export
-setMethod("dm_samples", "dmDSdata", function(x) x@samples )
-
-
-
-
-#' @rdname dmDSdata-class
-#' @export
 setMethod("counts", "dmDSdata", function(object){
   
   data.frame(gene_id = rep(names(object@counts), elementNROWS(object@counts)), 

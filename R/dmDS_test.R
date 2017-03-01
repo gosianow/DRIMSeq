@@ -24,17 +24,15 @@ dmDS_test <- function(lik_full, lik_null, df, verbose = FALSE){
   
   adj_pvalue <- p.adjust(pvalue, method="BH")
   
-  table <- data.frame(gene_id = rownames(lik_full), lr = lr, df = df, 
-    pvalue = pvalue, adj_pvalue = adj_pvalue, stringsAsFactors = FALSE)
-  
-  # o <- order(table[, "pvalue"])
-  # table <- table[o,]
-  
-  rownames(table) <- NULL
+  table <- data.frame(lr = lr, df = df, 
+    pvalue = pvalue, adj_pvalue = adj_pvalue, 
+    stringsAsFactors = FALSE)
+
+  rownames(table) <- rownames(lik_full)
   
   time_end <- Sys.time()
   
-  if(verbose) message("Took ", as.numeric(time_end - time_start), " seconds.\n")
+  if(verbose) message("Took ", round(time_end - time_start, 4), " seconds.\n")
   
   return(table)
   
