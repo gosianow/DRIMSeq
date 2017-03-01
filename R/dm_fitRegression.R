@@ -21,12 +21,12 @@ dm_fitRegression <- function(y, design,
   # Get the initial values for b 
   # Add 1 to get rid of NaNs and Inf and -Inf values in logit
   # Double check if this approach is correct!!!
-  ty <- t(y) + 1
-  prop <- ty / rowSums(ty) # n x q
-  
+  # Alternative, use 0s: b_init = rep(0, p*(q-1))
+  yt <- t(y) + 1
+  prop <- yt / rowSums(yt) # n x q
   logit_prop <- log(prop / prop[, q])
-  
   b_init <- c(MASS::ginv(design) %*% logit_prop[, -q, drop = FALSE])
+  
   
   switch(coef_mode, 
     

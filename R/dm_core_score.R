@@ -26,7 +26,6 @@ dm_scoreG_neg <- function(prop, disp, y)
   -dm_scoreG(prop, disp, y)  
 
 
-
 dm_score_regG <- function(b, x, disp, y){  
   ## b has length of (q-1) * p
   ## x is a matrix n x p
@@ -60,6 +59,7 @@ dm_score_regG <- function(b, x, disp, y){
 
 dm_score_regG_neg <- function(b, design, disp, y)
   -dm_score_regG(b, x = design, disp, y)
+
 
 ##############################################################################
 # Score-function for q-1 parameters -- with sums
