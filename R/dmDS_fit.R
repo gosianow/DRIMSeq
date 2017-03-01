@@ -1,4 +1,4 @@
-# Fitting Dirichlet-multinomial model
+# Fitting the Dirichlet-multinomial model
 
 dmDS_fitManyGroups_gene <- function(g, counts, 
   ngroups, lgroups, igroups, disp, prop_mode, prop_tol, verbose){  
@@ -8,8 +8,7 @@ dmDS_fitManyGroups_gene <- function(g, counts,
   
   f <- dm_fitManyGroups(y = counts[[g]], 
     ngroups = ngroups, lgroups = lgroups, igroups = igroups, 
-    disp = disp[g], prop_mode = prop_mode, prop_tol = prop_tol, 
-    verbose = verbose)
+    disp = disp[g], prop_mode = prop_mode, prop_tol = prop_tol)
   
   return(f)
   
@@ -23,7 +22,7 @@ dmDS_fitRegression_gene <- function(g, counts,
   
   f <- dm_fitRegression(y = counts[[g]], 
     design = design, disp = disp[g], 
-    coef_mode = coef_mode, coef_tol = coef_tol, verbose = verbose)
+    coef_mode = coef_mode, coef_tol = coef_tol)
   
   return(f)
   
@@ -53,6 +52,8 @@ dmDS_fit <- function(counts, design, dispersion,
   
   if(nlevels(groups) == ncol(design) && one_way){
     
+    if(verbose) message("   Using the one way approach. \n")
+    
     groups <- factor(groups, labels = paste0("gr", levels(groups)))
     ngroups <- nlevels(groups)
     lgroups <- levels(groups)
@@ -77,7 +78,7 @@ dmDS_fit <- function(counts, design, dispersion,
     # Get the coefficients like in edgeR::mglmOneWay
     design_unique <- unique(design)
     
-    # Use the last feature (qth) as a denominator
+    # Use the last feature (q-th) as a denominator
     logit_prop <- MatrixList(lapply(ff, function(f) 
       t(t(f[["prop"]])/f[["prop"]][nrow(f[["prop"]]), ])))
     logit_prop <- log(logit_prop@unlistData)
@@ -89,6 +90,8 @@ dmDS_fit <- function(counts, design, dispersion,
     
     
   }else{
+    
+    if(verbose) message("   Using the regression approach. \n")
     
     ff <- BiocParallel::bplapply(inds, dmDS_fitRegression_gene, 
       counts = counts, design = design, disp = disp, 
@@ -111,8 +114,8 @@ dmDS_fit <- function(counts, design, dispersion,
   if(verbose >= 2) message("\n")
   if(verbose) message("Took ", round(time_end - time_start, 4), " seconds.\n")
   
-  # fit is a MatrixList
-  # lik is a vector
+  # fit is a MatrixList of matrices q x p
+  # lik is a vector of length G
   # coef is a MatrixList of matrices q x p
   return(list(fit = fit, lik = lik, coef = coef))
   
@@ -121,9 +124,9 @@ dmDS_fit <- function(counts, design, dispersion,
 
 
 # -----------------------------------------------------------------------------
-# Fitting Beta-binomial model
-# Currently, recalculating the BB likelihoods using the DM fittings and 
-# coefficients
+# Fitting the Beta-binomial model
+# Currently, recalculating the BB likelihoods and coefficients using the 
+# DM fittings/proportions
 
 bbDS_fitManyGroups_gene <- function(g, counts, prop,
   ngroups, lgroups, igroups, disp, verbose){  
@@ -133,19 +136,29 @@ bbDS_fitManyGroups_gene <- function(g, counts, prop,
   
   f <- bb_fitManyGroups(y = counts[[g]], prop = prop[[g]],
     ngroups = ngroups, lgroups = lgroups, igroups = igroups, 
-    disp = disp[g], verbose = verbose)
+    disp = disp[g])
   
   return(f)
   
 }
 
 
+bbDS_fitRegression_gene <- function(g, counts, 
+  design, disp, fit, verbose){  
+
+  if(verbose >= 2)
+    message(" Gene:", g)
+  
+  f <- bb_fitRegression(y = counts[[g]], 
+    design = design, disp = disp[g], fit = fit[[g]])
+  
+  return(f)
+  
+}
+
 
 bbDS_fit <- function(counts, fit, design, dispersion,
-  one_way = TRUE, 
-  prop_mode = "constrOptim", prop_tol = 1e-12, 
-  coef_mode = "optim", coef_tol = 1e-12,
-  verbose = FALSE, BPPARAM = BiocParallel::SerialParam()){
+  one_way = TRUE, verbose = FALSE, BPPARAM = BiocParallel::SerialParam()){
   
   time_start <- Sys.time()
   if(verbose) message("* Fitting the BB model.. \n")
@@ -165,6 +178,8 @@ bbDS_fit <- function(counts, fit, design, dispersion,
   
   if(nlevels(groups) == ncol(design) && one_way){
     
+    if(verbose) message("   Using the one way approach. \n")
+    
     groups <- factor(groups, labels = paste0("gr", levels(groups)))
     ngroups <- nlevels(groups)
     lgroups <- levels(groups)
@@ -174,6 +189,7 @@ bbDS_fit <- function(counts, fit, design, dispersion,
     # Use proportions estimated with the DM model
     prop <- fit[, unlist(lapply(igroups, function(x){x[1]}))]
     
+    # Recalculate BB likelihoods
     ff <- BiocParallel::bplapply(inds, bbDS_fitManyGroups_gene, 
       counts = counts, prop = prop,
       ngroups = ngroups, lgroups = lgroups, igroups = igroups, 
@@ -193,6 +209,7 @@ bbDS_fit <- function(counts, fit, design, dispersion,
     }))
     logit_prop <- log(logit_prop@unlistData)
     
+    # design_unique must be squared for solve()
     coef <- t(solve(design_unique, t(logit_prop)))
     
     coef <- new("MatrixList", unlistData = coef, 
@@ -200,16 +217,33 @@ bbDS_fit <- function(counts, fit, design, dispersion,
     
     
   }else{
-    stop("Currently, regression framework is not implemented here!")
+    
+    if(verbose) message("   Using the regression approach. \n")
+
+    ff <- BiocParallel::bplapply(inds, bbDS_fitRegression_gene, 
+      counts = counts, design = design, disp = disp, 
+      fit = fit, verbose = verbose, BPPARAM = BPPARAM)
+    
+    names(ff) <- names(counts)
+    
+    lik <- unlist(lapply(ff, function(f) f[["lik"]])) 
+    names(lik) <- rownames(counts)
+    
+    coef <- MatrixList(lapply(ff, function(f) f[["b"]]))
+    colnames(coef) <- colnames(design)
+    
+    fit <- MatrixList(lapply(ff, function(f) f[["fit"]]))
+    colnames(fit) <- colnames(counts)
+    
   }
   
   time_end <- Sys.time()
   if(verbose >= 2) message("\n")
   if(verbose) message("Took ", round(time_end - time_start, 4), " seconds.\n")
   
-  # fit is a MatrixList
-  # lik is a vector
-  # coef is a MatrixList
+  # fit is a MatrixList of matrices q x p
+  # lik is a vector of length nrow(counts) = total number of features
+  # coef is a MatrixList of matrices q x p
   return(list(fit = fit, lik = lik, coef = coef))
   
   

@@ -1,5 +1,5 @@
 ##############################################################################
-## Computes the log-likelihood -- with gamma functions -- for q-1 parameters
+## Computes the DM log-likelihood -- with gamma functions -- for q-1 parameters
 ##############################################################################
 
 dm_likG <- function(prop, disp, y){
@@ -27,38 +27,34 @@ dm_likG_neg <- function(prop, disp, y)
   -dm_likG(prop, disp, y)
 
 
-bb_likG <- function(prop, disp, y){
-  # prop has length of q
-  # disp has length 1
-  # y has q rows and n number of columns
+
+dm_lik_regG_prop <- function(y, disp, prop){
+  # y n x q matrix !!!
+  # prop n x q matrix of fitted proportions
   
-  m <- colSums(y)
+  n <- nrow(y)
   
-  l <- rep(NA, length(prop))
+  m <- rowSums(y)
   
-  for(i in 1:length(prop)){
-    
-    l[i] <- dm_likG(prop[i], disp, y = rbind(y[i, ], m - y[i, ]))
-    
-  }
+  l <- n * lgamma(disp) - sum(lgamma(m + disp)) + 
+    sum(rowSums(lgamma(y + disp * prop) - lgamma(prop * disp)))
+  
+  # normalizing_part <- sum(lgamma(m + 1) - rowSums(lgamma(y + 1)))
   
   return(l)
   
 }
 
 
-
-
 dm_lik_regG <- function(b, x, disp, y){
   ## b has length of (q-1) * p
   ## x is a matrix n x p
   ## disp has length 1
-  ## y has q rows and n columns
+  ## y q x n matrix
   ## This function returns likelihhod without normalizing component, 
   ## but it is OK for optimization and the LR test
   
   y <- t(y) # n x q
-  n <- nrow(x)
   
   # Get prop from x and b
   q <- ncol(y)
@@ -70,14 +66,8 @@ dm_lik_regG <- function(b, x, disp, y){
   prop <- z/(1 + rowSums(z)) # n x (q-1)
   prop <- cbind(prop, 1 - rowSums(prop))
   
-  m <- rowSums(y)
-  
-  l <- sum(rowSums(lgamma(y + disp * prop) - lgamma(prop * disp)))
-  
-  l <- n * lgamma(disp) - sum(lgamma(m + disp)) + l
-  
-  # normalizing_part <- sum(lgamma(m + 1) - rowSums(lgamma(y + 1)))
-  
+  l <- dm_lik_regG_prop(y = y, disp = disp, prop = prop)
+
   return(l)
   
 }
@@ -86,7 +76,7 @@ dm_lik_regG_neg <- function(b, design, disp, y)
   -dm_lik_regG(b, x = design, disp, y)
 
 ##############################################################################
-## Computes the log-likelihood -- with sums -- for q-1 parameters
+## Computes the DM log-likelihood -- with sums -- for q-1 parameters
 ##############################################################################
 
 dm_lik <- function(prop, disp, y){
@@ -126,4 +116,59 @@ dm_lik <- function(prop, disp, y){
   return(l)
   
 }
+
+
+##############################################################################
+## Computes the BB log-likelihood -- with gamma functions -- for q parameters
+##############################################################################
+
+
+bb_likG <- function(prop, disp, y){
+  # prop has length of q
+  # disp has length 1
+  # y has q rows and n number of columns
+  
+  m <- colSums(y)
+  q <- length(prop)
+  
+  l <- rep(NA, q)
+  
+  for(i in 1:q){
+    
+    l[i] <- dm_likG(prop = prop[i], disp = disp, 
+      y = rbind(y[i, ], m - y[i, ]))
+    
+  }
+  
+  # l vector of length q
+  return(l)
+  
+}
+
+
+  
+bb_lik_regG_prop <- function(y, disp, prop){
+  # y n x q matrix !!!
+  # prop n x q matrix of fitted proportions
+  
+  m <- rowSums(y)
+  q <- ncol(prop)
+  
+  l <- rep(NA, q)
+  
+  for(i in 1:q){
+    
+    l[i] <- dm_lik_regG_prop(y = cbind(y[, i], m - y[, i]), disp = disp, 
+      prop = cbind(prop[, i], 1 - prop[, i]))
+    
+  }
+  
+  # l vector of length q
+  return(l)
+  
+}
+
+
+
+
 

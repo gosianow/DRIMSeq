@@ -261,17 +261,9 @@ setMethod("dmTest", "dmDSfit", function(x,
   # Calculate the Beta-Binomial null likelihoods for each feature
   if(bb_model && length(x@lik_full_bb) > 0){
     
-    if(bb_model && length(x@lik_full_bb) == 0)
-      message("Beta-Binomial model is not fitted 
-        because bb_model=FALSE in dmFit!")
-    
     fit0_bb <- bbDS_fit(counts = x@counts, fit = fit0[["fit"]], 
-      design = design0, 
-      dispersion = x@genewise_dispersion,
-      one_way = one_way,
-      prop_mode = prop_mode, prop_tol = prop_tol, 
-      coef_mode = coef_mode, coef_tol = coef_tol,
-      verbose = verbose, BPPARAM = BPPARAM)
+      design = design0, dispersion = x@genewise_dispersion,
+      one_way = one_way, verbose = verbose, BPPARAM = BPPARAM)
     
     # Calculate the BB degrees of freedom for the LR test
     df <- rep.int(ncol(x@design_fit_full) - ncol(design0), 
@@ -300,6 +292,10 @@ setMethod("dmTest", "dmDSfit", function(x,
       counts = x@counts, samples = x@samples))
     
   }else{
+    
+    if(bb_model && length(x@lik_full_bb) == 0)
+      message("Beta-Binomial model is not fitted 
+        because bb_model=FALSE in dmFit! Rerun dmFit with bb_model=TRUE.")
     
     return(new("dmDStest", 
       results_gene = results_gene,

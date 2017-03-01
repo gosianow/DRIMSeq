@@ -5,7 +5,7 @@
 #' @importFrom stats constrOptim
 
 dm_fitOneGroup <- function(y, disp, 
-  prop_mode = "constrOptim", prop_tol = 1e-12, verbose = FALSE){
+  prop_mode = "constrOptim", prop_tol = 1e-12){
   # y matrix q x n
   # If something is wrong, return NAs
   
@@ -85,7 +85,7 @@ dm_fitOneGroup <- function(y, disp,
 
 
 
-bb_fitOneGroup <- function(y, prop, disp, verbose = FALSE){
+bb_fitOneGroup <- function(y, disp, prop){
   # Recalculates likelihood for BB, where prop is estimated with DM
   
   q <- nrow(y)

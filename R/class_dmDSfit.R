@@ -212,8 +212,6 @@ setMethod("dmFit", "dmDSdispersion", function(x, design,
     fit_bb <- bbDS_fit(counts = x@counts, fit = fit[["fit"]], design = design, 
       dispersion = x@genewise_dispersion,
       one_way = one_way,
-      prop_mode = prop_mode, prop_tol = prop_tol, 
-      coef_mode = coef_mode, coef_tol = coef_tol,
       verbose = verbose, BPPARAM = BPPARAM)
     
     return(new("dmDSfit", design_fit_full = design, 

@@ -2,7 +2,7 @@
 #' @importFrom stats optim nlminb
 
 dm_fitRegression <- function(y, design, 
-  disp, coef_mode = "optim", coef_tol = 1e-12, verbose = FALSE){
+  disp, coef_mode = "optim", coef_tol = 1e-12){
   # y can not have any rowSums(y) == 0 - assured during dmFilter
   
   q <- nrow(y)
@@ -22,7 +22,7 @@ dm_fitRegression <- function(y, design,
   # Add 1 to get rid of NaNs and Inf and -Inf values in logit
   # Double check if this approach is correct!!!
   # Alternative, use 0s: b_init = rep(0, p*(q-1))
-  yt <- t(y) + 1
+  yt <- t(y) + 1 # n x q
   prop <- yt / rowSums(yt) # n x q
   logit_prop <- log(prop / prop[, q])
   b_init <- c(MASS::ginv(design) %*% logit_prop[, -q, drop = FALSE])
@@ -102,6 +102,71 @@ dm_fitRegression <- function(y, design,
   return(list(b = b, lik = lik, fit = prop))  
   
 }
+
+
+# -----------------------------------------------------------------------------
+# Fitting the Beta-binomial model
+# Currently, recalculating the BB likelihoods and coefficients using the 
+# DM fittings/proportions
+
+
+bb_fitRegression <- function(y, design, disp, fit){
+  # y can not have any rowSums(y) == 0 - assured during dmFilter
+  
+  q <- nrow(y)
+  p <- ncol(design)
+  n <- ncol(y)
+  
+  # NAs for genes with one feature
+  if(q < 2 || is.na(disp)){
+    b <- matrix(NA, nrow = q, ncol = p)
+    prop <- matrix(NA, nrow = q, ncol = n)
+    rownames(prop) <- rownames(y)
+    rownames(b) <- rownames(y)
+    return(list(b = b, lik = rep(NA, q), fit = prop))  
+  }
+  
+  y <- t(y) # n x q
+  prop <- t(fit) # n x q
+  
+  lik <- bb_lik_regG_prop(y = y, disp = disp, prop = prop)
+
+  # Get the coefficients like in edgeR::mglmOneWay
+  # But use MASS::ginv instead of solve since the design does not have to be 
+  # a squared matrix
+  
+  # Keep only the unique rows in the design and logit_prop
+  unique_samps <- !duplicated(design)
+  
+  design <- design[unique_samps, , drop = FALSE]
+  prop <- prop[unique_samps, , drop = FALSE]
+  
+  logit_prop <- log(prop / (1 - prop))
+
+  b <- t(MASS::ginv(design) %*% logit_prop)
+
+  rownames(b) <- rownames(y)
+  
+  # b matrix q x p
+  # lik vector of length q
+  # fit matrix q x n
+  return(list(b = b, lik = lik, fit = fit))  
+  
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
