@@ -99,7 +99,7 @@ setMethod("dmDispersion", "dmSQTLdata", function(x, mean_expression = TRUE,
   disp_mode = "grid", disp_interval = c(0, 1e+4), disp_tol = 1e-08, 
   disp_init = 100, disp_init_weirMoM = TRUE, disp_grid_length = 21, 
   disp_grid_range = c(-10, 10), disp_moderation = "none", disp_prior_df = 0, 
-  disp_span = 0.1, prop_mode = "constrOptimG", prop_tol = 1e-12, verbose = 0, 
+  disp_span = 0.1, prop_mode = "constrOptim", prop_tol = 1e-12, verbose = 0, 
   speed = TRUE, BPPARAM = BiocParallel::MulticoreParam(workers = 1)){
   
   
@@ -127,7 +127,7 @@ setMethod("dmDispersion", "dmSQTLdata", function(x, mean_expression = TRUE,
   stopifnot(length(disp_span) == 1)
   stopifnot(is.numeric(disp_span) && disp_span > 0 && disp_span < 1)
   stopifnot(length(prop_mode) == 1)
-  stopifnot(prop_mode %in% c("constrOptimG", "constrOptim"))
+  stopifnot(prop_mode %in% c("constrOptim"))
   stopifnot(length(prop_tol) == 1)
   stopifnot(is.numeric(prop_tol) && prop_tol > 0)
   stopifnot(verbose %in% 0:2)

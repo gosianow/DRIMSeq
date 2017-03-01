@@ -1,16 +1,16 @@
 
 
-dmDS_CRadjustmentGroups_gene <- function(g, counts, 
+dmDS_CRadjustmentManyGroups_gene <- function(g, counts, 
   ngroups, lgroups, igroups, 
-  gamma0, pi, verbose){  
+  disp, prop, verbose){  
   # g = 1
   
   if(verbose >= 2)
     message(" Gene:", g)
   
-  a <- dm_CRadjustmentGroups(y = counts[[g]], 
+  a <- dm_CRadjustmentManyGroups(y = counts[[g]], 
     ngroups = ngroups, lgroups = lgroups, igroups = igroups, 
-    gamma0 = gamma0[g], pi = pi[[g]])
+    disp = disp[g], prop = prop[[g]])
   
   return(a)
   
@@ -27,9 +27,9 @@ dmDS_CRadjustment <- function(counts, fit, design, dispersion,
   
   # Prepare dispersion
   if(length(dispersion) == 1){
-    gamma0 <- rep(dispersion, length(inds))
+    disp <- rep(dispersion, length(inds))
   } else {
-    gamma0 <- dispersion
+    disp <- dispersion
   }
   
   # If the design is equivalent to a oneway layout, use a shortcut algorithm
@@ -45,12 +45,12 @@ dmDS_CRadjustment <- function(counts, fit, design, dispersion,
     
     figroups <- unlist(lapply(igroups, function(x){x[1]}))
     
-    pi <- fit[, figroups]
+    prop <- fit[, figroups]
     
     time <- system.time(aa <- BiocParallel::bplapply(inds, 
-      dmDS_CRadjustmentGroups_gene, counts = counts, 
+      dmDS_CRadjustmentManyGroups_gene, counts = counts, 
       ngroups = ngroups, lgroups = lgroups, igroups = igroups, 
-      gamma0 = gamma0, pi = pi, 
+      disp = disp, prop = prop, 
       verbose = verbose, BPPARAM = BPPARAM))
     
     names(aa) <- names(counts)
@@ -58,7 +58,7 @@ dmDS_CRadjustment <- function(counts, fit, design, dispersion,
     adj <- unlist(aa) 
     
   }else{
-    stop("Currently, regression framework is not implemented!")
+    stop("Currently, regression framework is not implemented here!")
   }
   
   if(verbose >= 2) message("\n")

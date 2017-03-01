@@ -29,6 +29,8 @@ Imports:
     edgeR,
     utils,
     stats,
+    MASS,
+    Rcgmin,
     grDevices,
     ggplot2,
     reshape2
@@ -68,7 +70,7 @@ Collate:
     'dmSQTL_permutations.R'
     'dmSQTL_plotFit.R'
     'dmSQTL_test.R'
-    'dm_CRadjustmentGroups.R'
+    'dm_CRadjustmentManyGroups.R'
     'dm_CRadjustmentOneGroup.R'
     'dm_LRT.R'
     'dm_core_Hessian.R'
@@ -77,8 +79,9 @@ Collate:
     'dm_core_lik.R'
     'dm_core_score.R'
     'dm_estimateMeanExpression.R'
-    'dm_fitGroups.R'
+    'dm_fitManyGroups.R'
     'dm_fitOneGroup.R'
+    'dm_fitRegression.R'
     'dm_plotData.R'
     'dm_plotDispersion.R'
     'dm_plotPValues.R'

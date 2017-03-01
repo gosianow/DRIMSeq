@@ -117,12 +117,12 @@ setMethod("show", "dmSQTLtest", function(object){
 #' @rdname dmTest
 #' @export
 setMethod("dmTest", "dmSQTLfit", function(x, permutations = "all_genes", 
-  prop_mode = "constrOptimG", 
+  prop_mode = "constrOptim", 
   prop_tol = 1e-12, verbose = 0, 
   BPPARAM = BiocParallel::MulticoreParam(workers = 1)){
   
   stopifnot(length(prop_mode) == 1)
-  stopifnot(prop_mode %in% c("constrOptimG", "constrOptim"))
+  stopifnot(prop_mode %in% c("constrOptim"))
   stopifnot(length(prop_tol) == 1)
   stopifnot(is.numeric(prop_tol) && prop_tol > 0)
   stopifnot(verbose %in% 0:2)

@@ -69,14 +69,14 @@ setMethod("show", "dmSQTLfit", function(object){
 #' @rdname dmFit
 #' @export
 setMethod("dmFit", "dmSQTLdispersion", function(x, 
-  dispersion = "genewise_dispersion", prop_mode = "constrOptimG", 
+  dispersion = "genewise_dispersion", prop_mode = "constrOptim", 
   prop_tol = 1e-12, verbose = 0, 
   BPPARAM = BiocParallel::MulticoreParam(workers = 1)){
   
   stopifnot(length(dispersion) == 1)
   stopifnot(dispersion %in% c("genewise_dispersion", "common_dispersion"))
   stopifnot(length(prop_mode) == 1)
-  stopifnot(prop_mode %in% c("constrOptimG", "constrOptim"))
+  stopifnot(prop_mode %in% c("constrOptim"))
   stopifnot(length(prop_tol) == 1)
   stopifnot(is.numeric(prop_tol) && prop_tol > 0)
   stopifnot(verbose %in% 0:2)

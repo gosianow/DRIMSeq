@@ -229,15 +229,12 @@ setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
 #'   
 #'   Arguments that are used by all the methods are:
 #'   
-#'   \itemize{ \item \code{disp_adjust} \item \code{prop_mode}: Both 
-#'   \code{"constrOptim"} and \code{"constrOptimG"} use 
+#'   \itemize{ \item \code{disp_adjust} 
+#'   \item \code{prop_mode}: 
+#'   \code{"constrOptim"} uses 
 #'   \code{\link{constrOptim}} function to maximize the likelihood of 
-#'   Dirichlet-multinomial proportions. The difference lays in the way the 
-#'   likelihood and score are computed. \code{"constrOptim"} uses the likelihood
-#'   and score that are calculated based on the fact that x*Gamma(x) = 
-#'   Gamma(x+1). In \code{"constrOptimG"}, we compute them using 
-#'   \code{\link{lgamma}} function. We recommend using the second approach, 
-#'   since it is much faster than the first one. \item \code{prop_tol}: The 
+#'   Dirichlet-multinomial proportions. 
+#'   \item \code{prop_tol}: The 
 #'   accuracy for proportions estimation defined as \code{reltol} in 
 #'   \code{\link{constrOptim}}. }
 #'   
@@ -294,7 +291,7 @@ setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
 #'   smoothing sliding window when calculating the dispersion versus mean 
 #'   expression trend.
 #' @param prop_mode Optimization method used to estimate proportions. Possible 
-#'   values \code{"constrOptim"} and \code{"constrOptimG"}.
+#'   value \code{"constrOptim"}.
 #' @param prop_tol The desired accuracy when estimating proportions.
 #' @param verbose Numeric. Definie the level of progress messages displayed. 0 -
 #'   no messages, 1 - main messages, 2 - message for every gene fitting.
@@ -319,7 +316,7 @@ setMethod("dmDispersion", "dmDSdata", function(x, design,
   disp_interval = c(0, 1e+5), disp_tol = 1e+01, 
   disp_init = 100, disp_grid_length = 21, disp_grid_range = c(-10, 10), 
   disp_moderation = "trended", disp_prior_df = 0, disp_span = 0.1, 
-  prop_mode = "constrOptimG", prop_tol = 1e-12, 
+  prop_mode = "constrOptim", prop_tol = 1e-12, 
   verbose = 0, BPPARAM = BiocParallel::MulticoreParam(workers = 1)){
   
   # Check design as in edgeR
@@ -354,7 +351,7 @@ setMethod("dmDispersion", "dmDSdata", function(x, design,
   stopifnot(length(disp_span) == 1)
   stopifnot(is.numeric(disp_span) && disp_span > 0 && disp_span < 1)
   stopifnot(length(prop_mode) == 1)
-  stopifnot(prop_mode %in% c("constrOptimG", "constrOptim"))
+  stopifnot(prop_mode %in% c("constrOptim"))
   stopifnot(length(prop_tol) == 1)
   stopifnot(is.numeric(prop_tol) && prop_tol > 0)
   stopifnot(verbose %in% 0:2)

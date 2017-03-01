@@ -1,10 +1,10 @@
 
 
-dm_CRadjustmentGroups <- function(y, ngroups, lgroups, igroups, 
-  gamma0, pi){  
-  # pi matrix q x ngroups
+dm_CRadjustmentManyGroups <- function(y, ngroups, lgroups, igroups, 
+  disp, prop){  
+  # prop matrix q x ngroups
   
-  if(all(is.na(pi[1, ])))
+  if(all(is.na(prop[1, ])))
     return(NA)
   
   adj <- numeric(ngroups)
@@ -12,16 +12,16 @@ dm_CRadjustmentGroups <- function(y, ngroups, lgroups, igroups,
   for(gr in 1:ngroups){
     # gr=1
     
-    pi_tmp <- pi[, gr]
+    prop_tmp <- prop[, gr]
     
-    if(is.na(pi_tmp[1])){
+    if(is.na(prop_tmp[1])){
       
       adj[gr] <- NA
       
     }else{
       
       y_tmp  <- y[, igroups[[gr]], drop = FALSE]
-      a <- dm_CRadjustmentOneGroup(y = y_tmp, gamma0, pi = pi_tmp)
+      a <- dm_CRadjustmentOneGroup(y = y_tmp, disp, prop = prop_tmp)
       adj[gr] <- a
       
     }

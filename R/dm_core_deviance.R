@@ -1,21 +1,19 @@
 ##############################################################################
-## Computes the deviance -- with gamma functions -- for k-1 proportion parameters
+## Computes the deviance -- with gamma functions -- for q-1 parameters
 ##############################################################################
 
-# pi <- pi[-length(pi)]
-
-dm_devG <- function(pi, gamma0, y){
-  ## pi has length of k-1
-  ## gamma0 has length 1
-  ## y has k rows and any number of columns n
+dm_devG <- function(prop, disp, y){
+  ## prop has length of q-1
+  ## disp has length 1
+  ## y has q rows and n columns 
   
-  pi <- c(pi, 1 - sum(pi))
+  prop <- c(prop, 1 - sum(prop))
   
-  ll_mod <- sum(lgamma(y + pi * gamma0) - lgamma(pi * gamma0) , na.rm = TRUE )
+  ll_mod <- sum(lgamma(y + prop * disp) - lgamma(prop * disp) , na.rm = TRUE )
   
-  pi_sat <- y/matrix(colSums(y), nrow(y), ncol(y), byrow = TRUE)
+  prop_sat <- y/matrix(colSums(y), nrow(y), ncol(y), byrow = TRUE)
   
-  ll_sat <- sum(lgamma(y + pi_sat * gamma0) - lgamma(pi_sat * gamma0) , 
+  ll_sat <- sum(lgamma(y + prop_sat * disp) - lgamma(prop_sat * disp) , 
     na.rm = TRUE) # Inf for y = 0
   
   D <- 2 * (ll_sat - ll_mod)

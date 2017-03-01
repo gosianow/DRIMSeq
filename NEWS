@@ -14,3 +14,5 @@ Additionally:
 	iv) Always use tagwise dispersion for fitting full and null models.
 	v) In one group fitting, return NA for tags having the last feature with zero counts in all samples. We always use the q-th feature as a denominator in logit calculation. In such a case all the logits are anyways Inf.
 	vi) Use plotPValues instead of plotTest
+	vii) Use 'prop' instead of 'pi' and 'disp' instead of 'gamma0'.
+	viii) Use only 'constrOptim' (old 'constrOptimG') to estimate proportions and 'optim', 'nlming' and 'Rcgmin' to estimate betas in the regression model. 

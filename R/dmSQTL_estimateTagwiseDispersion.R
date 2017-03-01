@@ -27,10 +27,10 @@ dmSQTL_optimize_dm_profileLikTagwise <- function(g, counts, genotypes,
     igroups <- lapply(lgroups, function(gr){which(group == gr)})
     names(igroups) <- lgroups
     
-    gamma0 <- disp_interval[1] + (1-(sqrt(5) - 1)/2) * 
+    disp <- disp_interval[1] + (1-(sqrt(5) - 1)/2) * 
       (disp_interval[2]-disp_interval[1])
     
-    if(is.na(dm_profileLikTagwise(gamma0 = gamma0, y = yg, 
+    if(is.na(dm_profileLikTagwise(disp = disp, y = yg, 
       ngroups = ngroups, lgroups = lgroups, igroups = igroups, 
       disp_adjust = disp_adjust, prop_mode = prop_mode, 
       prop_tol = prop_tol, verbose = verbose)))
@@ -76,9 +76,9 @@ dmSQTL_optim_dm_profileLikTagwise <- function(g, counts, genotypes,
     igroups <- lapply(lgroups, function(gr){which(group == gr)})
     names(igroups) <- lgroups
     
-    gamma0 <- disp_init
+    disp <- disp_init
     
-    if(is.na(dm_profileLikTagwise(gamma0 = gamma0, y = yg, ngroups = ngroups, 
+    if(is.na(dm_profileLikTagwise(disp = disp, y = yg, ngroups = ngroups, 
       lgroups = lgroups, igroups = igroups, disp_adjust = disp_adjust, 
       prop_mode = prop_mode, prop_tol = prop_tol, verbose = verbose)))
       next
@@ -135,7 +135,7 @@ dmSQTL_grid_dm_profileLikTagwise <- function(g, counts, genotypes,
     for(j in seq_disp_grid_length){
       # j = 1 
       
-      out <- dm_profileLikTagwise(gamma0 = splineDisp[j], y = yg, 
+      out <- dm_profileLikTagwise(disp = splineDisp[j], y = yg, 
         ngroups = ngroups, lgroups = lgroups, igroups = igroups, 
         disp_adjust = disp_adjust, prop_mode = prop_mode, 
         prop_tol = prop_tol, verbose = verbose)
@@ -180,9 +180,9 @@ dmSQTL_constrOptim_dm_profileLikTagwise <- function(g, counts, genotypes,
     igroups <- lapply(lgroups, function(gr){which(group == gr)})
     names(igroups) <- lgroups
     
-    gamma0 <- disp_init
+    disp <- disp_init
     
-    if(is.na(dm_profileLikTagwise(gamma0 = gamma0, y = yg, 
+    if(is.na(dm_profileLikTagwise(disp = disp, y = yg, 
       ngroups=ngroups, lgroups=lgroups, igroups=igroups, 
       disp_adjust = disp_adjust, prop_mode = prop_mode, 
       prop_tol = prop_tol, verbose = verbose)))
@@ -222,7 +222,7 @@ dmSQTL_estimateTagwiseDispersion <- function(counts, genotypes,
   disp_interval = c(0, 1e+5), disp_tol = 1e-08, disp_init = 100, 
   disp_init_weirMoM = TRUE, disp_grid_length = 21, 
   disp_grid_range = c(-10, 10),  disp_moderation = "none", disp_prior_df = 0, 
-  disp_span = 0.1, prop_mode = "constrOptimG", prop_tol = 1e-12, 
+  disp_span = 0.1, prop_mode = "constrOptim", prop_tol = 1e-12, 
   verbose = FALSE, BPPARAM = BiocParallel::MulticoreParam(workers = 1)){
   
   inds <- 1:length(counts)

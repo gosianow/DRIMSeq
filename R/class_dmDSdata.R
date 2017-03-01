@@ -235,7 +235,7 @@ dmDSdata <- function(counts, samples){
   ### Check on counts
   stopifnot(class(counts) == "data.frame")
   stopifnot(all(c("gene_id", "feature_id") %in% colnames(counts)))
-  stopifnot(all(samples$sample_id == colnames(counts)))
+  stopifnot(all(samples$sample_id %in% colnames(counts)))
   stopifnot(sum(duplicated(counts$feature_id)) == 0)
   
   gene_id <- counts$gene_id
@@ -389,7 +389,7 @@ setMethod("dmFilter", "dmDSdata", function(x, min_samps_gene_expr,
     min_samps_feature_prop = min_samps_feature_prop, 
     min_feature_prop = min_feature_prop)
   
-  return(new("dmDSdata", counts = counts_filtered, samples = samples))
+  return(new("dmDSdata", counts = counts_filtered, samples = x@samples))
   
 })
 

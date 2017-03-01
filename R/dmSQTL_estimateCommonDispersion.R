@@ -1,11 +1,11 @@
-dmSQTL_profileLikCommon <- function(gamma0, counts, genotypes, 
-  disp_adjust = TRUE, prop_mode = "constrOptimG", prop_tol = 1e-12, 
+dmSQTL_profileLikCommon <- function(disp, counts, genotypes, 
+  disp_adjust = TRUE, prop_mode = "constrOptim", prop_tol = 1e-12, 
   verbose = FALSE, BPPARAM = BiocParallel::MulticoreParam(workers = 1)){
   
-  if(verbose >= 2) message("Gamma in optimize:", gamma0)
+  if(verbose >= 2) message("Gamma in optimize:", disp)
   
   fit_full <- dmSQTL_fitOneModel(counts = counts, genotypes = genotypes, 
-    dispersion = gamma0, model = "full", prop_mode = prop_mode, 
+    dispersion = disp, model = "full", prop_mode = prop_mode, 
     prop_tol = prop_tol, verbose=verbose, BPPARAM = BPPARAM)
   
   lik <- sum(unlist(lapply(fit_full, function(g) 
@@ -19,8 +19,8 @@ dmSQTL_profileLikCommon <- function(gamma0, counts, genotypes,
   ## Cox-Reid adjustement
   if(verbose >= 2) message("* Calculating adjustement.. \n")
   
-  time <- system.time(adj <- dmSQTL_adjustmentCommon(gamma0, counts, genotypes, 
-    pi = fit_full, BPPARAM = BPPARAM))
+  time <- system.time(adj <- dmSQTL_adjustmentCommon(disp, counts, genotypes, 
+    prop = fit_full, BPPARAM = BPPARAM))
   
   if(verbose >= 2) message("Took ", round(time["elapsed"]), " seconds.\n")
   
@@ -34,8 +34,9 @@ dmSQTL_profileLikCommon <- function(gamma0, counts, genotypes,
 
 #' @importFrom stats optimize
 
-dmSQTL_estimateCommonDispersion <- function(counts, genotypes, disp_adjust = TRUE, 
-  disp_interval = c(0, 1e+5), disp_tol = 1e+01, prop_mode = "constrOptimG", 
+dmSQTL_estimateCommonDispersion <- function(counts, genotypes, 
+  disp_adjust = TRUE, 
+  disp_interval = c(0, 1e+5), disp_tol = 1e+01, prop_mode = "constrOptim", 
   prop_tol = 1e-12, verbose = FALSE, 
   BPPARAM = BiocParallel::MulticoreParam(workers = 1)){
   

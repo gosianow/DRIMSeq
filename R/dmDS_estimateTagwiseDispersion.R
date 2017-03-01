@@ -5,7 +5,7 @@ dmDS_estimateTagwiseDispersion <- function(counts, design, mean_expression,
   disp_adjust = TRUE, disp_init = 100,  
   disp_grid_length = 21, disp_grid_range = c(-10, 10), 
   disp_moderation = "none", disp_prior_df = 0, disp_span = 0.1, 
-  prop_mode = "constrOptimG", prop_tol = 1e-12, verbose = FALSE, 
+  prop_mode = "constrOptim", prop_tol = 1e-12, verbose = FALSE, 
   BPPARAM = BiocParallel::SerialParam()){
   
   time_start <- Sys.time()
@@ -23,7 +23,7 @@ dmDS_estimateTagwiseDispersion <- function(counts, design, mean_expression,
   for(i in seq(disp_grid_length)){
     # i = 1
     
-    loglik[, i] <- dmDS_profileLik(gamma0 = spline_disp[i], counts = counts, 
+    loglik[, i] <- dmDS_profileLik(disp = spline_disp[i], counts = counts, 
       design = design, disp_adjust = disp_adjust, 
       prop_mode = prop_mode, prop_tol = prop_tol, 
       verbose = max(0, verbose - 1), BPPARAM = BPPARAM)
