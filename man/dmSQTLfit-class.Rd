@@ -5,21 +5,71 @@
 \alias{dmSQTLfit-class}
 \title{dmSQTLfit object}
 \description{
-dmSQTLfit extends the \code{\linkS4class{dmDSdispersion}} class by adding the
-full model Dirichlet-multinomial feature proportion estimates needed for the
-sQTL analysis. Feature ratios are estimated for each gene and each group that
-is defined by different SNPs/blocks. Result of \code{\link{dmFit}}.
+dmSQTLfit extends the \code{\linkS4class{dmSQTLdispersion}} class by adding 
+the full model Dirichlet-multinomial (DM) likelihoods,
+regression coefficients and feature proportion estimates needed for the 
+transcript/exon usage QTL analysis. Full model is defined by the genotype of
+a SNP associated with a gene. Estimation takes place for all the genes and 
+all the SNPs/blocks assigned to the genes. Result of \code{\link{dmFit}}.
 }
 \section{Slots}{
 
 \describe{
-\item{\code{fit_full}}{List of \code{\linkS4class{MatrixList}} objects. Each element
-of this list contains the full model proportion estimates for all the
-blocks associated with a given gene.}
+\item{\code{fit_full}}{List of \code{\linkS4class{MatrixList}} objects containing 
+estimated feature ratios in each sample based on the full 
+Dirichlet-multinomial (DM) model.}
+
+\item{\code{lik_full}}{List of numeric vectors of the per gene DM full model 
+likelihoods.}
+
+\item{\code{coef_full}}{\code{\linkS4class{MatrixList}} with the regression 
+coefficients based on the DM model.}
 }}
 
+\examples{
+# --------------------------------------------------------------------------
+# Create dmSQTLdata object
+# --------------------------------------------------------------------------
+# Use subsets of data defined in the GeuvadisTranscriptExpr package
+
+library(GeuvadisTranscriptExpr)
+\donttest{
+counts <- GeuvadisTranscriptExpr::counts
+genotypes <- GeuvadisTranscriptExpr::genotypes
+gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
+snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
+
+colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
+colnames(genotypes)[4] <- "snp_id"
+samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
+
+d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
+  genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
+  window = 5e3)
+
+# --------------------------------------------------------------------------
+# sQTL analysis - simple group comparison
+# --------------------------------------------------------------------------
+
+## Filtering
+d <- dmFilter(d, min_samps_gene_expr = 70, min_samps_feature_expr = 5,
+  minor_allele_freq = 5, min_gene_expr = 10, min_feature_expr = 10)
+  
+plotData(d)
+
+## To make the analysis reproducible
+set.seed(123)
+## Calculate dispersion
+d <- dmDispersion(d)
+
+plotDispersion(d)
+
+## Fit full model proportions
+d <- dmFit(d)
+}
+}
 \seealso{
-\code{\link{data_dmSQTLdata}}, \code{\linkS4class{dmSQTLdata}},
+\code{\linkS4class{dmSQTLdata}}, 
   \code{\linkS4class{dmSQTLdispersion}}, \code{\linkS4class{dmSQTLtest}}
 }
 \author{

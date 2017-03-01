@@ -28,12 +28,12 @@ NULL
 #'   ratios in each sample based on the full Dirichlet-multinomial (DM) model.
 #' @slot lik_full Numeric vector of the per gene DM full model likelihoods.
 #' @slot coef_full \code{\linkS4class{MatrixList}} with the regression 
-#'   coefficients based on the DM model
+#'   coefficients based on the DM model.
 #' @slot fit_full_bb \code{\linkS4class{MatrixList}} containing estimated 
 #'   feature ratios in each sample based on the full beta-binomial (BB) model.
 #' @slot lik_full_bb Numeric vector of the per gene BB full model likelihoods.
 #' @slot coef_full_bb \code{\linkS4class{MatrixList}} with the regression 
-#'   coefficients based on the BB model
+#'   coefficients based on the BB model.
 #'   
 #' @examples 
 #' # --------------------------------------------------------------------------
@@ -216,11 +216,12 @@ setMethod("show", "dmDSfit", function(object){
 #' Fit the Dirichlet-multinomial and/or the beta-binomial full model regression
 #' 
 #' Obtain the maximum likelihood estimates of Dirichlet-multinomial (gene-level)
-#' and/or beta-binomial (feature-level) regression coefficients, feature
+#' and/or beta-binomial (feature-level) regression coefficients, feature 
 #' proportions in each sample and corresponding likelihoods. In the differential
-#' exon/transcript usage analysis, the regression model is defined by a design
-#' matrix. In the exon/transcript usage QTL analysis, regression models are
-#' defined by genotypes.
+#' exon/transcript usage analysis, the regression model is defined by a design 
+#' matrix. In the exon/transcript usage QTL analysis, regression models are 
+#' defined by genotypes. Currently, beta-binomial model is implemented only in
+#' the differential usage analysis.
 #' 
 #' @param x \code{\linkS4class{dmDSdispersion}} or 
 #'   \code{\linkS4class{dmSQTLdispersion}} object.
@@ -254,11 +255,6 @@ setGeneric("dmFit", function(x, ...) standardGeneric("dmFit"))
 #'   equivalent to simple group fitting. \code{one_way = FALSE} forces usage of 
 #'   the regression framework.
 #'   
-#'   In the QTL analysis, currently, genotypes are defined as numeric values 0, 
-#'   1, and 2. When \code{one_way = TRUE}, simple multiple group fitting is 
-#'   performed. When \code{one_way = FALSE}, a regression framework is used with
-#'   the design matrix defined by a formula \code{~ group} where group is a 
-#'   continous (not categorical) varialbe with values 0, 1, and 2.
 #'   
 #' @param design Numeric matrix definig the full model.
 #' @param bb_model Logical. Whether to perform the feature-level analysis using 

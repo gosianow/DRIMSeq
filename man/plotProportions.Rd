@@ -59,6 +59,12 @@ For a given gene, plot the observed and estimated with
 This plot is available only for a group design, i.e., a design that is 
 equivalent to multiple group fitting.
 }
+\details{
+In the QTL analysis, plotting of fitted proportions is deactivated 
+  even when \code{plot_fit = TRUE}. It is due to the fact that neither fitted
+  values nor regression coefficients are returned by the \code{dmFit}
+  function as they ocuppy a lot of memory.
+}
 \examples{
 # --------------------------------------------------------------------------
 # Create dmDSdata object 

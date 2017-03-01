@@ -42,10 +42,10 @@ be expressed. See details.}
 \item{min_feature_prop}{Minimal proportion for feature expression. This value
 should be between 0 and 1.}
 
-\item{minor_allele_freq}{Minimal number of samples where each of the
+\item{minor_allele_freq}{Minimal number of samples where each of the 
 genotypes has to be present.}
 
-\item{BPPARAM}{Parallelization method used by
+\item{BPPARAM}{Parallelization method used by 
 \code{\link[BiocParallel]{bplapply}}.}
 }
 \value{
@@ -81,18 +81,18 @@ Filtering parameters should be adjusted according to the sample size
   features with zero expression in all samples are removed as well as genes 
   with only one non-zero feature.
 
-In sQTL analysis, usually, we deal with data that has many more replicates
-than data from a standard differential splicing assay. Our example data set
+In QTL analysis, usually, we deal with data that has many more replicates 
+than data from a standard differential usage assay. Our example data set 
 consists of 91 samples. Requiring that genes are expressed in all samples may
-be too stringent, especially since there may be missing values in the data
-and for some genes you may not observe counts in all 91 samples. Slightly
-lower threshold ensures that we do not eliminate such genes. For example, if
-\code{min_samps_gene_expr = 70} and \code{min_gene_expr = 10}, only genes
-with expression of at least 10 in at least 70 samples are kept. Samples with
-expression lower than 10 have \code{NA}s assigned and are skipped in the
-analysis of this gene. \code{minor_allele_freq} indicates the minimal number
-of samples for the minor allele presence. Usually, it is equal to 5\% of
-total samples.
+be too stringent, especially since there may be missing values in the data 
+and for some genes you may not observe counts in all 91 samples. Slightly 
+lower threshold ensures that we do not eliminate such genes. For example, if 
+\code{min_samps_gene_expr = 70} and \code{min_gene_expr = 10}, only genes 
+with expression of at least 10 in at least 70 samples are kept. Samples with 
+expression lower than 10 have \code{NA}s assigned and are skipped in the 
+analysis of this gene. \code{minor_allele_freq} indicates the minimal number 
+of samples for the minor allele presence. Usually, it is equal to roughly 5\%
+of total samples.
 }
 \examples{
 # --------------------------------------------------------------------------
@@ -138,9 +138,36 @@ d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3,
 
 plotData(d)
 }
-#############################
-### sQTL analysis
-#############################
+# --------------------------------------------------------------------------
+# Create dmSQTLdata object
+# --------------------------------------------------------------------------
+# Use subsets of data defined in the GeuvadisTranscriptExpr package
+
+library(GeuvadisTranscriptExpr)
+\donttest{
+counts <- GeuvadisTranscriptExpr::counts
+genotypes <- GeuvadisTranscriptExpr::genotypes
+gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
+snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
+
+colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
+colnames(genotypes)[4] <- "snp_id"
+samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
+
+d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
+  genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
+  window = 5e3)
+
+# --------------------------------------------------------------------------
+# sQTL analysis - simple group comparison
+# --------------------------------------------------------------------------
+
+## Filtering
+d <- dmFilter(d, min_samps_gene_expr = 70, min_samps_feature_expr = 5,
+  minor_allele_freq = 5, min_gene_expr = 10, min_feature_expr = 10)
+  
+plotData(d)
+}
 }
 \seealso{
 \code{\link{plotData}}

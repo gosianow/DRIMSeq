@@ -46,7 +46,7 @@ ratios in each sample based on the full Dirichlet-multinomial (DM) model.}
 \item{\code{lik_full}}{Numeric vector of the per gene DM full model likelihoods.}
 
 \item{\code{coef_full}}{\code{\linkS4class{MatrixList}} with the regression 
-coefficients based on the DM model}
+coefficients based on the DM model.}
 
 \item{\code{fit_full_bb}}{\code{\linkS4class{MatrixList}} containing estimated 
 feature ratios in each sample based on the full beta-binomial (BB) model.}
@@ -54,7 +54,7 @@ feature ratios in each sample based on the full beta-binomial (BB) model.}
 \item{\code{lik_full_bb}}{Numeric vector of the per gene BB full model likelihoods.}
 
 \item{\code{coef_full_bb}}{\code{\linkS4class{MatrixList}} with the regression 
-coefficients based on the BB model}
+coefficients based on the BB model.}
 }}
 
 \examples{

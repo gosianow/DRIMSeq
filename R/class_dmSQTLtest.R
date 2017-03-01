@@ -8,21 +8,20 @@ NULL
 #' dmSQTLtest object
 #' 
 #' dmSQTLtest extends the \code{\linkS4class{dmSQTLfit}} class by adding the 
-#' null model Dirichlet-multinomial feature proportion estimates and the results
-#' of testing for sQTLs. Proportions are calculated for each gene-block pair 
-#' from pooled (no grouping into conditions) counts. Result of 
+#' null model Dirichlet-multinomial likelihoods and the gene-level results of 
+#' testing for differential transcript/exon usage QTLs. Result of 
 #' \code{\link{dmTest}}.
 #' 
 #' @return
 #' 
-#' \itemize{ \item \code{results(x)}: Get a data frame with results. See Slots. 
+#' \itemize{ \item \code{results(x)}: Get a data frame with gene-level results. 
 #' }
 #' 
 #' @param x dmSQTLtest object.
 #' @param ... Other parameters that can be defined by methods using this 
 #'   generic.
 #'   
-#' @slot lik_null List of numeric vectors with the per gene-snp DM null model
+#' @slot lik_null List of numeric vectors with the per gene-snp DM null model 
 #'   likelihoods.
 #' @slot results_gene Data frame with the gene-level results including: 
 #'   \code{gene_id} - gene IDs, \code{block_id} - block IDs, \code{snp_id} - SNP
@@ -32,12 +31,58 @@ NULL
 #'   p-values.
 #'   
 #' @examples 
+#' # --------------------------------------------------------------------------
+#' # Create dmSQTLdata object
+#' # --------------------------------------------------------------------------
+#' # Use subsets of data defined in the GeuvadisTranscriptExpr package
 #' 
-#' #############################
-#' ### sQTL analysis
-#' #############################
+#' library(GeuvadisTranscriptExpr)
+#' 
+#' counts <- GeuvadisTranscriptExpr::counts
+#' genotypes <- GeuvadisTranscriptExpr::genotypes
+#' gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
+#' snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
+#' 
+#' colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
+#' colnames(genotypes)[4] <- "snp_id"
+#' samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
+#' 
+#' d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
+#'   genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
+#'   window = 5e3)
+#' 
+#' # --------------------------------------------------------------------------
+#' # sQTL analysis - simple group comparison
+#' # --------------------------------------------------------------------------
+#' 
+#' ## Filtering
+#' d <- dmFilter(d, min_samps_gene_expr = 70, min_samps_feature_expr = 5,
+#'   minor_allele_freq = 5, min_gene_expr = 10, min_feature_expr = 10)
+#'   
+#' plotData(d)
+#' 
+#' ## To make the analysis reproducible
+#' set.seed(123)
+#' ## Calculate dispersion
+#' d <- dmDispersion(d)
+#' 
+#' plotDispersion(d)
+#' 
+#' ## Fit full model proportions
+#' d <- dmFit(d)
+#' 
+#' ## Fit null model proportions, perform the LR test to detect tuQTLs 
+#' ## and use the permutation approach to adjust the p-values
+#' d <- dmTest(d)
+#' 
+#' ## Plot the gene-level p-values
+#' plotPValues(d)
+#' 
+#' ## Get the gene-level results
+#' head(results(d))
+#' 
 #' @author Malgorzata Nowicka
-#' @seealso \code{\link{data_dmSQTLdata}}, \code{\linkS4class{dmSQTLdata}}, 
+#' @seealso \code{\linkS4class{dmSQTLdata}}, 
 #'   \code{\linkS4class{dmSQTLdispersion}}, \code{\linkS4class{dmSQTLfit}}
 setClass("dmSQTLtest", 
   contains = "dmSQTLfit",

@@ -302,14 +302,14 @@ setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
 #'   
 #'   \code{"optimize"}:
 #'   
-#'   \itemize{ \item \code{disp_interval}: passed as \code{interval}. \item 
-#'   \code{disp_tol}: the accuracy defined as \code{tol}. }
+#'   \itemize{ \item \code{disp_interval}: Passed as \code{interval}. \item 
+#'   \code{disp_tol}: The accuracy defined as \code{tol}. }
 #'   
 #'   \code{"grid"}, which uses the grid approach from 
 #'   \code{\link[edgeR]{estimateDisp}} in \code{\link{edgeR}}:
 #'   
 #'   \itemize{ \item \code{disp_init}, \code{disp_grid_length}, 
-#'   \code{disp_grid_range}: parameters used to construct the search grid 
+#'   \code{disp_grid_range}: Parameters used to construct the search grid 
 #'   \code{disp_init * 2^seq(from = disp_grid_range[1]}, \code{to = 
 #'   disp_grid_range[2]}, \code{length = disp_grid_length)}. \item 
 #'   \code{disp_moderation}: Dipsersion shrinkage is available only with 

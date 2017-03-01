@@ -35,7 +35,7 @@ and samples j. }
 }
 \description{
 dmSQTLdata contains genomic feature expression (counts), genotypes and sample
-information needed for the transcript/exon usage QTL analysis. It can be
+information needed for the transcript/exon usage QTL analysis. It can be 
 created with function \code{\link{dmSQTLdata}}.
 }
 \section{Slots}{
@@ -54,27 +54,35 @@ genotypes that are matched with a given gene.}
 For each gene, it identifies SNPs with identical genotypes across the 
 samples and assigns them to blocks.}
 
-\item{\code{samples}}{Data frame with information about samples. It contains unique 
-sample names \code{sample_id}.}
+\item{\code{samples}}{Data frame with information about samples. It must contain 
+variable \code{sample_id} with unique sample names.}
 }}
 
 \examples{
-#############################
-### sQTL analysis
-#############################
+# --------------------------------------------------------------------------
+# Create dmSQTLdata object
+# --------------------------------------------------------------------------
+# Use subsets of data defined in the GeuvadisTranscriptExpr package
 
-d <- data_dmSQTLdata
+library(GeuvadisTranscriptExpr)
+\donttest{
+counts <- GeuvadisTranscriptExpr::counts
+genotypes <- GeuvadisTranscriptExpr::genotypes
+gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
+snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
 
-head(names(d))
-length(d)
-d[1:10, ]
-d[1:10, 1:10]
+colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
+colnames(genotypes)[4] <- "snp_id"
+samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
 
+d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
+  genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
+  window = 5e3)
+}
 }
 \seealso{
-\code{\link{data_dmSQTLdata}}, 
-  \code{\linkS4class{dmSQTLdispersion}}, \code{\linkS4class{dmSQTLfit}}, 
-  \code{\linkS4class{dmSQTLtest}}
+\code{\linkS4class{dmSQTLdispersion}}, 
+  \code{\linkS4class{dmSQTLfit}}, \code{\linkS4class{dmSQTLtest}}
 }
 \author{
 Malgorzata Nowicka

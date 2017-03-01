@@ -193,8 +193,12 @@ setMethod("show", "dmDStest", function(object){
 #' Likelihood ratio test to detect differential transcript/exon usage
 #' 
 #' First, estimate the null Dirichlet-multinomial and beta-binomial model 
-#' parameters and likelihoods using the null model design. Second, perform the
-#' gene-level (DM model) and feature-level (BB model) likelihood ratio tests.
+#' parameters and likelihoods using the null model design. Second, perform the 
+#' gene-level (DM model) and feature-level (BB model) likelihood ratio tests. In
+#' the differential exon/transcript usage analysis, the null model is defined by
+#' the null design matrix. In the exon/transcript usage QTL analysis, null
+#' models are defined by a design with intercept only. Currently, beta-binomial
+#' model is implemented only in the differential usage analysis.
 #' 
 #' @param x \code{\linkS4class{dmDSfit}} or \code{\linkS4class{dmSQTLfit}} 
 #'   object.

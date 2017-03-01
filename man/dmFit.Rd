@@ -58,11 +58,12 @@ Returns a \code{\linkS4class{dmDSfit}} or
 }
 \description{
 Obtain the maximum likelihood estimates of Dirichlet-multinomial (gene-level)
-and/or beta-binomial (feature-level) regression coefficients, feature
+and/or beta-binomial (feature-level) regression coefficients, feature 
 proportions in each sample and corresponding likelihoods. In the differential
-exon/transcript usage analysis, the regression model is defined by a design
-matrix. In the exon/transcript usage QTL analysis, regression models are
-defined by genotypes.
+exon/transcript usage analysis, the regression model is defined by a design 
+matrix. In the exon/transcript usage QTL analysis, regression models are 
+defined by genotypes. Currently, beta-binomial model is implemented only in
+the differential usage analysis.
 }
 \details{
 In the regression framework here, we adapt the idea from 
@@ -83,12 +84,12 @@ In the regression framework here, we adapt the idea from
   TRUE} allows switching to the shortcut algorithm only if the design is 
   equivalent to simple group fitting. \code{one_way = FALSE} forces usage of 
   the regression framework.
-  
-  In the QTL analysis, currently, genotypes are defined as numeric values 0, 
-  1, and 2. When \code{one_way = TRUE}, simple multiple group fitting is 
-  performed. When \code{one_way = FALSE}, a regression framework is used with
-  the design matrix defined by a formula \code{~ group} where group is a 
-  continous (not categorical) varialbe with values 0, 1, and 2.
+
+In the QTL analysis, currently, genotypes are defined as numeric
+values 0, 1, and 2. When \code{one_way = TRUE}, simple multiple group fitting
+is performed. When \code{one_way = FALSE}, a regression framework is used
+with the design matrix defined by a formula \code{~ group} where group is a 
+continous (not categorical) varialbe with values 0, 1, and 2.
 }
 \examples{
 # --------------------------------------------------------------------------

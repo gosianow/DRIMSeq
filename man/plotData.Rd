@@ -77,11 +77,36 @@ d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3,
 
 plotData(d)
 }
+# --------------------------------------------------------------------------
+# Create dmSQTLdata object
+# --------------------------------------------------------------------------
+# Use subsets of data defined in the GeuvadisTranscriptExpr package
 
-#############################
-### sQTL analysis
-#############################
+library(GeuvadisTranscriptExpr)
+\donttest{
+counts <- GeuvadisTranscriptExpr::counts
+genotypes <- GeuvadisTranscriptExpr::genotypes
+gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
+snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
 
+colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
+colnames(genotypes)[4] <- "snp_id"
+samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
+
+d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
+  genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
+  window = 5e3)
+
+# --------------------------------------------------------------------------
+# sQTL analysis - simple group comparison
+# --------------------------------------------------------------------------
+
+## Filtering
+d <- dmFilter(d, min_samps_gene_expr = 70, min_samps_feature_expr = 5,
+  minor_allele_freq = 5, min_gene_expr = 10, min_feature_expr = 10)
+  
+plotData(d)
+}
 }
 \seealso{
 \code{\link{plotDispersion}}, \code{\link{plotProportions}},

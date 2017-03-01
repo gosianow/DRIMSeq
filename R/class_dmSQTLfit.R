@@ -7,25 +7,69 @@ NULL
 
 #' dmSQTLfit object
 #' 
-#' dmSQTLfit extends the \code{\linkS4class{dmDSdispersion}} class by adding the
-#' full model Dirichlet-multinomial feature proportion estimates needed for the
-#' sQTL analysis. Feature ratios are estimated for each gene and each group that
-#' is defined by different SNPs/blocks. Result of \code{\link{dmFit}}.
+#' dmSQTLfit extends the \code{\linkS4class{dmSQTLdispersion}} class by adding 
+#' the full model Dirichlet-multinomial (DM) likelihoods,
+#' regression coefficients and feature proportion estimates needed for the 
+#' transcript/exon usage QTL analysis. Full model is defined by the genotype of
+#' a SNP associated with a gene. Estimation takes place for all the genes and 
+#' all the SNPs/blocks assigned to the genes. Result of \code{\link{dmFit}}.
 #' 
-#' @slot fit_full List of \code{\linkS4class{MatrixList}} objects. Each element
-#'   of this list contains the full model proportion estimates for all the
-#'   blocks associated with a given gene.
+#' @slot fit_full List of \code{\linkS4class{MatrixList}} objects containing 
+#'   estimated feature ratios in each sample based on the full 
+#'   Dirichlet-multinomial (DM) model.
+#' @slot lik_full List of numeric vectors of the per gene DM full model 
+#'   likelihoods.
+#' @slot coef_full \code{\linkS4class{MatrixList}} with the regression 
+#'   coefficients based on the DM model.
+#' @examples 
+#' # --------------------------------------------------------------------------
+#' # Create dmSQTLdata object
+#' # --------------------------------------------------------------------------
+#' # Use subsets of data defined in the GeuvadisTranscriptExpr package
+#' 
+#' library(GeuvadisTranscriptExpr)
+#' \donttest{
+#' counts <- GeuvadisTranscriptExpr::counts
+#' genotypes <- GeuvadisTranscriptExpr::genotypes
+#' gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
+#' snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
+#' 
+#' colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
+#' colnames(genotypes)[4] <- "snp_id"
+#' samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
+#' 
+#' d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
+#'   genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
+#'   window = 5e3)
+#' 
+#' # --------------------------------------------------------------------------
+#' # sQTL analysis - simple group comparison
+#' # --------------------------------------------------------------------------
+#' 
+#' ## Filtering
+#' d <- dmFilter(d, min_samps_gene_expr = 70, min_samps_feature_expr = 5,
+#'   minor_allele_freq = 5, min_gene_expr = 10, min_feature_expr = 10)
+#'   
+#' plotData(d)
+#' 
+#' ## To make the analysis reproducible
+#' set.seed(123)
+#' ## Calculate dispersion
+#' d <- dmDispersion(d)
+#' 
+#' plotDispersion(d)
+#' 
+#' ## Fit full model proportions
+#' d <- dmFit(d)
+#' }
 #' @author Malgorzata Nowicka
-#' @seealso \code{\link{data_dmSQTLdata}}, \code{\linkS4class{dmSQTLdata}},
+#' @seealso \code{\linkS4class{dmSQTLdata}}, 
 #'   \code{\linkS4class{dmSQTLdispersion}}, \code{\linkS4class{dmSQTLtest}}
 setClass("dmSQTLfit", 
   contains = "dmSQTLdispersion",
   representation(fit_full = "list",
     lik_full = "list",
-    coef_full = "list",
-    fit_full_bb = "list",
-    lik_full_bb = "list",
-    coef_full_bb = "list"))
+    coef_full = "list"))
 
 ########################################
 
@@ -59,6 +103,11 @@ setMethod("show", "dmSQTLfit", function(object){
 ################################################################################
 
 
+#' @details In the QTL analysis, currently, genotypes are defined as numeric
+#' values 0, 1, and 2. When \code{one_way = TRUE}, simple multiple group fitting
+#' is performed. When \code{one_way = FALSE}, a regression framework is used
+#' with the design matrix defined by a formula \code{~ group} where group is a 
+#' continous (not categorical) varialbe with values 0, 1, and 2.
 #' @rdname dmFit
 #' @export
 setMethod("dmFit", "dmSQTLdispersion", function(x, one_way = TRUE, 
@@ -105,6 +154,10 @@ setMethod("dmFit", "dmSQTLdispersion", function(x, one_way = TRUE,
 
 
 #' @param snp_id Character indicating the ID of a SNP to be plotted.
+#' @details In the QTL analysis, plotting of fitted proportions is deactivated 
+#'   even when \code{plot_fit = TRUE}. It is due to the fact that neither fitted
+#'   values nor regression coefficients are returned by the \code{dmFit}
+#'   function as they ocuppy a lot of memory.
 #' @rdname plotProportions
 #' @export
 setMethod("plotProportions", "dmSQTLfit", function(x, gene_id, snp_id, 

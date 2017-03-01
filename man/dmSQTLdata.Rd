@@ -48,7 +48,7 @@ surrounding (\code{window}) of this gene.
 \details{
 It is quite common that sample grouping defined by some of the SNPs is 
 identical. Compare \code{dim(genotypes)} and \code{dim(unique(genotypes))}. 
-In our sQTL analysis, we do not repeat tests for the SNPs that define the 
+In our QTL analysis, we do not repeat tests for the SNPs that define the 
 same grouping of samples. Each grouping is tested only once. SNPs that define
 such unique groupings are aggregated into blocks. P-values and adjusted 
 p-values are estimated at the block level, but the returned results are 
@@ -56,15 +56,29 @@ extended to a SNP level by repeating the block statistics for each SNP that
 belongs to a given block.
 }
 \examples{
- 
-#############################
-### Create dmSQTLdata object
-#############################
+# --------------------------------------------------------------------------
+# Create dmSQTLdata object
+# --------------------------------------------------------------------------
+# Use subsets of data defined in the GeuvadisTranscriptExpr package
 
+library(GeuvadisTranscriptExpr)
+\donttest{
+counts <- GeuvadisTranscriptExpr::counts
+genotypes <- GeuvadisTranscriptExpr::genotypes
+gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
+snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
+
+colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
+colnames(genotypes)[4] <- "snp_id"
+samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
+
+d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
+  genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
+  window = 5e3)
+}
 }
 \seealso{
-\code{\link{data_dmSQTLdata}}, \code{\link{dmFilter}}, 
-  \code{\link{dmDispersion}}, \code{\link{dmFit}}, \code{\link{dmTest}}
+\code{\link{plotData}}
 }
 \author{
 Malgorzata Nowicka

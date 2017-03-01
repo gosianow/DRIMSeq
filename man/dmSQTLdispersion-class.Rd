@@ -15,10 +15,10 @@
 \S4method{genewise_dispersion}{dmSQTLdispersion}(x)
 }
 \description{
-dmSQTLdispersion extends the \code{\linkS4class{dmSQTLdata}} by adding the
-dispersion estimates of Dirichlet-multinomial distribution used to model the
+dmSQTLdispersion extends the \code{\linkS4class{dmSQTLdata}} by adding the 
+precision estimates of Dirichlet-multinomial distribution used to model the 
 feature (e.g., transcript, exon, exonic bin) counts for each gene-SNP pair in
-the sQTL analysis. Result of \code{\link{dmDispersion}}.
+the QTL analysis. Result of \code{\link{dmDispersion}}.
 }
 \section{Slots}{
 
@@ -27,14 +27,53 @@ the sQTL analysis. Result of \code{\link{dmDispersion}}.
 
 \item{\code{common_dispersion}}{Numeric value of estimated common dispersion.}
 
-\item{\code{genewise_dispersion}}{List of estimated gene-wise dispersions. Each
-element of this list is a vector of dispersions estimated for all the
+\item{\code{genewise_dispersion}}{List of estimated gene-wise dispersions. Each 
+element of this list is a vector of dispersions estimated for all the 
 genotype blocks assigned to a given gene.}
 }}
 
+\examples{
+# --------------------------------------------------------------------------
+# Create dmSQTLdata object
+# --------------------------------------------------------------------------
+# Use subsets of data defined in the GeuvadisTranscriptExpr package
+
+library(GeuvadisTranscriptExpr)
+\donttest{
+counts <- GeuvadisTranscriptExpr::counts
+genotypes <- GeuvadisTranscriptExpr::genotypes
+gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
+snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
+
+colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
+colnames(genotypes)[4] <- "snp_id"
+samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
+
+d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
+  genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
+  window = 5e3)
+
+# --------------------------------------------------------------------------
+# sQTL analysis - simple group comparison
+# --------------------------------------------------------------------------
+
+## Filtering
+d <- dmFilter(d, min_samps_gene_expr = 70, min_samps_feature_expr = 5,
+  minor_allele_freq = 5, min_gene_expr = 10, min_feature_expr = 10)
+  
+plotData(d)
+
+## To make the analysis reproducible
+set.seed(123)
+## Calculate dispersion
+d <- dmDispersion(d)
+
+plotDispersion(d)
+}
+}
 \seealso{
-\code{\link{data_dmSQTLdata}}, \code{\linkS4class{dmSQTLdata}},
-  \code{\linkS4class{dmSQTLfit}}, \code{\linkS4class{dmSQTLtest}}
+\code{\linkS4class{dmSQTLdata}}, \code{\linkS4class{dmSQTLfit}},
+  \code{\linkS4class{dmSQTLtest}}
 }
 \author{
 Malgorzata Nowicka

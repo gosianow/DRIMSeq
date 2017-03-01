@@ -8,7 +8,7 @@ NULL
 #' dmSQTLdata object
 #' 
 #' dmSQTLdata contains genomic feature expression (counts), genotypes and sample
-#' information needed for the transcript/exon usage QTL analysis. It can be
+#' information needed for the transcript/exon usage QTL analysis. It can be 
 #' created with function \code{\link{dmSQTLdata}}.
 #' 
 #' @return
@@ -31,25 +31,33 @@ NULL
 #' @slot blocks MatrixList with two columns \code{block_id} and \code{snp_id}. 
 #'   For each gene, it identifies SNPs with identical genotypes across the 
 #'   samples and assigns them to blocks.
-#' @slot samples Data frame with information about samples. It contains unique 
-#'   sample names \code{sample_id}.
+#' @slot samples Data frame with information about samples. It must contain 
+#'   variable \code{sample_id} with unique sample names.
 #'   
 #' @examples 
-#' #############################
-#' ### sQTL analysis
-#' #############################
+#' # --------------------------------------------------------------------------
+#' # Create dmSQTLdata object
+#' # --------------------------------------------------------------------------
+#' # Use subsets of data defined in the GeuvadisTranscriptExpr package
 #' 
-#' d <- data_dmSQTLdata
+#' library(GeuvadisTranscriptExpr)
+#' \donttest{
+#' counts <- GeuvadisTranscriptExpr::counts
+#' genotypes <- GeuvadisTranscriptExpr::genotypes
+#' gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
+#' snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
 #' 
-#' head(names(d))
-#' length(d)
-#' d[1:10, ]
-#' d[1:10, 1:10]
+#' colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
+#' colnames(genotypes)[4] <- "snp_id"
+#' samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
 #' 
+#' d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
+#'   genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
+#'   window = 5e3)
+#' }
 #' @author Malgorzata Nowicka
-#' @seealso \code{\link{data_dmSQTLdata}}, 
-#'   \code{\linkS4class{dmSQTLdispersion}}, \code{\linkS4class{dmSQTLfit}}, 
-#'   \code{\linkS4class{dmSQTLtest}}
+#' @seealso \code{\linkS4class{dmSQTLdispersion}}, 
+#'   \code{\linkS4class{dmSQTLfit}}, \code{\linkS4class{dmSQTLtest}}
 setClass("dmSQTLdata", 
   representation(counts = "MatrixList", 
     genotypes = "MatrixList", 
@@ -191,7 +199,7 @@ blocks_per_gene <- function(g, genotypes){
 #' 
 #' It is quite common that sample grouping defined by some of the SNPs is 
 #' identical. Compare \code{dim(genotypes)} and \code{dim(unique(genotypes))}. 
-#' In our sQTL analysis, we do not repeat tests for the SNPs that define the 
+#' In our QTL analysis, we do not repeat tests for the SNPs that define the 
 #' same grouping of samples. Each grouping is tested only once. SNPs that define
 #' such unique groupings are aggregated into blocks. P-values and adjusted 
 #' p-values are estimated at the block level, but the returned results are 
@@ -220,13 +228,27 @@ blocks_per_gene <- function(g, genotypes){
 #' @return Returns a \code{\linkS4class{dmSQTLdata}} object.
 #'   
 #' @examples 
-#'  
-#' #############################
-#' ### Create dmSQTLdata object
-#' #############################
+#' # --------------------------------------------------------------------------
+#' # Create dmSQTLdata object
+#' # --------------------------------------------------------------------------
+#' # Use subsets of data defined in the GeuvadisTranscriptExpr package
 #' 
-#' @seealso \code{\link{data_dmSQTLdata}}, \code{\link{dmFilter}}, 
-#'   \code{\link{dmDispersion}}, \code{\link{dmFit}}, \code{\link{dmTest}}
+#' library(GeuvadisTranscriptExpr)
+#' \donttest{
+#' counts <- GeuvadisTranscriptExpr::counts
+#' genotypes <- GeuvadisTranscriptExpr::genotypes
+#' gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
+#' snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
+#' 
+#' colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
+#' colnames(genotypes)[4] <- "snp_id"
+#' samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
+#' 
+#' d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
+#'   genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
+#'   window = 5e3)
+#' }
+#' @seealso \code{\link{plotData}}
 #' @author Malgorzata Nowicka
 #' @export
 #' @importFrom IRanges width
@@ -383,7 +405,6 @@ dmSQTLdata <- function(counts, gene_ranges, genotypes, snp_ranges, samples,
   
   return(data)
   
-  
 }
 
 
@@ -392,29 +413,56 @@ dmSQTLdata <- function(counts, gene_ranges, genotypes, snp_ranges, samples,
 ################################################################################
 
 
-#' @param minor_allele_freq Minimal number of samples where each of the
+#' @param minor_allele_freq Minimal number of samples where each of the 
 #'   genotypes has to be present.
-#' @param BPPARAM Parallelization method used by
+#' @param BPPARAM Parallelization method used by 
 #'   \code{\link[BiocParallel]{bplapply}}.
 #' @details
 #' 
-#' In sQTL analysis, usually, we deal with data that has many more replicates
-#' than data from a standard differential splicing assay. Our example data set
+#' In QTL analysis, usually, we deal with data that has many more replicates 
+#' than data from a standard differential usage assay. Our example data set 
 #' consists of 91 samples. Requiring that genes are expressed in all samples may
-#' be too stringent, especially since there may be missing values in the data
-#' and for some genes you may not observe counts in all 91 samples. Slightly
-#' lower threshold ensures that we do not eliminate such genes. For example, if
-#' \code{min_samps_gene_expr = 70} and \code{min_gene_expr = 10}, only genes
-#' with expression of at least 10 in at least 70 samples are kept. Samples with
-#' expression lower than 10 have \code{NA}s assigned and are skipped in the
-#' analysis of this gene. \code{minor_allele_freq} indicates the minimal number
-#' of samples for the minor allele presence. Usually, it is equal to 5\% of
-#' total samples.
+#' be too stringent, especially since there may be missing values in the data 
+#' and for some genes you may not observe counts in all 91 samples. Slightly 
+#' lower threshold ensures that we do not eliminate such genes. For example, if 
+#' \code{min_samps_gene_expr = 70} and \code{min_gene_expr = 10}, only genes 
+#' with expression of at least 10 in at least 70 samples are kept. Samples with 
+#' expression lower than 10 have \code{NA}s assigned and are skipped in the 
+#' analysis of this gene. \code{minor_allele_freq} indicates the minimal number 
+#' of samples for the minor allele presence. Usually, it is equal to roughly 5\%
+#' of total samples.
 #' 
 #' @examples 
-#' #############################
-#' ### sQTL analysis
-#' #############################
+#' # --------------------------------------------------------------------------
+#' # Create dmSQTLdata object
+#' # --------------------------------------------------------------------------
+#' # Use subsets of data defined in the GeuvadisTranscriptExpr package
+#' 
+#' library(GeuvadisTranscriptExpr)
+#' \donttest{
+#' counts <- GeuvadisTranscriptExpr::counts
+#' genotypes <- GeuvadisTranscriptExpr::genotypes
+#' gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
+#' snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
+#' 
+#' colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
+#' colnames(genotypes)[4] <- "snp_id"
+#' samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
+#' 
+#' d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
+#'   genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
+#'   window = 5e3)
+#' 
+#' # --------------------------------------------------------------------------
+#' # sQTL analysis - simple group comparison
+#' # --------------------------------------------------------------------------
+#' 
+#' ## Filtering
+#' d <- dmFilter(d, min_samps_gene_expr = 70, min_samps_feature_expr = 5,
+#'   minor_allele_freq = 5, min_gene_expr = 10, min_feature_expr = 10)
+#'   
+#' plotData(d)
+#' }
 #' @rdname dmFilter
 #' @export
 setMethod("dmFilter", "dmSQTLdata", function(x, min_samps_gene_expr = 0, 
@@ -458,11 +506,36 @@ setMethod("dmFilter", "dmSQTLdata", function(x, min_samps_gene_expr = 0,
 #' @param plot_type Character specifying which type of histogram to plot. Possible
 #'   values \code{"features"}, \code{"snps"} or \code{"blocks"}.
 #' @examples 
+#' # --------------------------------------------------------------------------
+#' # Create dmSQTLdata object
+#' # --------------------------------------------------------------------------
+#' # Use subsets of data defined in the GeuvadisTranscriptExpr package
 #' 
-#' #############################
-#' ### sQTL analysis
-#' #############################
-#'
+#' library(GeuvadisTranscriptExpr)
+#' \donttest{
+#' counts <- GeuvadisTranscriptExpr::counts
+#' genotypes <- GeuvadisTranscriptExpr::genotypes
+#' gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
+#' snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
+#' 
+#' colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
+#' colnames(genotypes)[4] <- "snp_id"
+#' samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
+#' 
+#' d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
+#'   genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
+#'   window = 5e3)
+#' 
+#' # --------------------------------------------------------------------------
+#' # sQTL analysis - simple group comparison
+#' # --------------------------------------------------------------------------
+#' 
+#' ## Filtering
+#' d <- dmFilter(d, min_samps_gene_expr = 70, min_samps_feature_expr = 5,
+#'   minor_allele_freq = 5, min_gene_expr = 10, min_feature_expr = 10)
+#'   
+#' plotData(d)
+#' }
 #' @rdname plotData
 #' @export
 setMethod("plotData", "dmSQTLdata", function(x, plot_type = "features"){

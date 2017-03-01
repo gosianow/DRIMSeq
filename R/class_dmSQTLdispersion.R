@@ -7,19 +7,58 @@ NULL
 
 #' dmSQTLdispersion object
 #' 
-#' dmSQTLdispersion extends the \code{\linkS4class{dmSQTLdata}} by adding the
-#' dispersion estimates of Dirichlet-multinomial distribution used to model the
+#' dmSQTLdispersion extends the \code{\linkS4class{dmSQTLdata}} by adding the 
+#' precision estimates of Dirichlet-multinomial distribution used to model the 
 #' feature (e.g., transcript, exon, exonic bin) counts for each gene-SNP pair in
-#' the sQTL analysis. Result of \code{\link{dmDispersion}}.
+#' the QTL analysis. Result of \code{\link{dmDispersion}}.
 #' 
 #' @slot mean_expression Numeric vector of mean gene expression.
 #' @slot common_dispersion Numeric value of estimated common dispersion.
-#' @slot genewise_dispersion List of estimated gene-wise dispersions. Each
-#'   element of this list is a vector of dispersions estimated for all the
+#' @slot genewise_dispersion List of estimated gene-wise dispersions. Each 
+#'   element of this list is a vector of dispersions estimated for all the 
 #'   genotype blocks assigned to a given gene.
+#'   
+#' @examples 
+#' # --------------------------------------------------------------------------
+#' # Create dmSQTLdata object
+#' # --------------------------------------------------------------------------
+#' # Use subsets of data defined in the GeuvadisTranscriptExpr package
+#' 
+#' library(GeuvadisTranscriptExpr)
+#' \donttest{
+#' counts <- GeuvadisTranscriptExpr::counts
+#' genotypes <- GeuvadisTranscriptExpr::genotypes
+#' gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
+#' snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
+#' 
+#' colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
+#' colnames(genotypes)[4] <- "snp_id"
+#' samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
+#' 
+#' d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
+#'   genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
+#'   window = 5e3)
+#' 
+#' # --------------------------------------------------------------------------
+#' # sQTL analysis - simple group comparison
+#' # --------------------------------------------------------------------------
+#' 
+#' ## Filtering
+#' d <- dmFilter(d, min_samps_gene_expr = 70, min_samps_feature_expr = 5,
+#'   minor_allele_freq = 5, min_gene_expr = 10, min_feature_expr = 10)
+#'   
+#' plotData(d)
+#' 
+#' ## To make the analysis reproducible
+#' set.seed(123)
+#' ## Calculate dispersion
+#' d <- dmDispersion(d)
+#' 
+#' plotDispersion(d)
+#' }
 #' @author Malgorzata Nowicka
-#' @seealso \code{\link{data_dmSQTLdata}}, \code{\linkS4class{dmSQTLdata}},
-#'   \code{\linkS4class{dmSQTLfit}}, \code{\linkS4class{dmSQTLtest}}
+#' @seealso \code{\linkS4class{dmSQTLdata}}, \code{\linkS4class{dmSQTLfit}},
+#'   \code{\linkS4class{dmSQTLtest}}
 setClass("dmSQTLdispersion", 
   contains = "dmSQTLdata",
   representation(mean_expression = "numeric", 
@@ -27,7 +66,7 @@ setClass("dmSQTLdispersion",
     genewise_dispersion = "list"))
 
 
-#################################
+# -----------------------------------------------------------------------------
 
 
 setValidity("dmSQTLdispersion", function(object){
@@ -221,7 +260,6 @@ setMethod("dmDispersion", "dmSQTLdata", function(x, mean_expression = TRUE,
     common_dispersion <- numeric()
   }
   
-  
   if(genewise_dispersion){
     
     if(length(common_dispersion)){
@@ -273,13 +311,11 @@ setMethod("dmDispersion", "dmSQTLdata", function(x, mean_expression = TRUE,
     genewise_dispersion <- list()
   }
   
-  
   return(new("dmSQTLdispersion", mean_expression = mean_expression, 
     common_dispersion = common_dispersion, 
     genewise_dispersion = genewise_dispersion, 
     counts = x@counts, genotypes = x@genotypes, blocks = x@blocks, 
     samples = x@samples))
-  
   
 })
 
