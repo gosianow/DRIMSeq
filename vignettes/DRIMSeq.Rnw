@@ -236,7 +236,7 @@ In the default setting, all of them are computed and common precision is used as
 By default, to estimate the common precision, we use 10\% percent (\Rcode{prec\_subset = 0.1}) of randomly selected genes. That is due to the fact that common precision is used only as an initial value, and estimating it based on all the genes takes a substantial part of time. 
 To ensure that the analysis are reproducible, the user should define a random seed \Rcode{set.seed()} before running the \Rcode{dmPrecision()} function. Thank to that, each time the same subset of genes is selected.
 
-To estimate precision parameters, the user has to define a design matrix with the full model of interest, which will be also used later in the proportion estimation. Here, the full model is defined by a formula \Rcode{\~ group} which indicates that samples come from two conditions.
+To estimate precision parameters, the user has to define a design matrix with the full model of interest, which will be also used later in the proportion estimation. Here, the full model is defined by a formula $\sim group$ which indicates that samples come from two conditions.
 
 This step of our pipeline is the most time consuming. 
 Thus, for real data analysis, consider using \Rcode{BPPARAM = BiocParallel::MulticoreParam()} with more than one worker.
@@ -588,7 +588,7 @@ d <- dmFilter(d, min_samps_gene_expr = 70, min_samps_feature_expr = 5,
 \subsubsection{Precision estimation}
 
 In the DTU analysis (section \ref{DS_precision_estimation}), the full model used in precision estimation has to be defined by the user. Here, full models are defined by genotypes. For a given SNP, genotype can have numeric values of 0, 1, and 2. 
-When \Rcode{one\_way = TRUE}, multiple group fitting is performed. When \Rcode{one\_way = FALSE}, a regression framework is used with the design matrix defined by a formula \Rcode{\~ group} where \Rcode{group} is a continuous (not categorical) variable with genotype values 0, 1, and 2.
+When \Rcode{one\_way = TRUE}, multiple group fitting is performed. When \Rcode{one\_way = FALSE}, a regression framework is used with the design matrix defined by a formula $\sim group$ where $group$ is a continuous (not categorical) variable with genotype values 0, 1, and 2.
 
 For the tuQTL analysis, it has an additional parameter called \Rcode{speed}. 
 If \Rcode{speed = FALSE}, gene-wise precisions are calculated for each gene-block. 
