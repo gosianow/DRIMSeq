@@ -117,13 +117,17 @@ setMethod("plotProportions", "dmSQTLfit", function(x, gene_id, snp_id,
   stopifnot(is.logical(plot_full))
   stopifnot(is.logical(plot_main))
   
-  dmSQTL_plotFit(gene_id = gene_id, snp_id = snp_id, counts = x@counts, 
-    genotypes = x@genotypes, blocks = x@blocks, samples = x@samples, 
-    dispersion = slot(x, x@dispersion), fit_full = x@fit_full, 
-    fit_null = NULL, table = NULL, plot_type = plot_type, order = order, 
-    plot_full = plot_full, plot_null = FALSE, plot_main = plot_main, 
-    out_dir = out_dir)
+  gene <- gene_id
+  snp <- snp_id
+  block <- blocks[[gene]][blocks[[gene]][, "snp_id"] == snp, "block_id"]
+  counts_gene <- counts[[gene]]
   
+  if(nrow(counts_gene) < 2)
+    stop("!Gene has to have at least 2 features! \n")
+  
+  group <- genotypes[[gene]][block, ]
+  
+
   
 })
 

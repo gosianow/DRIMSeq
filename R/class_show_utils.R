@@ -3,11 +3,11 @@
 
 ################################################################################
 
-# nhead = 2; ntail = 2
-
 #' @importFrom utils head tail
 
 show_matrix <- function(object, nhead = 2, ntail = 2){
+  # object is a matrix
+  
   nr <- nrow(object)
   nc <- ncol(object)
   
@@ -16,18 +16,29 @@ show_matrix <- function(object, nhead = 2, ntail = 2){
   
   if(nr > 0 && nc > 0){
     
-    nms <- rownames(object)
+    if(is.null(colnames(object))){
+      colnames(object) <- paste0("[,", 1:ncol(object), "]")
+    }
+    if(is.null(rownames(object))){
+      rownames(object) <- paste0("[", 1:nrow(object), ",]")
+    }
     
-    if(nr < (nhead + ntail + 1L)){
+    if(nr <= (nhead + ntail)){
       
       out <- object
       
-    } else {
+    }else{
       
       out <- do.call(rbind, list(head(object, nhead), matrix(rep.int("...", nc), 
         1, nc, dimnames = list(NULL, colnames(object))), tail(object, ntail)))
       
-      rownames(out) <- rownames_matrix(nms, nr, nhead, ntail)
+      nms <- rownames(object)
+      if(nhead > 0)
+        s1 <- paste0(head(nms, nhead))
+      if(ntail > 0)
+        s2 <- paste0(tail(nms, ntail))
+      
+      rownames(out) <- c(s1, "...", s2)
       
     }
     
@@ -41,29 +52,15 @@ show_matrix <- function(object, nhead = 2, ntail = 2){
       
     }   
     
-    print(out, quote = FALSE, right = TRUE, na.print = "NA") ### print adjusted for numeric
+    ### print adjusted for numeric or character
+    if(class(object[1, 1]) == "numeric"){
+      print(out, quote = FALSE, right = TRUE, na.print = "NA") 
+    }else{
+      print(out, quote = TRUE, right = TRUE, na.print = "NA") 
+    }
+    
   }
   
-}
-
-
-rownames_matrix <- function(nms, nrow, nhead, ntail){
-  p1 <- ifelse (nhead == 0, 0L, 1L)
-  p2 <- ifelse (ntail == 0, 0L, ntail-1L)
-  s1 <- s2 <- character(0)
-  
-  if (is.null(nms)) {
-    if (nhead > 0)
-      s1 <- paste0("[",as.character(p1:nhead), ",]")
-    if (ntail > 0)
-      s2 <- paste0("[",as.character((nrow-p2):nrow), ",]")
-  } else {
-    if (nhead > 0)
-      s1 <- paste0(head(nms, nhead))
-    if (ntail > 0)
-      s2 <- paste0(tail(nms, ntail))
-  }
-  c(s1, "...", s2)
 }
 
 

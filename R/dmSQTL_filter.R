@@ -18,9 +18,9 @@ dmSQTL_filter_genotypes_per_gene <- function(g, counts_new, genotypes,
     
     tt <- table(x)
     
-    if( length(tt)==1 )
+    if(length(tt) == 1)
       return(NULL)
-    if( length(tt)==2 ){
+    if(length(tt) == 2){
       if(any(tt <= minor_allele_freq))
         return(NULL)
       return(x)

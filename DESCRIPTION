@@ -44,7 +44,7 @@ Suggests:
 LazyData: true
 ByteCompile: false
 VignetteBuilder: knitr
-Collate:
+Collate: 
     'DRIMSeq.R'
     'class_show_utils.R'
     'class_MatrixList.R'
@@ -62,13 +62,13 @@ Collate:
     'dmDS_filter.R'
     'dmDS_fit.R'
     'dmDS_profileLik.R'
+    'dmSQTL_CRadjustment.R'
     'dmSQTL_estimateCommonDispersion.R'
     'dmSQTL_estimateTagwiseDispersion.R'
     'dmSQTL_filter.R'
-    'dmSQTL_fitOneModel.R'
+    'dmSQTL_fit.R'
     'dmSQTL_permutations.R'
-    'dmSQTL_plotFit.R'
-    'dmSQTL_test.R'
+    'dmSQTL_profileLik.R'
     'dm_CRadjustmentManyGroups.R'
     'dm_CRadjustmentOneGroup.R'
     'dm_CRadjustmentRegression.R'

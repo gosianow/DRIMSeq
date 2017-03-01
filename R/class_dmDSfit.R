@@ -378,7 +378,7 @@ setMethod("plotProportions", "dmDSfit", function(x, gene_id, group_variable,
       
     }else{
       message("Fitted values are not plotted because the design does not 
-        correspond to a group comparison defined by 'group_var'!")
+        correspond to a group comparison defined by 'group_variable'!")
     }
     
   }
