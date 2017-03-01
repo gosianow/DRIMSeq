@@ -33,7 +33,7 @@ dm_fitRegression <- function(y, design,
     optim = { 
       
       # Minimization
-      co <- optim(par = b_init, fn = dm_lik_regG_neg, gr = NULL,
+      co <- optim(par = b_init, fn = dm_lik_regG_neg, gr = dm_score_regG_neg,
         design = design, disp = disp, y = y,
         method = "BFGS",
         control = list(reltol = coef_tol))
@@ -52,7 +52,7 @@ dm_fitRegression <- function(y, design,
       
       # Minimization
       co <- nlminb(start = b_init, objective = dm_lik_regG_neg, 
-        gradient = NULL, hessian = NULL,
+        gradient = dm_score_regG_neg, hessian = NULL,
         design = design, disp = disp, y = y,
         control = list(rel.tol = coef_tol))
       
@@ -70,7 +70,8 @@ dm_fitRegression <- function(y, design,
       
       # Minimization
       # Can not use x as an argument because grad() uses x
-      co <- Rcgmin::Rcgmin(par = b_init, fn = dm_lik_regG_neg, gr = NULL, 
+      co <- Rcgmin::Rcgmin(par = b_init, fn = dm_lik_regG_neg, 
+        gr = dm_score_regG_neg, 
         design = design, disp = disp, y = y) 
       
       if(co$convergence == 0){

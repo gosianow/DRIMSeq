@@ -1,57 +1,72 @@
 ##############################################################################
-# Hessian for Dirichlet-multinomial model gamma+ and k-1 proportions 
+# Hessian for q-1 parameters -- with gamma functions
 ##############################################################################
 
-# prop <- prop[-length(prop)]
-
-### Using gamma functions
 dm_HessianG <- function(prop, disp, y){  
-  ## prop has length of k-1
+  # prop has length of q-1
+  # disp has length 1
+  # y has q rows and n columns
   
-  k <- nrow(y)
-  N <- ncol(y)
-  D <- rep(0, k-1)
-  Dil <- 0
-  propk <- 1-sum(prop)
-  ykm1 <- y[-k, , drop=FALSE]
+  q <- nrow(y)
+  n <- ncol(y)
+  Djj <- rep(0, q-1)
+  propq <- 1-sum(prop)
+  yq <- y[q, ]
+  y <- y[-q, , drop=FALSE]
   
-  Dil <- disp^2 * sum(trigamma(y[k,] + disp * propk) - trigamma(disp * propk))
+  Djl <- disp^2 * sum(trigamma(yq + disp * propq) - trigamma(disp * propq))
   
-  D <- disp^2 * rowSums(trigamma(ykm1 + prop * disp) - trigamma(prop * disp))
+  Djj <- disp^2 * rowSums(trigamma(y + prop * disp) - trigamma(prop * disp))
   
-  H <- matrix(Dil, k-1, k-1)
-  diag(H) <- diag(H) + D
+  H <- matrix(Djl, q-1, q-1)
+  
+  diag(H) <- diag(H) + Djj
   
   return(H)
   
   
 }
 
+##############################################################################
+# Hessian for q-1 parameters -- with sums
+##############################################################################
 
 dm_Hessian <- function(prop, disp, y){  
-  ## prop has length of k-1
+  # prop has length of q-1
+  # disp has length 1
+  # y has q rows and n columns
   
-  k <- nrow(y)
-  N <- ncol(y)
-  D <- rep(0, k-1)
-  Dil <- 0
-  propk <- 1-sum(prop)
+  q <- nrow(y)
+  n <- ncol(y)
+  propq <- 1 - sum(prop)
   
-  for(j in 1:N){
-    # j=1
-    if(y[k, j] == 0) Dil <- Dil + 0
-    else Dil <- Dil +  sum(-disp^2 / (propk * disp + 1:y[k, j] - 1) ^2) 
+  Djj <- rep(0, q-1)
+  Djl <- 0
+  
+  for(i in 1:n){
+    # i=1
     
-    for(i in 1:(k-1)){
-      # i=1
-      if(y[i,j] == 0) Dii <- 0
-      else Dii <- sum(-disp^2 / (prop[i] * disp + 1:y[i,j] - 1) ^2) 
-      D[i] <- D[i] + Dii
+    if(y[q, i] == 0){
+      Djl <- Djl + 0
+    }else{
+      Djl <- Djl +  sum(-disp^2 / (propq * disp + 1:y[q, i] - 1) ^2) 
+    } 
+    
+    for(j in 1:(q-1)){
+      # j=1
+      
+      if(y[j,i] == 0){
+        Djj[j] <- Djj[j] + 0
+      }else{
+        Djj[j] <- Djj[j] + sum(-disp^2 / (prop[j] * disp + 1:y[j,i] - 1) ^2)
+      }  
+      
     }
   }
   
-  H <- matrix(Dil, k-1, k-1)
-  diag(H) <- diag(H) + D
+  H <- matrix(Djl, q-1, q-1)
+  
+  diag(H) <- diag(H) + Djj
   
   return(H)
   

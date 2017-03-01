@@ -30,7 +30,9 @@ dmDS_fitRegression_gene <- function(g, counts,
 }
 
 dmDS_fit <- function(counts, design, dispersion,
-  prop_mode = "constrOptim", prop_tol = 1e-12, verbose = FALSE, 
+  one_way = TRUE,
+  prop_mode = "constrOptim", prop_tol = 1e-12, 
+  coef_mode = "optim", coef_tol = 1e-12, verbose = FALSE, 
   BPPARAM = BiocParallel::SerialParam()){
   
   time_start <- Sys.time()
@@ -49,7 +51,7 @@ dmDS_fit <- function(counts, design, dispersion,
   # If the design is equivalent to a oneway layout, use a shortcut algorithm 
   groups <- edgeR::designAsFactor(design)
   
-  if(nlevels(groups) == ncol(design)){
+  if(nlevels(groups) == ncol(design) && one_way){
     
     groups <- factor(groups, labels = paste0("gr", levels(groups)))
     ngroups <- nlevels(groups)

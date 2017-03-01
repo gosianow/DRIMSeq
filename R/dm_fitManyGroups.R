@@ -1,6 +1,6 @@
 
 dm_fitManyGroups <- function(y, ngroups, lgroups, igroups, 
-  disp, prop_mode = "constrOptim", prop_tol = 1e-12, verbose = FALSE) {
+  disp, prop_mode = "constrOptim", prop_tol = 1e-12, verbose = FALSE){
   # y can not have any rowSums(y) == 0
   
   q <- nrow(y)
