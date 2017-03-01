@@ -7,7 +7,7 @@ dmSQTL_profileLikCommon <- function(disp, counts, genotypes,
   coef_mode = "optim", coef_tol = 1e-12,
   verbose = FALSE, BPPARAM = BiocParallel::SerialParam()){
   
-  if(verbose >= 2) message("Gamma in optimize:", disp)
+  if(verbose >= 2) message("Gamma in optimize:", disp, "\n")
   
   adj_lik <- dmSQTL_profileLik(disp = disp, counts = counts, 
     genotypes = genotypes, disp_adjust = disp_adjust, 

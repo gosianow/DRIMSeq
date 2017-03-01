@@ -141,7 +141,9 @@ setGeneric("common_dispersion<-", function(x, value)
 #' @export
 setMethod("common_dispersion<-", "dmDSdispersion", function(x, value){
   ### value must be a numeric of length 1
+
   names(value) <- NULL
+  
   return(new("dmDSdispersion", mean_expression = x@mean_expression, 
     common_dispersion = value, genewise_dispersion = x@genewise_dispersion, 
     design_dispersion = x@design_dispersion,

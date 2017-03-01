@@ -53,7 +53,7 @@ show_matrix <- function(object, nhead = 2, ntail = 2){
     }   
     
     ### print adjusted for numeric or character
-    if(class(object[1, 1]) == "numeric"){
+    if(mode(object) == "numeric"){
       print(out, quote = FALSE, right = TRUE, na.print = "NA") 
     }else{
       print(out, quote = TRUE, right = TRUE, na.print = "NA") 

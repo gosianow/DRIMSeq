@@ -20,7 +20,7 @@ dm_plotDispersion <- function(genewise_dispersion, mean_expression,
       colour = "nr_features" )) +
       theme_bw() +
       xlab("Log10 of mean expression") +
-      ylab("Log10 of gamma0") +
+      ylab("Log10 of precision") +
       geom_point(alpha = 0.7, na.rm = TRUE) +
       theme(axis.text = element_text(size=16), 
         axis.title = element_text(size=18, face="bold"), 
@@ -41,7 +41,7 @@ dm_plotDispersion <- function(genewise_dispersion, mean_expression,
     ggp <- ggplot(df, aes_string(x = "mean_expression", y = "dispersion")) +
       theme_bw() +
       xlab("Log10 of mean expression") +
-      ylab("Log10 of gamma0") +
+      ylab("Log10 of precision") +
       geom_point(size = 1, alpha = 0.4, na.rm = TRUE) +
       theme(axis.text = element_text(size=16), 
         axis.title = element_text(size=18, face="bold"), 

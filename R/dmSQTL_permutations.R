@@ -1,33 +1,29 @@
 
 
-dmSQTL_permutations_all_genes <- function(x, fit_null, results, 
+dmSQTL_permutations_all_genes <- function(x, pvalues, 
   max_nr_perm_cycles = 10, max_nr_min_nr_sign_pval = 1e3, 
-  prop_mode, prop_tol, verbose, BPPARAM){
-  # results is a data.frame
-  
-  fit_full <- x@fit_full
-  n <- ncol(x@counts)
-  
+  prop_mode, prop_tol, 
+  verbose, BPPARAM){
+
   nr_perm_tot <- 0
   nr_perm_cycles <- 0
   min_nr_sign_pval <- 0
   
-  pval <- results$pvalue
+  pval <- pvalues
   nas <- is.na(pval)
   pval <- pval[!nas]
   pval <- factor(pval)
   sum_sign_pval <- rep(0, length(pval))
   
-  pval_perm_all <- matrix(NA, ncol = max_nr_perm_cycles, nrow = nrow(results))
-  
-  # ds_genes <- results$adj_pvalue < 0.1
+  pval_perm_all <- matrix(NA, ncol = max_nr_perm_cycles, nrow = length(pval))
   
   while(nr_perm_cycles < max_nr_perm_cycles && 
       min_nr_sign_pval < max_nr_min_nr_sign_pval){
     
     if(verbose)
-      message(paste0("** Running cycle number ", nr_perm_cycles + 1 , ".."))
+      message(paste0("** Running permutation cycle number ", nr_perm_cycles + 1 , ".."))
     
+     n <- ncol(x@counts)
     permutation <- sample(n, n)
     
     ### Permute counts for all genes

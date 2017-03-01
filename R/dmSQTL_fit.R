@@ -2,6 +2,7 @@
 
 dmSQTL_fitManyGroups_gene <- function(g, counts, genotypes,
   disp, prop_mode, prop_tol, verbose){  
+  # g = 6
   
   if(verbose >= 2) message(" Gene:", g)
   

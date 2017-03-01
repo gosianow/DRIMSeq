@@ -327,7 +327,7 @@ setMethod("plotProportions", "dmDSfit", function(x, gene_id, group_variable,
   stopifnot(is.logical(plot_main))
   stopifnot(length(group_variable) == 1)
   stopifnot(group_variable %in% colnames(samples(x)))
-
+  
   group <- x@samples[, group_variable]
   counts_gene <- x@counts[[gene_id]]
   
@@ -355,12 +355,9 @@ setMethod("plotProportions", "dmDSfit", function(x, gene_id, group_variable,
     main <- paste0(gene_id, "\n Mean expression = ", 
       round(mean_expression_gene))
     
-    if(length(x@genewise_dispersion) > 0)
-      dispersion_gene <- x@genewise_dispersion[gene_id]
-    else
-      dispersion_gene <- x@common_dispersion
+    dispersion_gene <- x@genewise_dispersion[gene_id]
     
-    main <- paste0(main, ", Dispersion = ", round(dispersion_gene, 2))
+    main <- paste0(main, ", Precision = ", round(dispersion_gene, 2))
     
   }
   

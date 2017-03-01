@@ -14,9 +14,7 @@ NULL
 #' 
 #' @slot fit_full List of \code{\linkS4class{MatrixList}} objects. Each element
 #'   of this list contains the full model proportion estimates for all the
-#'   blocks associated with a given gene. Columns of MatrixLists correspond to 3
-#'   genotypes (0,1,2). The full model likelihoods are stored in \code{metadata}
-#'   slot.
+#'   blocks associated with a given gene.
 #' @author Malgorzata Nowicka
 #' @seealso \code{\link{data_dmSQTLdata}}, \code{\linkS4class{dmSQTLdata}},
 #'   \code{\linkS4class{dmSQTLdispersion}}, \code{\linkS4class{dmSQTLtest}}
@@ -34,14 +32,11 @@ setClass("dmSQTLfit",
 
 setValidity("dmSQTLfit", function(object){
   # Has to return TRUE when valid object
-
+  
   # TODO: Add checks for other slots
   
-  if(!length(object@counts) == length(object@fit_full))
-    return("Different number of genes in 'counts' and 'fit_full'")
-  
-  if(!all(lapply(object@fit_full, class) == "MatrixList"))
-    return("'fit_full' must be a list of MatrixLists")
+  if(!length(object@counts) == length(object@lik_full))
+    return("Different number of genes in 'counts' and 'lik_full'")
   
   return(TRUE)
   
@@ -66,29 +61,40 @@ setMethod("show", "dmSQTLfit", function(object){
 
 #' @rdname dmFit
 #' @export
-setMethod("dmFit", "dmSQTLdispersion", function(x, 
-  dispersion = "genewise_dispersion", 
+setMethod("dmFit", "dmSQTLdispersion", function(x, one_way = TRUE, 
   prop_mode = "constrOptim", prop_tol = 1e-12, 
+  coef_mode = "optim", coef_tol = 1e-12,
   verbose = 0, BPPARAM = BiocParallel::SerialParam()){
   
-  stopifnot(length(dispersion) == 1)
-  stopifnot(dispersion %in% c("genewise_dispersion", "common_dispersion"))
+  # Check parameters
+  stopifnot(is.logical(one_way))
+  
   stopifnot(length(prop_mode) == 1)
   stopifnot(prop_mode %in% c("constrOptim"))
   stopifnot(length(prop_tol) == 1)
   stopifnot(is.numeric(prop_tol) && prop_tol > 0)
-  stopifnot(verbose %in% 0:2)
   
-  fit_full <- dmSQTL_fitOneModel(counts = x@counts, genotypes = x@genotypes, 
-    dispersion = slot(x, dispersion), model = "full", prop_mode = prop_mode, 
-    prop_tol = prop_tol, verbose = verbose, BPPARAM = BPPARAM)
+  stopifnot(length(coef_mode) == 1)
+  stopifnot(coef_mode %in% c("optim", "nlminb", "Rcgmin"))
+  stopifnot(length(coef_tol) == 1)
+  stopifnot(is.numeric(coef_tol) && coef_tol > 0)
   
+  stopifnot(verbose %in% 0:3)
   
-  return(new("dmSQTLfit", dispersion = dispersion, fit_full = fit_full, 
-    mean_expression = x@mean_expression, common_dispersion = x@common_dispersion, 
-    genewise_dispersion = x@genewise_dispersion, counts = x@counts, 
-    genotypes = x@genotypes, blocks = x@blocks, samples = x@samples))
+  fit <- dmSQTL_fit(counts = x@counts, genotypes = x@genotypes, 
+    dispersion = x@genewise_dispersion,
+    one_way = one_way, group_formula = ~ group,
+    prop_mode = prop_mode, prop_tol = prop_tol, 
+    coef_mode = coef_mode, coef_tol = coef_tol,
+    return_fit = FALSE, return_coef = FALSE,
+    verbose = verbose, BPPARAM = BPPARAM)
   
+  return(new("dmSQTLfit", lik_full = fit[["lik"]], fit_full = fit[["fit"]],
+    mean_expression = x@mean_expression, 
+    common_dispersion = x@common_dispersion, 
+    genewise_dispersion = x@genewise_dispersion, 
+    counts = x@counts, genotypes = x@genotypes,
+    blocks = x@blocks, samples = x@samples))
   
 })
 
@@ -98,13 +104,12 @@ setMethod("dmFit", "dmSQTLdispersion", function(x,
 ################################################################################
 
 
-#' @param snp_id Character indicating a SNP ID to be plotted. \code{snp_id} must
-#'   match \code{gene_id}.
+#' @param snp_id Character indicating the ID of a SNP to be plotted.
 #' @rdname plotProportions
 #' @export
 setMethod("plotProportions", "dmSQTLfit", function(x, gene_id, snp_id, 
-  plot_type = "boxplot1", order = TRUE, plot_full = TRUE, 
-  plot_main = TRUE, out_dir = NULL){
+  plot_type = "boxplot1", order = TRUE, plot_fit = TRUE, 
+  plot_main = TRUE, group_colors = NULL, feature_colors = NULL){
   
   stopifnot(gene_id %in% names(x@blocks))
   
@@ -114,20 +119,66 @@ setMethod("plotProportions", "dmSQTLfit", function(x, gene_id, snp_id,
   stopifnot(plot_type %in% c("barplot", "boxplot1", "boxplot2", "lineplot", 
     "ribbonplot"))
   stopifnot(is.logical(order))
-  stopifnot(is.logical(plot_full))
+  stopifnot(is.logical(plot_fit))
   stopifnot(is.logical(plot_main))
   
-  gene <- gene_id
-  snp <- snp_id
-  block <- blocks[[gene]][blocks[[gene]][, "snp_id"] == snp, "block_id"]
-  counts_gene <- counts[[gene]]
+  counts_gene <- x@counts[[gene_id]]
+  block_id <- x@blocks[[gene_id]][x@blocks[[gene_id]][, "snp_id"] == snp_id,
+    "block_id"]
+  group <- x@genotypes[[gene_id]][block_id, ] 
   
-  if(nrow(counts_gene) < 2)
+  if(!is.null(group_colors) && 
+      plot_type %in% c("barplot", "boxplot1", "lineplot"))
+    stopifnot(length(group_colors) == nlevels(group))
+  if(!is.null(feature_colors) && 
+      plot_type %in% c("boxplot2", "ribbonplot"))
+    stopifnot(length(feature_colors) == nrow(counts_gene))
+  
+  if(nrow(counts_gene) <= 1)
     stop("!Gene has to have at least 2 features! \n")
   
-  group <- genotypes[[gene]][block, ]
+  # Remove NAs
+  nonNAs <- !(is.na(counts_gene[1,]) | is.na(group))
+  counts_gene <- counts_gene[, nonNAs, drop = FALSE]
+  group <- factor(group[nonNAs])
   
+  # Order samples by group
+  o <- order(group) 
+  group <- group[o]
+  counts_gene <- counts_gene[, o, drop = FALSE]
+  
+  main <- NULL
+  
+  if(plot_main){
+    
+    mean_expression_gene <- mean(colSums(counts_gene), na.rm = TRUE)
+    
+    main <- paste0(gene_id, " : ", snp_id, " : ", block_id,
+      "\n Mean expression = ", round(mean_expression_gene))
+    
+    dispersion_gene <- x@genewise_dispersion[[gene_id]][block_id]
+    
+    main <- paste0(main, ", Precision = ", round(dispersion_gene, 2))
+    
+  }
+  
+  prop_full <- NULL
+  
+  if(plot_fit && length(x@fit_full) > 0){
 
+    fit_full <- x@fit_full[[gene_id]][[which(rownames(x@genotypes[[gene_id]]) == 
+        block_id)]][, nonNAs, drop = FALSE]
+
+    prop_full <- fit_full[, !duplicated(group), drop = FALSE]
+    colnames(prop_full) <- levels(group)
+
+  }
+  
+  ggp <- dm_plotProportions(counts = counts_gene, group = group, 
+    prop_full = prop_full, main = main, plot_type = plot_type, 
+    order = order, group_colors = group_colors, feature_colors = feature_colors)
+  
+  return(ggp)  
   
 })
 
