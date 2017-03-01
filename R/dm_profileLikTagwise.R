@@ -14,7 +14,7 @@ dm_profileLikTagwise <- function(gamma0, y, ngroups, lgroups, igroups,
     lgroups = lgroups, igroups = igroups, gamma0 = gamma0, 
     prop_mode = prop_mode, prop_tol = prop_tol, verbose = verbose) 
   
-  lik <- sum(fit$stats, na.rm = TRUE)
+  lik <- sum(fit$lik, na.rm = TRUE)
   
   if(!disp_adjust)
     return(lik)

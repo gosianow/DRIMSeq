@@ -12,13 +12,13 @@ dm_fitOneGeneOneGroup <- function(y, gamma0, prop_mode = c("constrOptim",
   # NAs for genes with one feature
   kk <- nrow(y)
   if(kk < 2 || is.na(gamma0)) 
-    return(list(pi = rep(NA, kk), stats = c(lik = NA, df = NA)))
+    return(list(pi = rep(NA, kk), lik = NA, df = NA))
   
   ### check for 0s in rows (features)
   keep_row <- rowSums(y) > 0
   ### must be at least two features
   if(sum(keep_row) < 2) 
-    return(list(pi = rep(NA, kk), stats = c(lik = NA, df = NA))) 
+    return(list(pi = rep(NA, kk), lik = NA, df = NA))
   
   y <- y[keep_row, , drop=FALSE]
   
@@ -37,7 +37,7 @@ dm_fitOneGeneOneGroup <- function(y, gamma0, prop_mode = c("constrOptim",
     df <- k - 1
     lik <- dm_likG(pi = pi_init[-k], gamma0 = gamma0, y = y)
     
-    return(list(pi = pi, stats = c(lik = lik, df = df)))
+    return(list(pi = pi, lik = lik, df = df))
   }
   
   switch(prop_mode, 
@@ -85,7 +85,7 @@ dm_fitOneGeneOneGroup <- function(y, gamma0, prop_mode = c("constrOptim",
   
   df <- k - 1
   
-  return(list(pi = pi, stats = c(lik = lik, df = df)))
+  return(list(pi = pi, lik = lik, df = df))
   
 }
 

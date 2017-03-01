@@ -25,9 +25,6 @@ dmDS_fitNull_gene <- function(g, counts,
   f <- dm_fitOneGeneOneGroup(y = counts[[g]], gamma0 = gamma0[g], 
     prop_mode = prop_mode, prop_tol = prop_tol, verbose = verbose)
   
-  ### convert pi into matrix
-  f[[1]] <- matrix(f[[1]], dimnames = list(names(f[[1]]), "null")) 
-  
   return(f)
   
 }
@@ -66,15 +63,18 @@ dmDS_fitOneModel <- function(counts, samples, dispersion, model = "full",
       
       names(ff) <- names(counts)
       
-      stats <- do.call(rbind, lapply(ff, function(f) f[[2]])) ### stats: liks
-      rownames(stats) <- names(counts)
+      fit <- MatrixList(lapply(ff, function(f) f[["pi"]]))
       
-      fff <- MatrixList(lapply(ff, function(f) f[[1]]), metadata = stats) ### pis and liks
+      lik <- do.call(rbind, lapply(ff, function(f) f[["lik"]])) 
+      rownames(lik) <- names(counts)
+      
+      df <- rep(NA, nrow(lik))
+      names(df) <- names(counts)
       
       if(verbose >= 2) message("\n")
       if(verbose) message("Took ", round(time["elapsed"], 2), " seconds.\n")
       
-      return(fff)
+      return(list(fit = fit, lik = lik, df = df))
       
     },
     
@@ -88,20 +88,40 @@ dmDS_fitOneModel <- function(counts, samples, dispersion, model = "full",
       
       names(ff) <- names(counts)
       
-      ### stats: lik, df
-      stats <- do.call(rbind, lapply(ff, function(f) f[[2]])) 
-      rownames(stats) <- names(counts)
-      colnames(stats) <- c("lik", "df")
+      fit <- MatrixList(lapply(ff, function(f) matrix(f[["pi"]])))
+      colnames(fit) <- "null"
       
-      ### pi
-      fff <- MatrixList(lapply(ff, function(f) f[[1]]), metadata = stats)  
+      lik <- do.call(rbind, lapply(ff, function(f) f[["lik"]])) 
+      rownames(lik) <- names(counts)
+      colnames(lik) <- "null"
+      
+      df <- unlist(lapply(ff, function(f) f[["df"]]))
+      names(df) <- names(counts)
       
       if(verbose) message("Took ", round(time["elapsed"], 2), " seconds.\n")
       
-      return(fff)
+      return(list(fit = fit, lik = lik, df = df))
       
     })
   
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

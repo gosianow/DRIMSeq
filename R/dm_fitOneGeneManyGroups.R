@@ -1,8 +1,3 @@
-### one gene, many groups If something is wrong, return matrix
-### of NA returns stats being only likelihoods for different
-### groups (no df)
-
-# y = counts[[g]]; gamma0 = gamma0[g]
 
 dm_fitOneGeneManyGroups <- function(y, ngroups, lgroups, igroups, 
   gamma0, prop_mode = "constrOptimG", prop_tol = 1e-12, verbose = FALSE) {
@@ -11,11 +6,11 @@ dm_fitOneGeneManyGroups <- function(y, ngroups, lgroups, igroups,
   
   pi <- matrix(NA, nrow = k, ncol = ngroups, dimnames = list(rownames(y), 
     lgroups))
-  stats <- rep(NA, ngroups)
-  names(stats) <- lgroups
+  lik <- rep(NA, ngroups)
+  names(lik) <- lgroups
   
   if (is.na(gamma0) || k < 2) 
-    return(list(pi = pi, stats = stats))
+    return(list(pi = pi, lik = lik))
   
   
   for (gr in 1:ngroups) {
@@ -26,21 +21,21 @@ dm_fitOneGeneManyGroups <- function(y, ngroups, lgroups, igroups,
       prop_tol = prop_tol, verbose = verbose)
     
     
-    if (is.na(fit_gr[[2]][1])) {
+    if (is.na(fit_gr[["lik"]])) {
       pi <- matrix(NA, nrow = k, ncol = ngroups, dimnames = list(rownames(y), 
         lgroups))
-      stats <- rep(NA, ngroups)
-      names(stats) <- lgroups
-      return(list(pi = pi, stats = stats))
+      lik <- rep(NA, ngroups)
+      names(lik) <- lgroups
+      return(list(pi = pi, lik = lik))
     }
     
     
-    pi[, gr] <- fit_gr[[1]]  ### pi
-    stats[gr] <- fit_gr[[2]][1]  ### lik
+    pi[, gr] <- fit_gr[["pi"]] 
+    lik[gr] <- fit_gr[["lik"]]
     
   }
   
-  return(list(pi = pi, stats = stats))  ### pi and stats can have NAs
+  return(list(pi = pi, lik = lik))  ### pi and lik can have NAs
   
 }
 

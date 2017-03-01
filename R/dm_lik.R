@@ -1,26 +1,25 @@
 ##############################################################################
-## Computes the log-likelihood -- with gamma functions -- for k-1 parameters
+## Computes the log-likelihood -- with gamma functions -- for q-1 parameters
 ##############################################################################
 
 # pi <- pi[-length(pi)]
 
 dm_likG <- function(pi, gamma0, y){
-  ## pi has length of k-1
-  ## gamma0 has length 1
-  ## y has k rows and any number of columns n
-  ## This function returns likelihhod without normalizing component, 
-  ## but it is OK for LR test.
+  # pi has length of q-1
+  # gamma0 has length 1
+  # y has q rows and n number of columns
+  # This function returns likelihhod without normalizing component, 
+  # but it is OK for the LR test
   
-  N <- ncol(y)
-  S <- colSums(y)
+  n <- ncol(y)
+  m_i <- colSums(y)
   
   pi <- c(pi, 1 - sum(pi))
   
-  l <- sum( colSums( lgamma(y + pi * gamma0) - lgamma(pi * gamma0) ) )
+  l <- n * lgamma(gamma0) - sum(lgamma(m_i + gamma0)) + 
+    sum( colSums( lgamma(y + pi * gamma0) - lgamma(pi * gamma0) ) )
   
-  l <- N * lgamma(gamma0) - sum(lgamma(S + gamma0)) + l
-  
-  # normalizing_part <- sum(lgamma(S + 1) - colSums(lgamma(y + 1)))
+  # normalizing_part <- sum(lgamma(m_i + 1) - colSums(lgamma(y + 1)))
   
   return(l)
   
@@ -59,31 +58,31 @@ dm_lik_regG <- function(b, x, gamma0, y){
 }
 
 ##############################################################################
-# log-likelihood for k-1 parameters (pi)
+# log-likelihood for q-1 parameters (pi)
 ##############################################################################
 
 # pi <- pi[-length(pi)]
 
 dm_lik <- function(pi, gamma0, y){
-  ## pi has length of k-1
-  ## gamma0 has length 1
-  ## y has k rows and any number of columns
+  # pi has length q-1
+  # gamma0 has length 1
+  # y has q rows and n number of columns
   
-  k <- nrow(y)
-  N <- ncol(y)
-  S <- colSums(y)  
+  q <- nrow(y)
+  n <- ncol(y)
+  m_i <- colSums(y)  
   l <- 0
   
   pi <- c(pi, 1 - sum(pi))
   
-  for(j in 1:N){  
-    # j=1
-    l <- l - sum(log(gamma0 + 1:S[j] - 1))   
-    for(i in 1:k){   
-      # i=3
-      if(y[i,j] == 0) lij <- 0
-      else lij <- sum(log(pi[i] * gamma0 + 1:y[i,j] - 1))     
-      l <- l + lij      
+  for(i in 1:n){  
+    # i=1
+    l <- l - sum(log(gamma0 + 1:m_i[i] - 1))   
+    for(j in 1:q){   
+      # j=3
+      if(y[j,i] == 0) lji <- 0
+      else lji <- sum(log(pi[j] * gamma0 + 1:y[j,i] - 1))     
+      l <- l + lji      
     }
   }
   

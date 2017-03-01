@@ -59,7 +59,10 @@ NULL
 setClass("dmDSfit", 
   contains = "dmDSdispersion",
   representation(dispersion = "character",
-    fit_full = "MatrixList"))
+    fit_full = "MatrixList",
+    lik_full = "matrix",
+    fit_full_bb = "MatrixList",
+    lik_full_bb = "matrix"))
 
 
 #####################################
@@ -80,8 +83,8 @@ setValidity("dmDSfit", function(object){
   if(!ncol(object@fit_full) == nlevels(object@samples$group))
     return("Wrong number of groups in 'fit_full'")
   
-  if(!ncol(object@fit_full@metadata) == nlevels(object@samples$group))
-    return("Wrong number of groups in 'fit_full@metadata'")
+  if(!ncol(object@lik_full) == nlevels(object@samples$group))
+    return("Wrong number of groups in 'lik_full'")
   
   return(TRUE)
   
@@ -117,9 +120,9 @@ setGeneric("statistics", function(x, ...) standardGeneric("statistics"))
 #' @export
 setMethod("statistics", "dmDSfit", function(x){
   
-  df <- data.frame(gene_id = names(x@counts), x@fit_full@metadata, 
+  df <- data.frame(gene_id = names(x@counts), x@lik_full, 
     stringsAsFactors = FALSE, row.names = NULL)
-  colnames(df)[-1] <- paste0("lik_", colnames(x@fit_full@metadata))
+  
   return(df)
   
 })
@@ -208,11 +211,12 @@ setMethod("dmFit", "dmDSdispersion", function(x,
   stopifnot(is.numeric(prop_tol) && prop_tol > 0)
   stopifnot(verbose %in% 0:2)
   
-  fit_full <- dmDS_fitOneModel(counts = x@counts, samples = x@samples, 
+  fit <- dmDS_fitOneModel(counts = x@counts, samples = x@samples, 
     dispersion = slot(x, dispersion), model = "full", prop_mode = prop_mode, 
     prop_tol = prop_tol, verbose = verbose, BPPARAM = BPPARAM)
   
-  return(new("dmDSfit", dispersion = dispersion, fit_full = fit_full,
+  return(new("dmDSfit", dispersion = dispersion, 
+    fit_full = fit[["fit"]], lik_full = fit[["lik"]], 
     mean_expression = x@mean_expression, 
     common_dispersion = x@common_dispersion, 
     genewise_dispersion = x@genewise_dispersion, counts = x@counts, 

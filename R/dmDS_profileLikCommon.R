@@ -10,11 +10,11 @@ dmDS_profileLikCommon <- function(gamma0, counts, samples, disp_adjust = TRUE,
   
   if(verbose >= 2) message("Gamma in optimize:", gamma0)
   
-  fit_full <- dmDS_fitOneModel(counts = counts, samples = samples, 
+  fit <- dmDS_fitOneModel(counts = counts, samples = samples, 
     dispersion = gamma0, model = "full", prop_mode = prop_mode, 
     prop_tol = prop_tol, verbose = verbose, BPPARAM = BPPARAM)
   
-  lik <- sum(fit_full@metadata, na.rm = TRUE) ### liks
+  lik <- sum(fit[["lik"]], na.rm = TRUE) 
   
   if(verbose >= 2) message("lik:", lik)
   
@@ -25,7 +25,7 @@ dmDS_profileLikCommon <- function(gamma0, counts, samples, disp_adjust = TRUE,
   if(verbose >= 2) message("* Calculating adjustement.. \n")
   
   time <- system.time(adj <- dmDS_adjustmentCommon(gamma0, counts = counts, 
-    samples = samples, pi = fit_full, BPPARAM = BPPARAM))
+    samples = samples, pi = fit[["fit"]], BPPARAM = BPPARAM))
   
   if(verbose >= 2) message("Took ", round(time["elapsed"]), " seconds.\n")
   

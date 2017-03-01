@@ -74,6 +74,9 @@ setClass("dmDStest",
   contains = "dmDSfit",
   representation(compared_groups = "character",
     fit_null = "MatrixList",
+    lik_null = "matrix",
+    fit_null_bb = "MatrixList",
+    lik_null_bb = "matrix",
     results = "data.frame"))
 
 
@@ -101,11 +104,9 @@ setValidity("dmDStest", function(object){
 #' @export
 setMethod("proportions", "dmDStest", function(x){
   
-  prop_null <- x@fit_null@unlistData
-  
   data.frame(gene_id = rep(names(x@counts), elementNROWS(x@counts)), 
     feature_id = rownames(x@counts@unlistData), x@fit_full@unlistData, 
-    prop_null, stringsAsFactors = FALSE, row.names = NULL)
+    x@fit_null@unlistData, stringsAsFactors = FALSE, row.names = NULL)
   
 })
 
@@ -115,10 +116,7 @@ setMethod("proportions", "dmDStest", function(x){
 #' @export
 setMethod("statistics", "dmDStest", function(x){
   
-  stats_null <- x@fit_null@metadata
-  colnames(stats_null) <- c("lik_null", "df")
-  
-  df <- data.frame(gene_id = names(x@counts), x@fit_full@metadata, stats_null, 
+  df <- data.frame(gene_id = names(x@counts), x@lik_full, x@lik_null, 
     stringsAsFactors = FALSE, row.names = NULL)
   
   return(df)
@@ -243,30 +241,30 @@ setMethod("dmTest", "dmDSfit", function(x,
     
   }
   
-  
   samps <- x@samples$group %in% compared_groups
   
   samples = x@samples[samps, , drop = FALSE]
   samples$sample_id <- factor(samples$sample_id)
   samples$group <- factor(samples$group)
   
-  
   message("Running comparison between groups: ", paste0(levels(samples$group), 
     collapse = ", "))
   
-  fit_null <- dmDS_fitOneModel(counts = x@counts[, samps, drop = FALSE], 
+  fit <- dmDS_fitOneModel(counts = x@counts[, samps, drop = FALSE], 
     samples = samples, 
     dispersion = slot(x, x@dispersion), model = "null", prop_mode = prop_mode, 
     prop_tol = prop_tol, verbose = verbose, BPPARAM = BPPARAM)
   
-  results <- dmDS_test(stats_full = 
-      x@fit_full@metadata[, compared_groups, drop = FALSE], 
-    stats_null = fit_null@metadata, verbose = verbose)
+  results <- dmDS_test(lik_full = x@lik_full[, compared_groups, drop = FALSE], 
+    lik_null = fit[["lik"]], df = fit[["df"]], verbose = verbose)
   
   
-  return(new("dmDStest", compared_groups = compared_groups, fit_null = fit_null, 
-    results = results, dispersion = x@dispersion, fit_full = x@fit_full,  
-    mean_expression = x@mean_expression, common_dispersion = x@common_dispersion, 
+  return(new("dmDStest", compared_groups = compared_groups, 
+    fit_null = fit[["fit"]], lik_null = fit[["lik"]],
+    results = results, dispersion = x@dispersion, 
+    fit_full = x@fit_full, lik_full = x@lik_full,
+    mean_expression = x@mean_expression, 
+    common_dispersion = x@common_dispersion, 
     genewise_dispersion = x@genewise_dispersion, counts = x@counts, 
     samples = x@samples))
   

@@ -4,18 +4,18 @@
 
 #' @importFrom stats pchisq p.adjust
 
-dmDS_test <- function(stats_full, stats_null, verbose = FALSE){
+dmDS_test <- function(lik_full, lik_null, df, verbose = FALSE){
   
   ## calculate lr
   if(verbose) message("* Calculating likelihood ratio statistics.. \n")
   
   time_start <- Sys.time()
   
-  lr <- 2*(rowSums(stats_full) - stats_null[, "lik"])
+  lr <- as.numeric(2*(rowSums(lik_full) - lik_null))
   
-  nrgroups <- rowSums(!is.na(stats_full))
+  nrgroups <- rowSums(!is.na(lik_full))
   
-  df <- (nrgroups - 1) * stats_null[, "df"]
+  df <- (nrgroups - 1) * df
   
   df[nrgroups == 0] <- NA 
   lr[nrgroups == 0] <- NA 
@@ -24,7 +24,7 @@ dmDS_test <- function(stats_full, stats_null, verbose = FALSE){
   
   adj_pvalue <- p.adjust(pvalue, method="BH")
   
-  table <- data.frame(gene_id = rownames(stats_full), lr = lr, df = df, 
+  table <- data.frame(gene_id = rownames(lik_full), lr = lr, df = df, 
     pvalue = pvalue, adj_pvalue = adj_pvalue, stringsAsFactors = FALSE)
   
   # o <- order(table[, "pvalue"])
