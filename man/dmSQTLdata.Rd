@@ -5,7 +5,7 @@
 \title{Create dmSQTLdata object}
 \usage{
 dmSQTLdata(counts, gene_ranges, genotypes, snp_ranges, samples, window = 5000,
-  BPPARAM = BiocParallel::MulticoreParam(workers = 1))
+  BPPARAM = BiocParallel::SerialParam())
 }
 \arguments{
 \item{counts}{Data frame with counts. Rows correspond to features, for
@@ -60,24 +60,6 @@ belongs to a given block.
 #############################
 ### Create dmSQTLdata object
 #############################
-
-# Use subsets of data defined in GeuvadisTranscriptExpr package
-library(GeuvadisTranscriptExpr)
-
-counts <- GeuvadisTranscriptExpr::counts
-genotypes <- GeuvadisTranscriptExpr::genotypes
-gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
-snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
-
-colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
-colnames(genotypes)[4] <- "snp_id"
-samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
-
-d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
-genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
-window = 5e3, BPPARAM = BiocParallel::SerialParam())
-
-plotData(d)
 
 }
 \author{

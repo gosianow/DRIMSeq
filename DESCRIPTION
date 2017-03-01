@@ -32,7 +32,6 @@ Imports:
     stats,
     MASS,
     Rcgmin,
-    grDevices,
     ggplot2,
     reshape2
 Suggests:
@@ -62,7 +61,6 @@ Collate:
     'dmDS_estimateTagwiseDispersion.R'
     'dmDS_filter.R'
     'dmDS_fit.R'
-    'dmDS_plotFit.R'
     'dmDS_profileLik.R'
     'dmSQTL_estimateCommonDispersion.R'
     'dmSQTL_estimateTagwiseDispersion.R'

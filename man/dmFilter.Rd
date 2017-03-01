@@ -9,14 +9,15 @@
 \usage{
 dmFilter(x, ...)
 
-\S4method{dmFilter}{dmDSdata}(x, min_samps_gene_expr, min_samps_feature_expr,
-  min_samps_feature_prop, min_gene_expr = 10, min_feature_expr = 10,
-  min_feature_prop = 0)
+\S4method{dmFilter}{dmDSdata}(x, min_samps_gene_expr = 0,
+  min_samps_feature_expr = 0, min_samps_feature_prop = 0,
+  min_gene_expr = 0, min_feature_expr = 0, min_feature_prop = 0)
 
-\S4method{dmFilter}{dmSQTLdata}(x, min_samps_gene_expr, min_samps_feature_expr,
-  min_samps_feature_prop, minor_allele_freq, min_gene_expr = 10,
-  min_feature_expr = 10, min_feature_prop = 0, max_features = Inf,
-  BPPARAM = BiocParallel::MulticoreParam(workers = 1))
+\S4method{dmFilter}{dmSQTLdata}(x, min_samps_gene_expr = 0,
+  min_samps_feature_expr = 0, min_samps_feature_prop = 0,
+  minor_allele_freq = 0.05 * nrow(samples(x)), min_gene_expr = 0,
+  min_feature_expr = 0, min_feature_prop = 0,
+  BPPARAM = BiocParallel::SerialParam())
 }
 \arguments{
 \item{x}{\code{\linkS4class{dmDSdata}} or \code{\linkS4class{dmSQTLdata}}
@@ -63,7 +64,7 @@ of the experiment data and the number of replicates per condition.
 are required to be expressed at the minimal level of \code{min_gene_expr} in
 order to be included in the downstream analysis. Ideally, we would like that
 genes were expressed at some minimal level in all samples because this would
-lead to good estimates of feature ratios.
+lead to better estimates of feature ratios.
 
 Similarly, \code{min_samps_feature_expr} and \code{min_samps_feature_prop} 
 defines the minimal number of samples where features are required to be
@@ -76,8 +77,7 @@ parameters to 3, which allows a situation where a feature is expressed in one
 condition but may not be expressed at all in another one, which is an example
 of differential splicing.
 
-By default, we do not use filtering based on feature proportions. Therefore,
-\code{min_samps_feature_prop} and \code{min_feature_prop} equal 0.
+By default, all the filtering parameters equal zero which means that features with zero expression in all samples are removed as well as genes with only one non-zero feature.
 
 In sQTL analysis, usually, we deal with data that has many more replicates
 than data from a standard differential splicing assay. Our example data set
@@ -99,16 +99,6 @@ total samples.
 #############################
 ### sQTL analysis
 #############################
-# If possible, use BPPARAM = BiocParallel::MulticoreParam() with more workers
-
-d <- data_dmSQTLdata
-\donttest{
-### Filtering
-d <- dmFilter(d, min_samps_gene_expr = 70, min_samps_feature_expr = 5, 
- min_samps_feature_prop = 0, minor_allele_freq = 5, 
- BPPARAM = BiocParallel::SerilaParam())
-plotData(d)
-}
 }
 \author{
 Malgorzata Nowicka

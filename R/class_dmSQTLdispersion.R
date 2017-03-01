@@ -31,7 +31,7 @@ setClass("dmSQTLdispersion",
 
 
 setValidity("dmSQTLdispersion", function(object){
-  # has to return TRUE when valid object!
+  # Has to return TRUE when valid object!
   
   out <- TRUE
   
@@ -95,28 +95,29 @@ setMethod("show", "dmSQTLdispersion", function(object){
 #'   matched with this gene.
 #' @export
 setMethod("dmDispersion", "dmSQTLdata", function(x, mean_expression = TRUE, 
-  common_dispersion = TRUE, genewise_dispersion = TRUE, disp_adjust = TRUE, 
-  disp_mode = "grid", disp_interval = c(0, 1e+4), disp_tol = 1e-08, 
-  disp_init = 100, disp_init_weirMoM = TRUE, disp_grid_length = 21, 
-  disp_grid_range = c(-10, 10), disp_moderation = "none", disp_prior_df = 0, 
-  disp_span = 0.1, prop_mode = "constrOptim", prop_tol = 1e-12, verbose = 0, 
-  speed = TRUE, BPPARAM = BiocParallel::MulticoreParam(workers = 1)){
-  
+  common_dispersion = TRUE, genewise_dispersion = TRUE, 
+  disp_adjust = TRUE, disp_subset = 0.1,
+  disp_interval = c(0, 1e+4), disp_tol = 1e+01, 
+  disp_init = 100, disp_grid_length = 21, disp_grid_range = c(-10, 10),
+  disp_moderation = "none", disp_prior_df = 0, disp_span = 0.1, 
+  one_way = TRUE, speed = TRUE,
+  prop_mode = "constrOptim", prop_tol = 1e-12, 
+  coef_mode = "optim", coef_tol = 1e-12,
+  verbose = 0, BPPARAM = BiocParallel::SerialParam()){
   
   ### Parameter checks:
   stopifnot(is.logical(mean_expression))
   stopifnot(is.logical(common_dispersion))
   stopifnot(is.logical(genewise_dispersion))
   stopifnot(is.logical(disp_adjust))
-  stopifnot(length(disp_mode) == 1)
-  stopifnot(disp_mode %in% c("optimize", "optim", "constrOptim", "grid"))
+  stopifnot(length(disp_subset) == 1)
+  stopifnot(is.numeric(disp_subset) && disp_subset > 0 && disp_subset <= 1)
   stopifnot(length(disp_interval) == 2)
   stopifnot(disp_interval[1] < disp_interval[2])
   stopifnot(length(disp_tol) == 1)
   stopifnot(is.numeric(disp_tol) && disp_tol > 0)
   stopifnot(length(disp_init) == 1)
   stopifnot(is.numeric(disp_init))
-  stopifnot(is.logical(disp_init_weirMoM))
   stopifnot(disp_grid_length > 2)
   stopifnot(length(disp_grid_range) == 2)
   stopifnot(disp_grid_range[1] < disp_grid_range[2])
@@ -126,14 +127,24 @@ setMethod("dmDispersion", "dmSQTLdata", function(x, mean_expression = TRUE,
   stopifnot(is.numeric(disp_prior_df) && disp_prior_df >= 0)
   stopifnot(length(disp_span) == 1)
   stopifnot(is.numeric(disp_span) && disp_span > 0 && disp_span < 1)
+  
+  stopifnot(is.logical(one_way))
+  stopifnot(is.logical(speed))
+  
   stopifnot(length(prop_mode) == 1)
   stopifnot(prop_mode %in% c("constrOptim"))
   stopifnot(length(prop_tol) == 1)
   stopifnot(is.numeric(prop_tol) && prop_tol > 0)
-  stopifnot(verbose %in% 0:2)
-  stopifnot(is.logical(speed))
   
-  if(mean_expression || (genewise_dispersion && disp_mode == "grid" && 
+  stopifnot(length(coef_mode) == 1)
+  stopifnot(coef_mode %in% c("optim", "nlminb", "Rcgmin"))
+  stopifnot(length(coef_tol) == 1)
+  stopifnot(is.numeric(coef_tol) && coef_tol > 0)
+  
+  stopifnot(verbose %in% 0:2)
+  
+  
+  if(mean_expression || (genewise_dispersion &&
       disp_moderation == "trended")){
     mean_expression <- dm_estimateMeanExpression(counts = x@counts, 
       verbose = verbose)
@@ -143,16 +154,30 @@ setMethod("dmDispersion", "dmSQTLdata", function(x, mean_expression = TRUE,
   
   if(common_dispersion){
     
-    ### only one SNP per gene (null model)
-    inds <- 1:length(x@genotypes)
-    genotypes <- new( "MatrixList", 
-      unlistData = matrix(1, nrow = length(x@genotypes), ncol = ncol(x@genotypes)), 
-      partitioning = split(inds, factor(names(x@genotypes), 
-        levels = names(x@genotypes))) )
+    if(disp_subset < 1){
+      
+      message(paste0("! Using a subset of ", disp_subset, 
+        " genes to estimate common dispersion !\n"))
+      
+      genes2keep <- sample(1:length(x@counts), 
+        max(round(disp_subset * length(x@counts)), 1), replace = FALSE)
+      
+    }else{
+      genes2keep <- 1:length(x@counts)
+    }
+    
+    ### Use only one SNP per gene and a null model
+    genotypes <- new("MatrixList", 
+      unlistData = matrix(1, nrow = length(genes2keep), 
+        ncol = ncol(x@genotypes)), 
+      partitioning = split(1:length(genes2keep), 
+        factor(names(x@genotypes[genes2keep, ]), 
+        levels = names(x@genotypes[genes2keep, ]))))
     
     common_dispersion <- dmSQTL_estimateCommonDispersion(counts = x@counts, 
-      genotypes = genotypes, disp_adjust = disp_adjust, disp_interval = disp_interval, 
-      disp_tol = 1e+01, prop_mode = prop_mode, prop_tol = prop_tol, 
+      genotypes = genotypes, disp_adjust = disp_adjust, 
+      disp_interval = disp_interval, 
+      disp_tol = disp_tol, prop_mode = prop_mode, prop_tol = prop_tol, 
       verbose = verbose, BPPARAM = BPPARAM)
     
   }else{

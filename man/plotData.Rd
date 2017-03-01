@@ -11,7 +11,7 @@ plotData(x, ...)
 
 \S4method{plotData}{dmDSdata}(x)
 
-\S4method{plotData}{dmSQTLdata}(x, out_dir = NULL)
+\S4method{plotData}{dmSQTLdata}(x, plot_type = "features")
 }
 \arguments{
 \item{x}{\code{\linkS4class{dmDSdata}} or \code{\linkS4class{dmSQTLdata}} 
@@ -19,6 +19,9 @@ object.}
 
 \item{...}{Other parameters that can be defined by methods using this 
 generic.}
+
+\item{plot_type}{Character specifying which type of histogram to plot. Possible
+values \code{"features"}, \code{"snps"} or \code{"blocks"}.}
 }
 \value{
 Returns a \code{ggplot} object and can be further modified, for
@@ -35,17 +38,10 @@ Plot data summary
 ### Differential splicing analysis
 ###################################
 
-d <- data_dmDSdata
-plotData(d)
-
-
 
 #############################
 ### sQTL analysis
 #############################
-
-d <- data_dmSQTLdata
-plotData(d)
 
 }
 \author{

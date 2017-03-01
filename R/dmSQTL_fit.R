@@ -1,37 +1,98 @@
 # Fitting the Dirichlet-multinomial model
 
-dmDS_fitManyGroups_gene <- function(g, counts, 
-  ngroups, lgroups, igroups, disp, prop_mode, prop_tol, verbose){  
-
-  if(verbose >= 2)
-    message(" Gene:", g)
+dmSQTL_fitManyGroups_gene <- function(g, counts, genotypes,
+  disp, prop_mode, prop_tol, verbose){  
   
-  f <- dm_fitManyGroups(y = counts[[g]], 
-    ngroups = ngroups, lgroups = lgroups, igroups = igroups, 
-    disp = disp[g], prop_mode = prop_mode, prop_tol = prop_tol)
+  if(verbose >= 2) message(" Gene:", g)
   
-  return(f)
+  y <- counts[[g]]
+  x <- genotypes[[g]]
+  
+  ff <- lapply(1:nrow(x), function(i){
+    # i = 2
+    
+    NAs <- is.na(x[i, ]) | is.na(y[1, ])            
+    yy <- y[, !NAs, drop = FALSE]             
+    xx <- x[i, !NAs]
+    
+    groups <- factor(xx)
+    ngroups <- nlevels(groups)
+    lgroups <- levels(groups)
+    igroups <- lapply(lgroups, function(gr){which(groups == gr)})
+    names(igroups) <- lgroups
+    
+    f <- dm_fitManyGroups(y = yy, 
+      ngroups = ngroups, lgroups = lgroups, igroups = igroups, 
+      disp = disp[[g]][i], prop_mode = prop_mode, prop_tol = prop_tol)
+    
+    lik <- sum(f$lik)
+    
+    fit <- matrix(NA, nrow = nrow(y), ncol = ncol(y))
+    fit[, !NAs] <- f$prop[, groups]
+    
+    return(list(lik = lik, fit = fit))
+    
+  })
+  
+  lik <- unlist(lapply(ff, function(f) f[["lik"]])) 
+  fit <- MatrixList(lapply(ff, function(f) f[["fit"]]))
+  
+  # lik is a vector of length nrow(x)
+  # fit is a MatrixList of matrices q x n
+  # DOES NOT return coef
+  return(list(lik = lik, fit = fit))
   
 }
 
-dmDS_fitRegression_gene <- function(g, counts, 
-  design, disp, coef_mode, coef_tol, verbose){  
+#' @importFrom stats model.matrix
 
-  if(verbose >= 2)
-    message(" Gene:", g)
+dmSQTL_fitRegression_gene <- function(g, counts, genotypes, 
+  disp, coef_mode, coef_tol, verbose){  
   
-  f <- dm_fitRegression(y = counts[[g]], 
-    design = design, disp = disp[g], 
-    coef_mode = coef_mode, coef_tol = coef_tol)
+  if(verbose >= 2) message(" Gene:", g)
   
-  return(f)
+  y <- counts[[g]]
+  x <- genotypes[[g]]
+  
+  ff <- lapply(1:nrow(x), function(i){
+    # i = 1
+    
+    NAs <- is.na(x[i, ]) | is.na(y[1, ])            
+    yy <- y[, !NAs, drop = FALSE]             
+    xx <- x[i, !NAs]
+    
+    design <- model.matrix(~ group, data = data.frame(group = xx))
+    
+    f <- dm_fitRegression(y = yy, 
+      design = design, disp = disp[[g]][i], 
+      coef_mode = coef_mode, coef_tol = coef_tol)
+    
+    fit <- matrix(NA, nrow = nrow(y), ncol = ncol(y))
+    fit[, !NAs] <- f$fit
+    
+    return(list(lik = f$lik, fit = fit))
+    
+  })
+  
+  lik <- unlist(lapply(ff, function(f) f[["lik"]])) 
+  fit <- MatrixList(lapply(ff, function(f) f[["fit"]]))
+  
+  # lik is a vector of length nrow(x)
+  # fit is a MatrixList of matrices q x n
+  # DOES NOT return coef
+  return(list(lik = lik, fit = fit))
   
 }
 
-dmDS_fit <- function(counts, design, dispersion,
+
+
+
+
+dmSQTL_fit <- function(counts, design, dispersion,
   one_way = TRUE,
   prop_mode = "constrOptim", prop_tol = 1e-12, 
   coef_mode = "optim", coef_tol = 1e-12, 
+  return_fit = FALSE, return_coef = FALSE, 
   verbose = FALSE, BPPARAM = BiocParallel::SerialParam()){
   
   time_start <- Sys.time()
@@ -60,7 +121,7 @@ dmDS_fit <- function(counts, design, dispersion,
     igroups <- lapply(lgroups, function(gr){which(groups == gr)})
     names(igroups) <- lgroups
     
-    ff <- BiocParallel::bplapply(inds, dmDS_fitManyGroups_gene, 
+    ff <- BiocParallel::bplapply(inds, dmSQTL_fitManyGroups_gene, 
       counts = counts, 
       ngroups = ngroups, lgroups = lgroups, igroups = igroups, 
       disp = disp, prop_mode = prop_mode, prop_tol = prop_tol, 
@@ -93,7 +154,7 @@ dmDS_fit <- function(counts, design, dispersion,
     
     if(verbose) message("   Using the regression approach. \n")
     
-    ff <- BiocParallel::bplapply(inds, dmDS_fitRegression_gene, 
+    ff <- BiocParallel::bplapply(inds, dmSQTL_fitRegression_gene, 
       counts = counts, design = design, disp = disp, 
       coef_mode = coef_mode, coef_tol = coef_tol, 
       verbose = verbose, BPPARAM = BPPARAM)
@@ -107,14 +168,14 @@ dmDS_fit <- function(counts, design, dispersion,
     
     fit <- MatrixList(lapply(ff, function(f) f[["fit"]]))
     colnames(fit) <- colnames(counts)
-
+    
   }
   
   time_end <- Sys.time()
   if(verbose >= 2) message("\n")
   if(verbose) message("Took ", round(time_end - time_start, 4), " seconds.\n")
   
-  # fit is a MatrixList of matrices q x p
+  # fit is a MatrixList of matrices q x n
   # lik is a vector of length G
   # coef is a MatrixList of matrices q x p
   return(list(fit = fit, lik = lik, coef = coef))
@@ -128,9 +189,9 @@ dmDS_fit <- function(counts, design, dispersion,
 # Currently, recalculating the BB likelihoods and coefficients using the 
 # DM fittings/proportions
 
-bbDS_fitManyGroups_gene <- function(g, counts, prop,
+bbSQTL_fitManyGroups_gene <- function(g, counts, prop,
   ngroups, lgroups, igroups, disp, verbose){  
-
+  
   if(verbose >= 2)
     message(" Gene:", g)
   
@@ -143,9 +204,9 @@ bbDS_fitManyGroups_gene <- function(g, counts, prop,
 }
 
 
-bbDS_fitRegression_gene <- function(g, counts, 
+bbSQTL_fitRegression_gene <- function(g, counts, 
   design, disp, fit, verbose){  
-
+  
   if(verbose >= 2)
     message(" Gene:", g)
   
@@ -157,7 +218,7 @@ bbDS_fitRegression_gene <- function(g, counts,
 }
 
 
-bbDS_fit <- function(counts, fit, design, dispersion,
+bbSQTL_fit <- function(counts, fit, design, dispersion,
   one_way = TRUE, verbose = FALSE, BPPARAM = BiocParallel::SerialParam()){
   
   time_start <- Sys.time()
@@ -219,7 +280,7 @@ bbDS_fit <- function(counts, fit, design, dispersion,
   }else{
     
     if(verbose) message("   Using the regression approach. \n")
-
+    
     ff <- BiocParallel::bplapply(inds, bbDS_fitRegression_gene, 
       counts = counts, design = design, disp = disp, 
       fit = fit, verbose = verbose, BPPARAM = BPPARAM)

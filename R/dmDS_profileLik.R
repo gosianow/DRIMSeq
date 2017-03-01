@@ -21,6 +21,7 @@ dmDS_profileLik <- function(disp, counts, design,
   
   adj_lik <- fit$lik - adj
   
+  # adj_lik has length G
   return(adj_lik)
   
 }

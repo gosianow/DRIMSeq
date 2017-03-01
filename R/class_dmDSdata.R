@@ -288,7 +288,7 @@ setGeneric("dmFilter", function(x, ...) standardGeneric("dmFilter"))
 #' are required to be expressed at the minimal level of \code{min_gene_expr} in
 #' order to be included in the downstream analysis. Ideally, we would like that
 #' genes were expressed at some minimal level in all samples because this would
-#' lead to good estimates of feature ratios.
+#' lead to better estimates of feature ratios.
 #' 
 #' Similarly, \code{min_samps_feature_expr} and \code{min_samps_feature_prop} 
 #' defines the minimal number of samples where features are required to be
@@ -301,8 +301,7 @@ setGeneric("dmFilter", function(x, ...) standardGeneric("dmFilter"))
 #' condition but may not be expressed at all in another one, which is an example
 #' of differential splicing.
 #' 
-#' By default, we do not use filtering based on feature proportions. Therefore,
-#' \code{min_samps_feature_prop} and \code{min_feature_prop} equal 0.
+#' By default, all the filtering parameters equal zero which means that features with zero expression in all samples are removed as well as genes with only one non-zero feature. 
 #' 
 #' @param min_samps_gene_expr Minimal number of samples where genes should be
 #'   expressed. See Details.
@@ -326,9 +325,9 @@ setGeneric("dmFilter", function(x, ...) standardGeneric("dmFilter"))
 #' @author Malgorzata Nowicka
 #' @rdname dmFilter
 #' @export
-setMethod("dmFilter", "dmDSdata", function(x, min_samps_gene_expr, 
-  min_samps_feature_expr, min_samps_feature_prop, min_gene_expr = 10, 
-  min_feature_expr = 10, min_feature_prop = 0){
+setMethod("dmFilter", "dmDSdata", function(x, min_samps_gene_expr = 0, 
+  min_samps_feature_expr = 0, min_samps_feature_prop = 0, min_gene_expr = 0, 
+  min_feature_expr = 0, min_feature_prop = 0){
   
   stopifnot(min_samps_gene_expr >= 0 && 
       min_samps_gene_expr <= ncol(x@counts))
@@ -382,20 +381,14 @@ setGeneric("plotData", function(x, ...) standardGeneric("plotData"))
 #' ### Differential splicing analysis
 #' ###################################
 #' 
-#' d <- data_dmDSdata
-#' plotData(d)
-#' 
-#' 
 #' @author Malgorzata Nowicka
-#' @seealso \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}}, 
-#'   \code{\link{plotDispersion}}, \code{\link{plotProportions}},
+#' @seealso \code{\link{plotDispersion}}, \code{\link{plotProportions}},
 #'   \code{\link{plotPValues}}
 #' @rdname plotData
 #' @export
 setMethod("plotData", "dmDSdata", function(x){
   
   tt <- elementNROWS(x@counts)
-  
   ggp <- dm_plotDataFeatures(tt = tt)
   
   return(ggp)

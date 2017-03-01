@@ -12,8 +12,6 @@ NULL
 #' sQTL analysis. Feature ratios are estimated for each gene and each group that
 #' is defined by different SNPs/blocks. Result of \code{\link{dmFit}}.
 #' 
-#' @slot dispersion Character specifying which type of dispersion was used for
-#'   fitting: \code{"common_dispersion"} or \code{"genewise_dispersion"}.
 #' @slot fit_full List of \code{\linkS4class{MatrixList}} objects. Each element
 #'   of this list contains the full model proportion estimates for all the
 #'   blocks associated with a given gene. Columns of MatrixLists correspond to 3
@@ -24,20 +22,20 @@ NULL
 #'   \code{\linkS4class{dmSQTLdispersion}}, \code{\linkS4class{dmSQTLtest}}
 setClass("dmSQTLfit", 
   contains = "dmSQTLdispersion",
-  representation(dispersion = "character",
-    fit_full = "list"))
+  representation(fit_full = "list",
+    lik_full = "list",
+    coef_full = "list",
+    fit_full_bb = "list",
+    lik_full_bb = "list",
+    coef_full_bb = "list"))
 
 ########################################
 
 
 setValidity("dmSQTLfit", function(object){
-  # has to return TRUE when valid object!
-  
-  if(!length(object@dispersion) == 1)
-    return("'dispersion' must have length 1")
-  
-  if(!object@dispersion %in% c("common_dispersion", "genewise_dispersion"))
-    return("'dispersion' can have values 'common_dispersion' or 'genewise_dispersion'")
+  # Has to return TRUE when valid object
+
+  # TODO: Add checks for other slots
   
   if(!length(object@counts) == length(object@fit_full))
     return("Different number of genes in 'counts' and 'fit_full'")
@@ -69,9 +67,9 @@ setMethod("show", "dmSQTLfit", function(object){
 #' @rdname dmFit
 #' @export
 setMethod("dmFit", "dmSQTLdispersion", function(x, 
-  dispersion = "genewise_dispersion", prop_mode = "constrOptim", 
-  prop_tol = 1e-12, verbose = 0, 
-  BPPARAM = BiocParallel::MulticoreParam(workers = 1)){
+  dispersion = "genewise_dispersion", 
+  prop_mode = "constrOptim", prop_tol = 1e-12, 
+  verbose = 0, BPPARAM = BiocParallel::SerialParam()){
   
   stopifnot(length(dispersion) == 1)
   stopifnot(dispersion %in% c("genewise_dispersion", "common_dispersion"))

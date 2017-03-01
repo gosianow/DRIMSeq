@@ -83,8 +83,27 @@ setValidity("dmSQTLdata", function(object){
 
 
 ###############################################################################
-### accessing and subsetting methods
+### show, accessing and subsetting methods
 ###############################################################################
+
+#' @rdname dmSQTLdata-class
+#' @export
+setMethod("counts", "dmSQTLdata", function(object){
+  
+  data.frame(gene_id = rep(names(object@counts), elementNROWS(object@counts)), 
+    feature_id = rownames(object@counts), 
+    object@counts@unlistData, stringsAsFactors = FALSE, 
+    row.names = NULL)
+  
+})
+
+
+#' @rdname dmSQTLdata-class
+#' @export
+setMethod("samples", "dmSQTLdata", function(x) x@samples )
+
+
+################################
 
 
 setMethod("show", "dmSQTLdata", function(object){
@@ -93,11 +112,13 @@ setMethod("show", "dmSQTLdata", function(object){
   
   cat("with", length(object), "genes and", ncol(object@counts), "samples\n")
   
+  cat("* data accessors: counts(), samples()\n")
+  
 })
 
 
+################################
 
-###############################
 
 #' @rdname dmSQTLdata-class
 #' @export
@@ -204,24 +225,6 @@ blocks_per_gene <- function(g, genotypes){
 #' ### Create dmSQTLdata object
 #' #############################
 #' 
-#' # Use subsets of data defined in GeuvadisTranscriptExpr package
-#' library(GeuvadisTranscriptExpr)
-#' 
-#' counts <- GeuvadisTranscriptExpr::counts
-#' genotypes <- GeuvadisTranscriptExpr::genotypes
-#' gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
-#' snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
-#' 
-#' colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
-#' colnames(genotypes)[4] <- "snp_id"
-#' samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
-#' 
-#' d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
-#' genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
-#' window = 5e3, BPPARAM = BiocParallel::SerialParam())
-#' 
-#' plotData(d)
-#' 
 #' @seealso \code{\link{data_dmSQTLdata}}, \code{\link{dmFilter}}, 
 #'   \code{\link{dmDispersion}}, \code{\link{dmFit}}, \code{\link{dmTest}}
 #' @author Malgorzata Nowicka
@@ -229,7 +232,7 @@ blocks_per_gene <- function(g, genotypes){
 #' @importFrom IRanges width
 #' @importFrom S4Vectors queryHits subjectHits
 dmSQTLdata <- function(counts, gene_ranges, genotypes, snp_ranges, samples, 
-  window = 5e3, BPPARAM = BiocParallel::MulticoreParam(workers = 1)){
+  window = 5e3, BPPARAM = BiocParallel::SerialParam()){
   
   stopifnot(is.numeric(window))
   stopifnot(window >= 0)
@@ -412,22 +415,13 @@ dmSQTLdata <- function(counts, gene_ranges, genotypes, snp_ranges, samples,
 #' #############################
 #' ### sQTL analysis
 #' #############################
-#' # If possible, use BPPARAM = BiocParallel::MulticoreParam() with more workers
-#' 
-#' d <- data_dmSQTLdata
-#' \donttest{
-#' ### Filtering
-#' d <- dmFilter(d, min_samps_gene_expr = 70, min_samps_feature_expr = 5, 
-#'  min_samps_feature_prop = 0, minor_allele_freq = 5, 
-#'  BPPARAM = BiocParallel::SerilaParam())
-#' plotData(d)
-#' }
 #' @rdname dmFilter
 #' @export
-setMethod("dmFilter", "dmSQTLdata", function(x, min_samps_gene_expr, 
-  min_samps_feature_expr, min_samps_feature_prop, minor_allele_freq, 
-  min_gene_expr = 10, min_feature_expr = 10, min_feature_prop = 0, 
-  max_features = Inf, BPPARAM = BiocParallel::MulticoreParam(workers = 1)){
+setMethod("dmFilter", "dmSQTLdata", function(x, min_samps_gene_expr = 0, 
+  min_samps_feature_expr = 0, min_samps_feature_prop = 0, 
+  minor_allele_freq = 0.05 * nrow(samples(x)), 
+  min_gene_expr = 0, min_feature_expr = 0, min_feature_prop = 0, 
+  BPPARAM = BiocParallel::SerialParam()){
   
   stopifnot(min_samps_gene_expr >= 0 && 
       min_samps_gene_expr <= ncol(x@counts))
@@ -438,9 +432,8 @@ setMethod("dmFilter", "dmSQTLdata", function(x, min_samps_gene_expr,
   stopifnot(min_samps_feature_prop >= 0 && 
       min_samps_feature_prop <= ncol(x@counts))
   stopifnot(min_feature_prop >= 0 && min_feature_prop <= 1)
-  stopifnot(max_features >= 2)
   stopifnot(minor_allele_freq >= 1 && 
-      minor_allele_freq <= floor(ncol(x@counts)/2))
+      minor_allele_freq <= floor(nrow(samples(x))/2))
   
   data_filtered <- dmSQTL_filter(counts = x@counts, genotypes = x@genotypes, 
     blocks = x@blocks, samples = x@samples, 
@@ -449,11 +442,10 @@ setMethod("dmFilter", "dmSQTLdata", function(x, min_samps_gene_expr,
     min_samps_feature_expr = min_samps_feature_expr, 
     min_feature_expr = min_feature_expr, 
     min_samps_feature_prop = min_samps_feature_prop, 
-    min_feature_prop = min_feature_prop, max_features = max_features,
+    min_feature_prop = min_feature_prop,
     minor_allele_freq = minor_allele_freq, BPPARAM = BPPARAM)
   
   return(data_filtered)
-  
   
 })
 
@@ -463,48 +455,46 @@ setMethod("dmFilter", "dmSQTLdata", function(x, min_samps_gene_expr,
 ###############################################################################
 
 
+#' @param plot_type Character specifying which type of histogram to plot. Possible
+#'   values \code{"features"}, \code{"snps"} or \code{"blocks"}.
 #' @examples 
 #' 
 #' #############################
 #' ### sQTL analysis
 #' #############################
-#' 
-#' d <- data_dmSQTLdata
-#' plotData(d)
 #'
 #' @rdname plotData
 #' @export
-#' @importFrom grDevices pdf dev.off
-setMethod("plotData", "dmSQTLdata", function(x, out_dir = NULL){
+setMethod("plotData", "dmSQTLdata", function(x, plot_type = "features"){
   
-  tt <- elementNROWS(x@counts)
-  ggp1 <- dm_plotDataFeatures(tt)
+  stopifnot(length(plot_type) == 1)
+  stopifnot(plot_type %in% c("features", "snps", "blocks"))
   
-  
-  tt <- elementNROWS(x@blocks)
-  ggp2 <- dm_plotDataSnps(tt)
-  
-  
-  tt <- elementNROWS(x@genotypes)
-  ggp3 <- dm_plotDataBlocks(tt)
-  
-  
-  if(!is.null(out_dir)){
-    pdf(paste0(out_dir, "hist_features.pdf"))
-    print(ggp1)
-    dev.off()
+  switch(plot_type, 
     
-    pdf(paste0(out_dir, "hist_snps.pdf"))
-    print(ggp2)
-    dev.off()
+    features = {
+      
+      tt <- elementNROWS(x@counts)
+      ggp <- dm_plotDataFeatures(tt)
+      
+    },
     
-    pdf(paste0(out_dir, "hist_blocks.pdf"))
-    print(ggp3)
-    dev.off()
-  }else{
-    return(list(ggp1, ggp2, ggp3))
-  }
+    snps = {
+      
+      tt <- elementNROWS(x@blocks)
+      ggp <- dm_plotDataSnps(tt)
+      
+    },
+    
+    blocks = {
+      
+      tt <- elementNROWS(x@genotypes)
+      ggp <- dm_plotDataBlocks(tt)
+      
+    }
+  )
   
+  return(ggp)
   
 })
 

@@ -4,11 +4,17 @@
 \name{dmSQTLdata-class}
 \alias{[,dmSQTLdata,ANY-method}
 \alias{[,dmSQTLdata-method}
+\alias{counts,dmSQTLdata-method}
 \alias{dmSQTLdata-class}
 \alias{length,dmSQTLdata-method}
 \alias{names,dmSQTLdata-method}
+\alias{samples,dmSQTLdata-method}
 \title{dmSQTLdata object}
 \usage{
+\S4method{counts}{dmSQTLdata}(object)
+
+\S4method{samples}{dmSQTLdata}(x)
+
 \S4method{names}{dmSQTLdata}(x)
 
 \S4method{length}{dmSQTLdata}(x)
