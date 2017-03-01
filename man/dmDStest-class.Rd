@@ -3,16 +3,10 @@
 \docType{class}
 \name{dmDStest-class}
 \alias{dmDStest-class}
-\alias{proportions,dmDStest-method}
 \alias{results}
 \alias{results,dmDStest-method}
-\alias{statistics,dmDStest-method}
 \title{dmDStest object}
 \usage{
-\S4method{proportions}{dmDStest}(x)
-
-\S4method{statistics}{dmDStest}(x)
-
 results(x, ...)
 
 \S4method{results}{dmDStest}(x, level = "gene")
@@ -22,14 +16,13 @@ results(x, ...)
 
 \item{...}{Other parameters that can be defined by methods using this 
 generic.}
+
+\item{level}{Character specifying which type of results to return. Possible
+values \code{"gene"} or \code{"feature"}.}
 }
 \value{
-\itemize{ \item \code{proportions(x)}: Get a data frame with estimated 
-feature ratios for full model and null models specified in 
-\code{\link{dmTest}} with \code{compared_groups} parameter. \item 
-\code{statistics(x)}: Get a data frame with full and null log-likelihoods and
-degrees of freedom. \item \code{results(x)}: Get a data frame with results. 
-See Slots. }
+\itemize{ \item \code{results(x)}: Get a data frame with gene-level or
+feature-level results. See Slots. }
 }
 \description{
 dmDStest extends the \code{\linkS4class{dmDSfit}} class by adding the null 
@@ -41,48 +34,29 @@ from pooled (no grouping into conditions) counts. Result of
 \section{Slots}{
 
 \describe{
-\item{\code{compared_groups}}{Character vector specifying which groups/conditions 
-should be compared. By default, the comparison is done among all the groups
-specified by \code{group} column in \code{samples(x)}.}
+\item{\code{design_fit_null}}{Numeric matrix of the desing used to fit the null 
+model.}
 
-\item{\code{fit_null}}{\code{\linkS4class{MatrixList}}. Contains null proportions, 
-likelihoods and degrees of freedom for a comparison specified with 
-\code{compared_groups}.}
+\item{\code{lik_null}}{Numeric vector of the per gene DM null model likelihoods.}
 
-\item{\code{results}}{Data frame with \code{gene_id} - gene IDs, \code{lr} - 
-likelihood ratio statistics, \code{df} - degrees of freedom, \code{pvalue} 
-- p-values and \code{adj_pvalue} - Benjamini & Hochberg adjusted p-values 
-for comparison specified in \code{compared_groups}.}
+\item{\code{lik_null_bb}}{Numeric vector of the per gene BB null model likelihoods.}
+
+\item{\code{results_gene}}{Data frame with the gene-level results including: 
+\code{gene_id} - gene IDs, \code{lr} - likelihood ratio statistics based on
+the DM model, \code{df} - degrees of freedom, \code{pvalue} - p-values and 
+\code{adj_pvalue} - Benjamini & Hochberg adjusted p-values.}
+
+\item{\code{results_feature}}{Data frame with the feature-level results including: 
+\code{gene_id} - gene IDs, \code{feature_id} - feature IDs, \code{lr} - 
+likelihood ratio statistics based on the BB model, \code{df} - degrees of 
+freedom, \code{pvalue} - p-values and \code{adj_pvalue} - Benjamini & 
+Hochberg adjusted p-values.}
 }}
 \examples{
 
 ###################################
 ### Differential splicing analysis
 ###################################
-# If possible, use BPPARAM = BiocParallel::MulticoreParam() with more workers
-
-d <- data_dmDSdata
-\donttest{
-### Filtering
-# Check what is the minimal number of replicates per condition 
-table(samples(d)$group)
-d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3, 
- min_samps_feature_prop = 0)
-
-### Calculate dispersion
-d <- dmDispersion(d, BPPARAM = BiocParallel::SerialParam())
-### Fit full model proportions 
-d <- dmFit(d, BPPARAM = BiocParallel::SerialParam())
-
-### Fit null model proportions and test for DS 
-d <- dmTest(d, BPPARAM = BiocParallel::SerialParam()) 
-plotTest(d)
-
-head(proportions(d)) 
-head(statistics(d)) 
-head(results(d))
-
-}
 
 }
 \author{

@@ -9,9 +9,8 @@
 \usage{
 dmFit(x, ...)
 
-\S4method{dmFit}{dmDSdispersion}(x, dispersion = "genewise_dispersion",
-  prop_mode = "constrOptimG", prop_tol = 1e-12, verbose = 0,
-  BPPARAM = BiocParallel::MulticoreParam(workers = 1))
+\S4method{dmFit}{dmDSdispersion}(x, design, prop_mode = "constrOptimG",
+  prop_tol = 1e-12, verbose = 0, BPPARAM = BiocParallel::SerialParam())
 
 \S4method{dmFit}{dmSQTLdispersion}(x, dispersion = "genewise_dispersion",
   prop_mode = "constrOptimG", prop_tol = 1e-12, verbose = 0,
@@ -24,9 +23,7 @@ dmFit(x, ...)
 \item{...}{Other parameters that can be defined by methods using this
 generic.}
 
-\item{dispersion}{Character defining which dispersion should be used for 
-fitting. Possible values \code{"genewise_dispersion"} or 
-\code{"common_dispersion"}.}
+\item{design}{Numeric matrix definig the full model.}
 
 \item{prop_mode}{Optimization method used to estimate proportions. Possible 
 values \code{"constrOptim"} and \code{"constrOptimG"}.}
@@ -53,26 +50,6 @@ proportions are estimated for every group/condition separately.
 ###################################
 ### Differential splicing analysis
 ###################################
-# If possible, use BPPARAM = BiocParallel::MulticoreParam() with more workers
-
-d <- data_dmDSdata
-\donttest{
-### Filtering
-# Check what is the minimal number of replicates per condition 
-table(samples(d)$group)
-d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3, 
- min_samps_feature_prop = 0)
-
-### Calculate dispersion
-d <- dmDispersion(d, BPPARAM = BiocParallel::SerialParam())
-
-### Fit full model proportions
-d <- dmFit(d, BPPARAM = BiocParallel::SerialParam())
-
-head(proportions(d))
-head(statistics(d))
-
-}
 
 }
 \author{

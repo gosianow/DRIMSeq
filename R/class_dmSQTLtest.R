@@ -53,7 +53,7 @@ NULL
 #' 
 #' ### Fit null model proportions and test for sQTLs
 #' d <- dmTest(d, BPPARAM = BiocParallel::SerialParam())
-#' plotTest(d)
+#' plotPValues(d)
 #' 
 #' head(results(d))
 #' 
@@ -204,13 +204,13 @@ setMethod("dmTest", "dmSQTLfit", function(x, permutations = "all_genes",
 
 
 ###############################################################################
-### plotTest
+### plotPValues
 ###############################################################################
 
-#' @rdname plotTest
+#' @rdname plotPValues
 #' @export
 #' @importFrom grDevices pdf dev.off
-setMethod("plotTest", "dmSQTLtest", function(x, out_dir = NULL){
+setMethod("plotPValues", "dmSQTLtest", function(x, out_dir = NULL){
   
   ### Plot p-values for unique blocks (not SNPs)
   ggp <- dm_plotPvalues(pvalues = unique(x@results[, c("gene_id", "block_id", 

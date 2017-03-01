@@ -60,7 +60,7 @@ d <- dmFit(d, BPPARAM = BiocParallel::SerialParam())
 
 ### Fit null model proportions and test for sQTLs
 d <- dmTest(d, BPPARAM = BiocParallel::SerialParam())
-plotTest(d)
+plotPValues(d)
 
 head(results(d))
 

@@ -69,31 +69,15 @@ differential splicing analysis. Result of \code{\link{dmDispersion}}.
 \item{\code{common_dispersion}}{Numeric value of estimated common dispersion.}
 
 \item{\code{genewise_dispersion}}{Numeric vector of estimated gene-wise dispersions.}
+
+\item{\code{design_dispersion}}{Numeric matrix of the desing 
+used to estimate dispersion.}
 }}
 \examples{
 
 ###################################
 ### Differential splicing analysis
 ###################################
-# If possible, use BPPARAM = BiocParallel::MulticoreParam() with more workers
-
-d <- data_dmDSdata
-\donttest{
-### Filtering
-# Check what is the minimal number of replicates per condition 
-table(samples(d)$group)
-d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3, 
- min_samps_feature_prop = 0)
-
-### Calculate dispersion
-d <- dmDispersion(d, BPPARAM = BiocParallel::SerialParam())
-plotDispersion(d)
-
-head(mean_expression(d))
-common_dispersion(d)
-head(genewise_dispersion(d))
-
-}
 
 }
 \author{

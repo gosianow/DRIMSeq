@@ -6,9 +6,11 @@ v1.1.3: - New features:
 v1.1.4: - Use data frames with counts and genotypes when creating the dmDSdata and dmSQTLdata objects.
 v1.3.1: - Equals to v1.1.4.
 v1.3.2: - Implementation of the two-stage test dmTwoStageTest().
-v1.3.3: - Implementation of the regression framework. Additionally:
+v1.3.3: - Implementation of the regression framework. 
+Additionally:
 	i) Removing max_features argument from dmFilter.
 	ii) Keeping only the grid approach for estimating tagwise dispersion. 
 	iii) Allow to use only a subset of genes (disp_subset parameter) in common dispersion estimation to speed up the calculations; if disp_subset < 1, use set.seed() to make the analysis reproducible.
 	iv) Always use tagwise dispersion for fitting full and null models.
 	v) In one group fitting, return NA for tags having the last feature with zero counts in all samples. We always use the q-th feature as a denominator in logit calculation. In such a case all the logits are anyways Inf.
+	vi) Use plotPValues instead of plotTest

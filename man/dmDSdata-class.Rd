@@ -40,8 +40,6 @@ this generic.}
   \item \code{length(x)}: Get the number of genes.
   \item \code{x[i, j]}: Get a subset of dmDSdata object that consists of 
   counts for genes i and samples j. 
-  \item \code{dm_counts(object)}: Get the \code{counts} slot.
-  \item \code{dm_samples(object)}: Get the \code{samples} slot.
 }
 }
 \description{

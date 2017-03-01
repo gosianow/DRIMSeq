@@ -23,12 +23,9 @@ generic.}
 no messages, 1 - main messages, 2 - message for every gene fitting.}
 }
 \value{
-Returns a data frame with adjusted feature level p-values.
+Returns a data frame with adjusted feature-level p-values.
 }
 \description{
 Two-stage test
-}
-\author{
-Malgorzata Nowicka
 }
 

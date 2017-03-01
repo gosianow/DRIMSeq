@@ -9,26 +9,32 @@
 \usage{
 dmTest(x, ...)
 
-\S4method{dmTest}{dmDSfit}(x, compared_groups = levels(samples(x)$group),
+\S4method{dmTest}{dmDSfit}(x, coef = NULL, design = NULL, contrast = NULL,
   prop_mode = "constrOptimG", prop_tol = 1e-12, verbose = 0,
-  BPPARAM = BiocParallel::MulticoreParam(workers = 1))
+  BPPARAM = BiocParallel::SerialParam())
 
 \S4method{dmTest}{dmSQTLfit}(x, permutations = "all_genes",
   prop_mode = "constrOptimG", prop_tol = 1e-12, verbose = 0,
   BPPARAM = BiocParallel::MulticoreParam(workers = 1))
 }
 \arguments{
-\item{x}{\code{\linkS4class{dmDSfit}} or \code{\linkS4class{dmSQTLfit}}
+\item{x}{\code{\linkS4class{dmDSfit}} or \code{\linkS4class{dmSQTLfit}} 
 object.}
 
-\item{...}{Other parameters that can be defined by methods using this
+\item{...}{Other parameters that can be defined by methods using this 
 generic.}
 
-\item{compared_groups}{Vector that defines which experimental conditions
-should be tested for differential splicing. By default, we test for a
-difference between any of the groups specified in \code{samples(x)$group}.
-Values in this vector should indicate levels or numbers of levels in
-\code{samples(x)$group}.}
+\item{coef}{Integer or character vector indicating which coefficients of the 
+linear model are to be tested equal to zero. Values must indicate column 
+numbers or column names of the \code{design} used in 
+\code{\linkS4class{dmFit}}.}
+
+\item{design}{Numeric matrix definig the null model.}
+
+\item{contrast}{Numeric vector or matrix specifying one or more contrasts of 
+the linear model coefficients to be tested equal to zero. Number of rows 
+must equal to the number of columns of \code{design} used in 
+\code{\linkS4class{dmFit}}.}
 
 \item{prop_mode}{Optimization method used to estimate proportions. Possible 
 values \code{"constrOptim"} and \code{"constrOptimG"}.}
@@ -44,53 +50,30 @@ no messages, 1 - main messages, 2 - message for every gene fitting.}
 \item{permutations}{Character specifying which permutation scheme to apply for p-value calculation. When equal to \code{"all_genes"}, null distribution of p-values is calculated from all genes and the maximum number of permutation cycles is 10. When  \code{permutations = "per_gene"}, null distribution of p-values is calculated for each gene separately based on permutations of this individual gene. The latter approach may take a lot of computational time. We suggest using the first option.}
 }
 \value{
-Returns a \code{\linkS4class{dmDStest}} or
+Returns a \code{\linkS4class{dmDStest}} or 
   \code{\linkS4class{dmSQTLtest}} object.
 }
 \description{
-First, estimate the null Dirichlet-multinomial model proportions, i.e.,
-feature ratios are estimated based on pooled (no grouping into conditions)
-counts. Use the likelihood ratio statistic to test for the difference between
-feature proportions in different groups to identify the differentially
-spliced genes (differential splicing analysis) or the sQTLs (sQTL analysis).
+First, estimate the null Dirichlet-multinomial and beta-binomial model
+parameters and likelihoods. Second, perform the gene-level (DM model) and
+feature-level (BB model) likelihood ratio tests.
+}
+\details{
+One must specify one of the arguments: \code{coef}, \code{design} or
+  \code{contrast}.
 }
 \examples{
 
 ###################################
 ### Differential splicing analysis
 ###################################
-# If possible, use BPPARAM = BiocParallel::MulticoreParam() with more workers
-
-d <- data_dmDSdata
-\donttest{
-### Filtering
-# Check what is the minimal number of replicates per condition 
-table(samples(d)$group)
-d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3, 
- min_samps_feature_prop = 0)
-
-### Calculate dispersion
-d <- dmDispersion(d, BPPARAM = BiocParallel::SerialParam())
-
-### Fit full model proportions
-d <- dmFit(d, BPPARAM = BiocParallel::SerialParam())
-
-### Fit null model proportions and test for DS
-d <- dmTest(d, BPPARAM = BiocParallel::SerialParam())
-plotTest(d)
-
-head(proportions(d))
-head(statistics(d))
-head(results(d))
-
-}
 
 }
 \author{
 Malgorzata Nowicka
 }
 \seealso{
-\code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}},
-  \code{\link{plotTest}}, \code{\link{dmDispersion}}, \code{\link{dmFit}}
+\code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}}, 
+  \code{\link{plotPValues}}, \code{\link{dmDispersion}}, \code{\link{dmFit}}
 }
 

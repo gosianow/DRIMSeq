@@ -11,7 +11,7 @@ dmFilter(x, ...)
 
 \S4method{dmFilter}{dmDSdata}(x, min_samps_gene_expr, min_samps_feature_expr,
   min_samps_feature_prop, min_gene_expr = 10, min_feature_expr = 10,
-  min_feature_prop = 0, max_features = Inf)
+  min_feature_prop = 0)
 
 \S4method{dmFilter}{dmSQTLdata}(x, min_samps_gene_expr, min_samps_feature_expr,
   min_samps_feature_prop, minor_allele_freq, min_gene_expr = 10,
@@ -40,10 +40,6 @@ be expressed. See details.}
 
 \item{min_feature_prop}{Minimal proportion for feature expression. This value
 should be between 0 and 1.}
-
-\item{max_features}{Maximum number of features, which pass the filtering 
-criteria, that should be kept for each gene. If equal to \code{Inf}, all
-features that pass the filtering criteria are kept.}
 
 \item{minor_allele_freq}{Minimal number of samples where each of the
 genotypes has to be present.}

@@ -15,57 +15,32 @@ NULL
 #' 
 #' @return
 #' 
-#' \itemize{ \item \code{proportions(x)}: Get a data frame with estimated 
-#' feature ratios for full model and null models specified in 
-#' \code{\link{dmTest}} with \code{compared_groups} parameter. \item 
-#' \code{statistics(x)}: Get a data frame with full and null log-likelihoods and
-#' degrees of freedom. \item \code{results(x)}: Get a data frame with results. 
-#' See Slots. }
+#' \itemize{ \item \code{results(x)}: Get a data frame with gene-level or
+#' feature-level results. See Slots. }
 #' 
 #' @param x dmDStest object.
 #' @param ... Other parameters that can be defined by methods using this 
 #'   generic.
 #'   
-#' @slot compared_groups Character vector specifying which groups/conditions 
-#'   should be compared. By default, the comparison is done among all the groups
-#'   specified by \code{group} column in \code{samples(x)}.
-#' @slot fit_null \code{\linkS4class{MatrixList}}. Contains null proportions, 
-#'   likelihoods and degrees of freedom for a comparison specified with 
-#'   \code{compared_groups}.
-#' @slot results Data frame with \code{gene_id} - gene IDs, \code{lr} - 
-#'   likelihood ratio statistics, \code{df} - degrees of freedom, \code{pvalue} 
-#'   - p-values and \code{adj_pvalue} - Benjamini & Hochberg adjusted p-values 
-#'   for comparison specified in \code{compared_groups}.
+#' @slot design_fit_null Numeric matrix of the desing used to fit the null 
+#'   model.
+#' @slot lik_null Numeric vector of the per gene DM null model likelihoods.
+#' @slot lik_null_bb Numeric vector of the per gene BB null model likelihoods.
+#' @slot results_gene Data frame with the gene-level results including: 
+#'   \code{gene_id} - gene IDs, \code{lr} - likelihood ratio statistics based on
+#'   the DM model, \code{df} - degrees of freedom, \code{pvalue} - p-values and 
+#'   \code{adj_pvalue} - Benjamini & Hochberg adjusted p-values.
+#' @slot results_feature Data frame with the feature-level results including: 
+#'   \code{gene_id} - gene IDs, \code{feature_id} - feature IDs, \code{lr} - 
+#'   likelihood ratio statistics based on the BB model, \code{df} - degrees of 
+#'   freedom, \code{pvalue} - p-values and \code{adj_pvalue} - Benjamini & 
+#'   Hochberg adjusted p-values.
 #'   
 #' @examples 
 #' 
 #' ###################################
 #' ### Differential splicing analysis
 #' ###################################
-#' # If possible, use BPPARAM = BiocParallel::MulticoreParam() with more workers
-#' 
-#' d <- data_dmDSdata
-#' \donttest{
-#' ### Filtering
-#' # Check what is the minimal number of replicates per condition 
-#' table(samples(d)$group)
-#' d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3, 
-#'  min_samps_feature_prop = 0)
-#' 
-#' ### Calculate dispersion
-#' d <- dmDispersion(d, BPPARAM = BiocParallel::SerialParam())
-#' ### Fit full model proportions 
-#' d <- dmFit(d, BPPARAM = BiocParallel::SerialParam())
-#' 
-#' ### Fit null model proportions and test for DS 
-#' d <- dmTest(d, BPPARAM = BiocParallel::SerialParam()) 
-#' plotTest(d)
-#' 
-#' head(proportions(d)) 
-#' head(statistics(d)) 
-#' head(results(d))
-#' 
-#' }
 #' 
 #' @author Malgorzata Nowicka
 #' @seealso \code{\link{data_dmDSdata}}, \code{\linkS4class{dmDSdata}}, 
@@ -85,7 +60,7 @@ setClass("dmDStest",
 setValidity("dmDStest", function(object){
   # Has to return TRUE when valid object!
   
-  # TODO: set some validation!
+  # TODO: Add more checks
   
   return(TRUE)
   
@@ -95,42 +70,23 @@ setValidity("dmDStest", function(object){
 ### accessing methods
 ###############################################################################
 
-#' @rdname dmDStest-class
-#' @export
-setMethod("proportions", "dmDStest", function(x){
-  
-  data.frame(gene_id = rep(names(x@counts), elementNROWS(x@counts)), 
-    feature_id = rownames(x@counts@unlistData), x@fit_full@unlistData, 
-    x@fit_null@unlistData, stringsAsFactors = FALSE, row.names = NULL)
-  
-})
-
-###################################
-
-#' @rdname dmDStest-class
-#' @export
-setMethod("statistics", "dmDStest", function(x){
-  
-  df <- data.frame(gene_id = names(x@counts), x@lik_full, x@lik_null, 
-    stringsAsFactors = FALSE, row.names = NULL)
-  
-  return(df)
-  
-})
-
-###################################
 
 #' @rdname dmDStest-class
 #' @export
 setGeneric("results", function(x, ...) standardGeneric("results"))
 
 #' @rdname dmDStest-class
+#' @param level Character specifying which type of results to return. Possible
+#'   values \code{"gene"} or \code{"feature"}.
 #' @export
-setMethod("results", "dmDStest", function(x, level = "gene") slot(x, paste0("results_", level)))
+setMethod("results", "dmDStest", function(x, level = "gene"){
+  stopifnot(length(level) == 1)
+  stopifnot(level %in% c("gene", "feature"))
+  slot(x, paste0("results_", level))
+})
 
 
-
-###################################
+# -----------------------------------------------------------------------------
 
 setMethod("show", "dmDStest", function(object){
   
@@ -146,15 +102,13 @@ setMethod("show", "dmDStest", function(object){
 
 #' Likelihood ratio test
 #' 
-#' First, estimate the null Dirichlet-multinomial model proportions, i.e.,
-#' feature ratios are estimated based on pooled (no grouping into conditions)
-#' counts. Use the likelihood ratio statistic to test for the difference between
-#' feature proportions in different groups to identify the differentially
-#' spliced genes (differential splicing analysis) or the sQTLs (sQTL analysis).
+#' First, estimate the null Dirichlet-multinomial and beta-binomial model
+#' parameters and likelihoods. Second, perform the gene-level (DM model) and
+#' feature-level (BB model) likelihood ratio tests.
 #' 
-#' @param x \code{\linkS4class{dmDSfit}} or \code{\linkS4class{dmSQTLfit}}
+#' @param x \code{\linkS4class{dmDSfit}} or \code{\linkS4class{dmSQTLfit}} 
 #'   object.
-#' @param ... Other parameters that can be defined by methods using this
+#' @param ... Other parameters that can be defined by methods using this 
 #'   generic.
 #' @export
 setGeneric("dmTest", function(x, ...) standardGeneric("dmTest"))
@@ -164,48 +118,30 @@ setGeneric("dmTest", function(x, ...) standardGeneric("dmTest"))
 
 
 #' @inheritParams dmFit
-#' @param compared_groups Vector that defines which experimental conditions
-#'   should be tested for differential splicing. By default, we test for a
-#'   difference between any of the groups specified in \code{samples(x)$group}.
-#'   Values in this vector should indicate levels or numbers of levels in
-#'   \code{samples(x)$group}.
+#' @param coef Integer or character vector indicating which coefficients of the 
+#'   linear model are to be tested equal to zero. Values must indicate column 
+#'   numbers or column names of the \code{design} used in 
+#'   \code{\linkS4class{dmFit}}.
+#' @param design Numeric matrix definig the null model.
+#' @param contrast Numeric vector or matrix specifying one or more contrasts of 
+#'   the linear model coefficients to be tested equal to zero. Number of rows 
+#'   must equal to the number of columns of \code{design} used in 
+#'   \code{\linkS4class{dmFit}}.
 #'   
-#' @return Returns a \code{\linkS4class{dmDStest}} or
+#' @details One must specify one of the arguments: \code{coef}, \code{design} or
+#'   \code{contrast}.
+#'   
+#' @return Returns a \code{\linkS4class{dmDStest}} or 
 #'   \code{\linkS4class{dmSQTLtest}} object.
 #' @examples 
 #' 
 #' ###################################
 #' ### Differential splicing analysis
 #' ###################################
-#' # If possible, use BPPARAM = BiocParallel::MulticoreParam() with more workers
-#' 
-#' d <- data_dmDSdata
-#' \donttest{
-#' ### Filtering
-#' # Check what is the minimal number of replicates per condition 
-#' table(samples(d)$group)
-#' d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3, 
-#'  min_samps_feature_prop = 0)
-#' 
-#' ### Calculate dispersion
-#' d <- dmDispersion(d, BPPARAM = BiocParallel::SerialParam())
-#' 
-#' ### Fit full model proportions
-#' d <- dmFit(d, BPPARAM = BiocParallel::SerialParam())
-#' 
-#' ### Fit null model proportions and test for DS
-#' d <- dmTest(d, BPPARAM = BiocParallel::SerialParam())
-#' plotTest(d)
-#' 
-#' head(proportions(d))
-#' head(statistics(d))
-#' head(results(d))
-#' 
-#' }
 #' 
 #' @author Malgorzata Nowicka
-#' @seealso \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}},
-#'   \code{\link{plotTest}}, \code{\link{dmDispersion}}, \code{\link{dmFit}}
+#' @seealso \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}}, 
+#'   \code{\link{plotPValues}}, \code{\link{dmDispersion}}, \code{\link{dmFit}}
 #' @rdname dmTest
 #' @export
 setMethod("dmTest", "dmDSfit", function(x, 
@@ -270,7 +206,10 @@ setMethod("dmTest", "dmDSfit", function(x,
   # Check contrast exactly as in edgeR in glmLRT()
   if(!is.null(contrast)){
     
+    design <- x@design_fit_full 
     contrast <- as.matrix(contrast)
+    stopifnot(nrow(contrast) == ncol(design))
+    
     qrc <- qr(contrast)
     ncontrasts <- qrc$rank
     
@@ -279,6 +218,7 @@ setMethod("dmTest", "dmDSfit", function(x,
     
     coef <- 1:ncontrasts
     
+    nlibs <- nrow(design)
     Dvec <- rep.int(1, nlibs)
     Dvec[coef] <- diag(qrc$qr)[coef]
     Q <- qr.Q(qrc, complete = TRUE, Dvec = Dvec)
@@ -313,13 +253,13 @@ setMethod("dmTest", "dmDSfit", function(x,
     verbose = verbose, BPPARAM = BPPARAM)
   
   # Calculate the BB degrees of freedom for the LR test
-  df <- rep(ncol(x@design_fit_full) - ncol(design0), length(x@lik_full_bb))
+  df <- rep.int(ncol(x@design_fit_full) - ncol(design0), length(x@lik_full_bb))
   
   results_feature <- dm_LRT(lik_full = x@lik_full_bb, 
     lik_null = fit0_bb[["lik"]], df = df, verbose = verbose)
   
   results_feature <- data.frame(
-    gene_id = rep(names(x@counts), elementNROWS(x@counts)), 
+    gene_id = rep.int(names(x@counts), elementNROWS(x@counts)), 
     feature_id = rownames(results_feature), 
     results_feature, stringsAsFactors = FALSE, row.names = NULL)
   
@@ -341,7 +281,7 @@ setMethod("dmTest", "dmDSfit", function(x,
 
 
 ###############################################################################
-### plotTest
+### plotPValues
 ###############################################################################
 
 #' Plot p-values distribution
@@ -351,7 +291,7 @@ setMethod("dmTest", "dmDSfit", function(x,
 #' @param x \code{\linkS4class{dmDStest}} or \code{\linkS4class{dmSQTLtest}}
 #'   object.
 #' @export
-setGeneric("plotTest", function(x, ...) standardGeneric("plotTest"))
+setGeneric("plotPValues", function(x, ...) standardGeneric("plotPValues"))
 
 
 
@@ -363,38 +303,16 @@ setGeneric("plotTest", function(x, ...) standardGeneric("plotTest"))
 #' ###################################
 #' ### Differential splicing analysis
 #' ###################################
-#' # If possible, use BPPARAM = BiocParallel::MulticoreParam() with more workers
 #' 
-#' d <- data_dmDSdata
-#' \donttest{
-#' ### Filtering
-#' # Check what is the minimal number of replicates per condition 
-#' table(samples(d)$group)
-#' d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3, 
-#'  min_samps_feature_prop = 0)
-#' 
-#' ### Calculate dispersion
-#' d <- dmDispersion(d, BPPARAM = BiocParallel::SerialParam())
-#' 
-#' ### Fit full model proportions
-#' d <- dmFit(d, BPPARAM = BiocParallel::SerialParam())
-#' 
-#' ### Fit null model proportions and test for DS
-#' d <- dmTest(d, BPPARAM = BiocParallel::SerialParam())
-#' 
-#' plotTest(d)
-#' 
-#' 
-#' }
 #' @author Malgorzata Nowicka
 #' @seealso \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}},
 #'   \code{\link{plotData}}, \code{\link{plotDispersion}}, \code{\link{plotFit}}
-#' @rdname plotTest
+#' @rdname plotPValues
 #' @export
 #' @importFrom grDevices pdf dev.off
-setMethod("plotTest", "dmDStest", function(x, out_dir = NULL){
+setMethod("plotPValues", "dmDStest", function(x, out_dir = NULL){
   
-  ggp <- dm_plotPvalues(pvalues = x@results[, "pvalue"])
+  ggp <- dm_plotPValues(pvalues = x@results[, "pvalue"])
   
   if(!is.null(out_dir)){
     pdf(paste0(out_dir, "hist_pvalues.pdf"))
@@ -405,50 +323,6 @@ setMethod("plotTest", "dmDStest", function(x, out_dir = NULL){
   }
   
 })
-
-
-###############################################################################
-### plotFit
-###############################################################################
-
-#' @param plot_null Logical. Whether to plot the proportions estimated by the
-#'   null model.
-#' @rdname plotFit
-#' @export
-setMethod("plotFit", "dmDStest", function(x, gene_id, plot_type = "barplot", 
-  order = TRUE, plot_full = TRUE, plot_null = TRUE, plot_main = TRUE, 
-  out_dir = NULL){
-  
-  stopifnot(all(gene_id %in% names(x@counts)))
-  stopifnot(plot_type %in% c("barplot", "boxplot1", "boxplot2", "lineplot", 
-    "ribbonplot"))
-  stopifnot(is.logical(order))
-  stopifnot(is.logical(plot_full))
-  stopifnot(is.logical(plot_null))
-  stopifnot(is.logical(plot_main))
-  
-  
-  compared_groups <- x@compared_groups
-  
-  samps <- x@samples$group %in% compared_groups
-  
-  samples = x@samples[samps, , drop = FALSE]
-  samples$sample_id <- factor(samples$sample_id)
-  samples$group <- factor(samples$group)
-  
-  results <- x@results
-  
-  dmDS_plotFit(gene_id = gene_id, counts = x@counts[, samps, drop = FALSE], 
-    samples = samples, 
-    dispersion = slot(x, x@dispersion), 
-    proportions_full = x@fit_full[, compared_groups, drop = FALSE], 
-    proportions_null = x@fit_null, table = results, plot_type = plot_type, 
-    order = order, plot_full = plot_full, plot_null = plot_null, 
-    plot_main = plot_main, out_dir = out_dir)
-  
-  
-})
-
 
 
 ###############################################################################
@@ -469,8 +343,7 @@ setGeneric("dmTwoStageTest", function(x, ...) standardGeneric("dmTwoStageTest"))
 
 #' @inheritParams dmTest
 #' @param FDR Numeric. Cutoff for the FDR.
-#' @return Returns a data frame with adjusted feature level p-values.
-#' @author Malgorzata Nowicka
+#' @return Returns a data frame with adjusted feature-level p-values.
 #' @rdname dmTwoStageTest
 #' @export
 setMethod("dmTwoStageTest", "dmDStest", function(x, FDR = 0.05, verbose = 0){

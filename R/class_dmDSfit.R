@@ -15,8 +15,7 @@ NULL
 #' @return
 #' 
 #' \itemize{ \item \code{proportions(x)}: Get a data frame with estimated 
-#' feature ratios for each condition. \item \code{statistics(x)}: Get a data 
-#' frame with maximum log-likelihoods for each condition. }
+#' feature ratios for each sample. \item \code{coefficients(x)}:  }
 #' 
 #' @param x dmDSdispersion object.
 #' @param ... Other parameters that can be defined by methods using this 
@@ -36,29 +35,10 @@ NULL
 #'   coefficients based on the BB model
 #'   
 #' @examples 
+#' 
 #' ###################################
 #' ### Differential splicing analysis
 #' ###################################
-#' # If possible, use BPPARAM = BiocParallel::MulticoreParam() with more workers
-#' 
-#' d <- data_dmDSdata
-#' \donttest{
-#' ### Filtering
-#' # Check what is the minimal number of replicates per condition 
-#' table(samples(d)$group)
-#' d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3, 
-#'  min_samps_feature_prop = 0)
-#' 
-#' ### Calculate dispersion
-#' d <- dmDispersion(d, BPPARAM = BiocParallel::SerialParam())
-#' 
-#' ### Fit full model proportions
-#' d <- dmFit(d, BPPARAM = BiocParallel::SrialParam())
-#' 
-#' head(proportions(d))
-#' head(statistics(d))
-#' 
-#' }
 #' 
 #' @author Malgorzata Nowicka
 #' @seealso \code{\link{data_dmDSdata}}, \code{\linkS4class{dmDSdata}}, 
@@ -107,7 +87,6 @@ setValidity("dmDSfit", function(object){
 ### accessing methods
 ################################################################################
 
-# TODO: Change the accessing methods to return coef, liks and fit
 
 #' @rdname dmDSfit-class
 #' @export
@@ -117,25 +96,22 @@ setGeneric("proportions", function(x, ...) standardGeneric("proportions"))
 #' @export
 setMethod("proportions", "dmDSfit", function(x){
   
-  data.frame(gene_id = rep(names(x@counts), elementNROWS(x@counts)), 
-    feature_id = rownames(x@counts@unlistData), x@fit_full@unlistData, 
+  data.frame(gene_id = rep.int(names(x@fit_full), elementNROWS(x@fit_full)), 
+    feature_id = rownames(x@fit_full@unlistData), x@fit_full@unlistData, 
     stringsAsFactors = FALSE, row.names = NULL)
   
 })
 
 
-#' @rdname dmDSfit-class
-#' @export
-setGeneric("statistics", function(x, ...) standardGeneric("statistics"))
+# Generic for coefficients already exists in the stats package
 
 #' @rdname dmDSfit-class
 #' @export
-setMethod("statistics", "dmDSfit", function(x){
+setMethod("coefficients", "dmDSfit", function(object){
   
-  df <- data.frame(gene_id = names(x@counts), x@lik_full, 
+  data.frame(gene_id = rep.int(names(x@coef_full), elementNROWS(x@coef_full)), 
+    feature_id = rownames(x@coef_full@unlistData), x@coef_full@unlistData, 
     stringsAsFactors = FALSE, row.names = NULL)
-  
-  return(df)
   
 })
 
@@ -147,7 +123,7 @@ setMethod("show", "dmDSfit", function(object){
   
   callNextMethod(object)
   
-  cat("  proportions(), statistics()\n")
+  cat("  proportions(), coefficients()\n")
   
   
 })
@@ -182,26 +158,6 @@ setGeneric("dmFit", function(x, ...) standardGeneric("dmFit"))
 #' ###################################
 #' ### Differential splicing analysis
 #' ###################################
-#' # If possible, use BPPARAM = BiocParallel::MulticoreParam() with more workers
-#' 
-#' d <- data_dmDSdata
-#' \donttest{
-#' ### Filtering
-#' # Check what is the minimal number of replicates per condition 
-#' table(samples(d)$group)
-#' d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3, 
-#'  min_samps_feature_prop = 0)
-#' 
-#' ### Calculate dispersion
-#' d <- dmDispersion(d, BPPARAM = BiocParallel::SerialParam())
-#' 
-#' ### Fit full model proportions
-#' d <- dmFit(d, BPPARAM = BiocParallel::SerialParam())
-#' 
-#' head(proportions(d))
-#' head(statistics(d))
-#' 
-#' }
 #' 
 #' @author Malgorzata Nowicka
 #' @seealso \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}}, 
@@ -293,36 +249,7 @@ setGeneric("plotFit", function(x, ...) standardGeneric("plotFit"))
 #' ###################################
 #' ### Differential splicing analysis
 #' ###################################
-#' # If possible, use BPPARAM = BiocParallel::MulticoreParam() with more workers
 #' 
-#' d <- data_dmDSdata
-#' \donttest{
-#' ### Filtering
-#' # Check what is the minimal number of replicates per condition 
-#' table(samples(d)$group)
-#' d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3, 
-#'  min_samps_feature_prop = 0)
-#' 
-#' ### Calculate dispersion
-#' d <- dmDispersion(d, BPPARAM = BiocParallel::SerialParam())
-#' 
-#' ### Fit full model proportions
-#' d <- dmFit(d, BPPARAM = BiocParallel::SerialParam())
-#' 
-#' ### Fit null model proportions and test for DS
-#' d <- dmTest(d, BPPARAM = BiocParallel::SerialParam())
-#' 
-#' ### Plot feature proportions for top DS gene
-#' res <- results(d)
-#' res <- res[order(res$pvalue, decreasing = FALSE), ]
-#' 
-#' gene_id <- res$gene_id[1]
-#' 
-#' plotFit(d, gene_id = gene_id)
-#' plotFit(d, gene_id = gene_id, plot_type = "lineplot")
-#' plotFit(d, gene_id = gene_id, plot_type = "ribbonplot")
-#' 
-#' }
 #' 
 #' @author Malgorzata Nowicka
 #' @seealso \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}},

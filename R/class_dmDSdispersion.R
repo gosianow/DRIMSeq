@@ -42,25 +42,6 @@ NULL
 #' ###################################
 #' ### Differential splicing analysis
 #' ###################################
-#' # If possible, use BPPARAM = BiocParallel::MulticoreParam() with more workers
-#' 
-#' d <- data_dmDSdata
-#' \donttest{
-#' ### Filtering
-#' # Check what is the minimal number of replicates per condition 
-#' table(samples(d)$group)
-#' d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3, 
-#'  min_samps_feature_prop = 0)
-#' 
-#' ### Calculate dispersion
-#' d <- dmDispersion(d, BPPARAM = BiocParallel::SerialParam())
-#' plotDispersion(d)
-#' 
-#' head(mean_expression(d))
-#' common_dispersion(d)
-#' head(genewise_dispersion(d))
-#' 
-#' }
 #' 
 #' @author Malgorzata Nowicka
 #' @seealso \code{\link{data_dmDSdata}}, \code{\linkS4class{dmDSdata}},
@@ -326,25 +307,6 @@ setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
 #' ###################################
 #' ### Differential splicing analysis
 #' ###################################
-#' # If possible, use BPPARAM = BiocParallel::MulticoreParam() with more workers
-#' 
-#' d <- data_dmDSdata
-#' \donttest{
-#' ### Filtering
-#' # Check what is the minimal number of replicates per condition 
-#' table(samples(d)$group)
-#' d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3, 
-#'  min_samps_feature_prop = 0)
-#' 
-#' ### Calculate dispersion
-#' d <- dmDispersion(d, BPPARAM = BiocParallel::SerialParam())
-#' plotDispersion(d)
-#' 
-#' head(mean_expression(d))
-#' common_dispersion(d)
-#' head(genewise_dispersion(d))
-#' 
-#' }
 #' 
 #' @seealso \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}}, 
 #'   \code{\link{plotDispersion}}, \code{\link{dmFit}}, \code{\link{dmTest}}
@@ -429,7 +391,6 @@ setMethod("dmDispersion", "dmDSdata", function(x, design,
     common_dispersion <- numeric()
   }
   
-  
   if(genewise_dispersion){
     
     if(length(common_dispersion) == 1){
@@ -451,13 +412,11 @@ setMethod("dmDispersion", "dmDSdata", function(x, design,
     genewise_dispersion <- numeric()
   }
   
-  
   return(new("dmDSdispersion", mean_expression = mean_expression, 
     common_dispersion = common_dispersion, 
     genewise_dispersion = genewise_dispersion, 
     design_dispersion = design,
     counts = x@counts, samples = x@samples))
-  
   
 })
 
@@ -490,22 +449,6 @@ setGeneric("plotDispersion", function(x, ...) standardGeneric("plotDispersion"))
 #' ###################################
 #' ### Differential splicing analysis
 #' ###################################
-#' # If possible, use BPPARAM = BiocParallel::MulticoreParam() with more workers
-#' 
-#' d <- data_dmDSdata
-#' \donttest{
-#' ### Filtering
-#' # Check what is the minimal number of replicates per condition 
-#' table(samples(d)$group)
-#' d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3, 
-#'  min_samps_feature_prop = 0)
-#' 
-#' ### Calculate dispersion
-#' d <- dmDispersion(d, BPPARAM = BiocParallel::SerialParam())
-#' 
-#' plotDispersion(d)
-#' 
-#' }
 #' 
 #' @author Malgorzata Nowicka
 #' @seealso \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}},

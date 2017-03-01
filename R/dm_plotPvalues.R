@@ -1,13 +1,13 @@
 #' @importFrom ggplot2 ggplot aes_string theme_bw xlab ylab geom_histogram theme
 #'   element_text coord_cartesian geom_text
 
-dm_plotPvalues <- function(pvalues){
+dm_plotPValues <- function(pvalues){
   
   df <- data.frame(pvalues = pvalues[!is.na(pvalues)])
   
   ggp <- ggplot(df, aes_string(x = "pvalues")) +
     theme_bw() +
-    xlab("P-values") +
+    xlab("P-Values") +
     ylab("Frequency") +
     geom_histogram(breaks = seq(0, 1, by = 0.01), fill = "deeppink4") +
     theme(axis.text = element_text(size=16), 

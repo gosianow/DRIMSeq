@@ -18,7 +18,7 @@ dm_LRT <- function(lik_full, lik_null, df, verbose = FALSE){
     pvalue = pvalue, adj_pvalue = adj_pvalue, 
     stringsAsFactors = FALSE)
 
-  rownames(table) <- rownames(lik_full)
+  rownames(table) <- names(lik_full)
   
   time_end <- Sys.time()
   

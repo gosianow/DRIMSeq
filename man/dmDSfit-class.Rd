@@ -2,79 +2,68 @@
 % Please edit documentation in R/class_dmDSfit.R
 \docType{class}
 \name{dmDSfit-class}
+\alias{coefficients,dmDSfit-method}
 \alias{dmDSfit-class}
 \alias{proportions}
 \alias{proportions,dmDSfit-method}
-\alias{statistics}
-\alias{statistics,dmDSfit-method}
 \title{dmDSfit object}
 \usage{
 proportions(x, ...)
 
 \S4method{proportions}{dmDSfit}(x)
 
-statistics(x, ...)
-
-\S4method{statistics}{dmDSfit}(x)
+\S4method{coefficients}{dmDSfit}(object)
 }
 \arguments{
 \item{x}{dmDSdispersion object.}
 
-\item{...}{Other parameters that can be defined by methods using this
+\item{...}{Other parameters that can be defined by methods using this 
 generic.}
 }
 \value{
-\itemize{ \item \code{proportions(x)}: Get a data frame with estimated
-feature ratios for each condition. \item \code{statistics(x)}: Get a data
-frame with maximum log-likelihoods for each condition. }
+\itemize{ \item \code{proportions(x)}: Get a data frame with estimated 
+feature ratios for each sample. \item \code{coefficients(x)}:  }
 }
 \description{
-dmDSfit extends the \code{\linkS4class{dmDSdispersion}} class by adding the
-full model Dirichlet-multinomial feature proportion estimates needed for the
-differential splicing analysis. Feature ratios are estimated for each gene
+dmDSfit extends the \code{\linkS4class{dmDSdispersion}} class by adding the 
+full model Dirichlet-multinomial feature proportion estimates needed for the 
+differential splicing analysis. Feature ratios are estimated for each gene 
 and each condition. Result of \code{\link{dmFit}}.
 }
 \section{Slots}{
 
 \describe{
-\item{\code{dispersion}}{Character specifying which type of dispersion was used for
-fitting: \code{"common_dispersion"} or \code{"genewise_dispersion"}.}
+\item{\code{design_fit_full}}{Numeric matrix of the desing used to fit the full 
+model.}
 
-\item{\code{fit_full}}{\code{\linkS4class{MatrixList}} containing the per gene
-feature ratios. Columns correspond to different conditions. Additionally,
-the full model likelihoods are stored in \code{metadata} slot.}
+\item{\code{fit_full}}{\code{\linkS4class{MatrixList}} containing estimated feature 
+ratios in each sample based on the full Dirichlet-multinomial (DM) model.}
+
+\item{\code{lik_full}}{Numeric vector of the per gene DM full model likelihoods.}
+
+\item{\code{coef_full}}{\code{\linkS4class{MatrixList}} with the regression 
+coefficients based on the DM model}
+
+\item{\code{fit_full_bb}}{\code{\linkS4class{MatrixList}} containing estimated
+feature ratios in each sample based on the full beta-binomial (BB) model.}
+
+\item{\code{lik_full_bb}}{Numeric vector of the per gene BB full model likelihoods.}
+
+\item{\code{coef_full_bb}}{\code{\linkS4class{MatrixList}} with the regression 
+coefficients based on the BB model}
 }}
 \examples{
+
 ###################################
 ### Differential splicing analysis
 ###################################
-# If possible, use BPPARAM = BiocParallel::MulticoreParam() with more workers
-
-d <- data_dmDSdata
-\donttest{
-### Filtering
-# Check what is the minimal number of replicates per condition 
-table(samples(d)$group)
-d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3, 
- min_samps_feature_prop = 0)
-
-### Calculate dispersion
-d <- dmDispersion(d, BPPARAM = BiocParallel::SerialParam())
-
-### Fit full model proportions
-d <- dmFit(d, BPPARAM = BiocParallel::SrialParam())
-
-head(proportions(d))
-head(statistics(d))
-
-}
 
 }
 \author{
 Malgorzata Nowicka
 }
 \seealso{
-\code{\link{data_dmDSdata}}, \code{\linkS4class{dmDSdata}},
+\code{\link{data_dmDSdata}}, \code{\linkS4class{dmDSdata}}, 
   \code{\linkS4class{dmDSdispersion}}, \code{\linkS4class{dmDStest}}
 }
 
