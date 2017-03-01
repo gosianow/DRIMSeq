@@ -3,9 +3,6 @@
 .Rproj.user
 *.Rhistory
 *.Rproj
-data-raw/*
-!data-raw/*.R
 vignettes/*
 !vignettes/DRIMSeq.Rnw
-!vignettes/DRIMSeq.pdf
 !vignettes/References.bib

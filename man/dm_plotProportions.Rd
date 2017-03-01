@@ -4,7 +4,7 @@
 \alias{dm_plotProportions}
 \title{Plot feature proportions}
 \usage{
-dm_plotProportions(counts, group, prop_full = NULL, main = NULL,
+dm_plotProportions(counts, group, fit_full = NULL, main = NULL,
   plot_type = "boxplot1", order = TRUE, group_colors = NULL,
   feature_colors = NULL)
 }
@@ -14,9 +14,9 @@ corresponding to samples. Row names are used as labels on the plot.}
 
 \item{group}{Factor that groups samples into conditions.}
 
-\item{prop_full}{Matrix of estimated proportions with rows corresponding to 
-features and columns corresponding to conditions defined by factor 
-\code{group}. If \code{NULL}, nothing is plotted.}
+\item{fit_full}{Matrix of estimated proportions with rows corresponding to 
+features and columns corresponding to samples. If \code{NULL}, nothing is
+plotted.}
 
 \item{main}{Character vector with main title for the plot. If \code{NULL}, 
 nothing is plotted.}
@@ -34,7 +34,7 @@ expression.}
 }
 \value{
 \code{ggplot} object with the observed and/or estimated with 
-  Dirichlet-multinomial model feature ratios. Estimated proportions are
+  Dirichlet-multinomial model feature ratios. Estimated proportions are 
   marked with diamond shapes.
 }
 \description{

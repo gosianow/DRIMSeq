@@ -7,7 +7,7 @@ dmDS_profileLikCommon <- function(prec, counts, design,
   coef_mode = "optim", coef_tol = 1e-12,
   verbose = FALSE, BPPARAM = BiocParallel::SerialParam()){
   
-  if(verbose >= 2) message("Gamma in optimize:", prec)
+  if(verbose >= 2) message("Precision in optimize:", prec)
   
   adj_lik <- dmDS_profileLik(prec = prec, counts = counts, design = design, 
     prec_adjust = prec_adjust, one_way = one_way, 

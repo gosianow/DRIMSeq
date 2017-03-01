@@ -11,7 +11,7 @@ dmPrecision(x, ...)
 
 \S4method{dmPrecision}{dmDSdata}(x, design, mean_expression = TRUE,
   common_precision = TRUE, genewise_precision = TRUE, prec_adjust = TRUE,
-  prec_subset = 0.1, prec_interval = c(0, 1e+05), prec_tol = 10,
+  prec_subset = 0.1, prec_interval = c(0, 1000), prec_tol = 10,
   prec_init = 100, prec_grid_length = 21, prec_grid_range = c(-10, 10),
   prec_moderation = "trended", prec_prior_df = 0, prec_span = 0.1,
   one_way = TRUE, prop_mode = "constrOptim", prop_tol = 1e-12,
@@ -20,7 +20,7 @@ dmPrecision(x, ...)
 
 \S4method{dmPrecision}{dmSQTLdata}(x, mean_expression = TRUE,
   common_precision = TRUE, genewise_precision = TRUE, prec_adjust = TRUE,
-  prec_subset = 0.1, prec_interval = c(0, 1e+05), prec_tol = 10,
+  prec_subset = 0.1, prec_interval = c(0, 1000), prec_tol = 10,
   prec_init = 100, prec_grid_length = 21, prec_grid_range = c(-10, 10),
   prec_moderation = "none", prec_prior_df = 0, prec_span = 0.1,
   one_way = TRUE, speed = TRUE, prop_mode = "constrOptim",

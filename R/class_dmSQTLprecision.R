@@ -178,7 +178,7 @@ setMethod("show", "dmSQTLprecision", function(object){
 setMethod("dmPrecision", "dmSQTLdata", function(x, mean_expression = TRUE, 
   common_precision = TRUE, genewise_precision = TRUE, 
   prec_adjust = TRUE, prec_subset = 0.1,
-  prec_interval = c(0, 1e+5), prec_tol = 1e+01, 
+  prec_interval = c(0, 1e+3), prec_tol = 1e+01, 
   prec_init = 100, prec_grid_length = 21, prec_grid_range = c(-10, 10),
   prec_moderation = "none", prec_prior_df = 0, prec_span = 0.1, 
   one_way = TRUE, speed = TRUE,

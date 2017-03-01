@@ -210,25 +210,17 @@ setMethod("plotProportions", "dmSQTLfit", function(x, gene_id, snp_id,
     
   }
   
-  prop_full <- NULL
+  fit_full <- NULL
   
   if(plot_fit && length(x@fit_full) > 0){
 
     fit_full <- x@fit_full[[gene_id]][[which(rownames(x@genotypes[[gene_id]]) == 
         block_id)]][, nonNAs, drop = FALSE]
 
-    prop_full <- fit_full[, !duplicated(group), drop = FALSE]
-    colnames(prop_full) <- levels(group)
-
   }
-  
-  # Order samples by group
-  o <- order(group) 
-  group <- group[o]
-  counts_gene <- counts_gene[, o, drop = FALSE]
-  
+
   ggp <- dm_plotProportions(counts = counts_gene, group = group, 
-    prop_full = prop_full, main = main, plot_type = plot_type, 
+    fit_full = fit_full, main = main, plot_type = plot_type, 
     order = order, group_colors = group_colors, feature_colors = feature_colors)
   
   return(ggp)  

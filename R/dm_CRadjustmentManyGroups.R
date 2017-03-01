@@ -24,6 +24,9 @@ dm_CRadjustmentManyGroups <- function(y, ngroups, lgroups, igroups,
   
   adj <- sum(adj)
   
+  if(is.na(adj))
+    return(NA) 
+    
   if(abs(adj) == Inf)
     return(NA) 
   

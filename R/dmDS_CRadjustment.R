@@ -16,7 +16,7 @@ dmDS_CRadjustmentManyGroups_gene <- function(g, counts,
 
 dmDS_CRadjustmentRegression_gene <- function(g, counts, 
   design, prec, fit, verbose){  
-
+	# g = 3
   if(verbose >= 2) message(" Gene:", g)
   
   a <- dm_CRadjustmentRegression(y = counts[[g]], x = design, 

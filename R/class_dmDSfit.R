@@ -585,10 +585,11 @@ setMethod("plotProportions", "dmDSfit", function(x, gene_id, group_variable,
   
   group <- x@samples[, group_variable]
   
-  if(is.factor(group))
+  if(is.factor(group)){
     group <- factor(group)
-  else
+  }else{
     group <- factor(group, levels = group)
+  }
   
   counts_gene <- x@counts[[gene_id]]
   
@@ -617,32 +618,14 @@ setMethod("plotProportions", "dmDSfit", function(x, gene_id, group_variable,
     
   }
   
-  prop_full <- NULL
+  fit_full <- NULL
   
   if(plot_fit){
-    # Check if the design is equivalent to a one way layout
-    groups <- edgeR::designAsFactor(x@design_fit_full)
-    
-    if(nlevels(groups) == ncol(x@design_fit_full) || 
-        group_variable == "sample_id"){
-      
-      prop_full <- x@fit_full[[gene_id]][, !duplicated(group), drop = FALSE]
-      colnames(prop_full) <- levels(group)
-      
-    }else{
-      message("Fitted values are not plotted because the design does not 
-        correspond to a group comparison defined by 'group_variable'!")
-    }
-    
+    fit_full <- x@fit_full[[gene_id]]
   }
   
-  # Order samples by group
-  o <- order(group) 
-  group <- group[o]
-  counts_gene <- counts_gene[, o, drop = FALSE]
-  
   ggp <- dm_plotProportions(counts = counts_gene, group = group, 
-    prop_full = prop_full, main = main, plot_type = plot_type, 
+    fit_full = fit_full, main = main, plot_type = plot_type, 
     order = order, group_colors = group_colors, feature_colors = feature_colors)
   
   return(ggp)  

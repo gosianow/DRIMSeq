@@ -14,9 +14,13 @@ dm_CRadjustmentRegression <- function(y, x, prec, prop){
   
   n <- nrow(y)
   
-  adj <- log(det(n * (- dm_Hessian_regG_prop(y = y, prec = prec, 
-    prop = prop, x = x)))) / 2 
+	H <- dm_Hessian_regG_prop(y = y, prec = prec, prop = prop, x = x)
+
+  adj <- log(det(n * (-H))) / 2 
   
+  if(is.na(adj))
+    return(NA) 
+
   if(abs(adj) == Inf)
     return(NA) 
   
