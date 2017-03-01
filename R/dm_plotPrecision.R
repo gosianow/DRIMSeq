@@ -3,20 +3,20 @@
 #' @importFrom stats quantile na.omit
 
 
-dm_plotPrecicion <- function(genewise_precicion, mean_expression, 
-  nr_features = NULL, common_precicion = NULL, low_color = "royalblue2", 
+dm_plotPrecision <- function(genewise_precision, mean_expression, 
+  nr_features = NULL, common_precision = NULL, low_color = "royalblue2", 
   high_color = "red2", na_value_color = "red2"){
   
   if(!is.null(nr_features)){
     
     df <- data.frame(mean_expression = log10(mean_expression + 1), 
-      precicion = log10(genewise_precicion), nr_features = nr_features)
+      precision = log10(genewise_precision), nr_features = nr_features)
     
     df_quant <- min(quantile(na.omit(df$nr_features), probs = 0.95), 30)
     breaks <- seq(2, df_quant, ceiling(df_quant/10))
     
     
-    ggp <- ggplot(df, aes_string(x = "mean_expression", y = "precicion", 
+    ggp <- ggplot(df, aes_string(x = "mean_expression", y = "precision", 
       colour = "nr_features" )) +
       theme_bw() +
       xlab("Log10 of mean expression") +
@@ -36,9 +36,9 @@ dm_plotPrecicion <- function(genewise_precicion, mean_expression,
   }else{
     
     df <- data.frame(mean_expression = log10(mean_expression + 1), 
-      precicion = log10(genewise_precicion))
+      precision = log10(genewise_precision))
     
-    ggp <- ggplot(df, aes_string(x = "mean_expression", y = "precicion")) +
+    ggp <- ggplot(df, aes_string(x = "mean_expression", y = "precision")) +
       theme_bw() +
       xlab("Log10 of mean expression") +
       ylab("Log10 of precision") +
@@ -52,8 +52,8 @@ dm_plotPrecicion <- function(genewise_precicion, mean_expression,
   }
   
   
-  if(!is.null(common_precicion)){
-    ggp <- ggp + geom_hline(yintercept = log10(common_precicion), 
+  if(!is.null(common_precision)){
+    ggp <- ggp + geom_hline(yintercept = log10(common_precision), 
       colour = "black", linetype = "dashed")
   }
   

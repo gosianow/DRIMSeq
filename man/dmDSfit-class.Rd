@@ -3,11 +3,14 @@
 \docType{class}
 \name{dmDSfit-class}
 \alias{dmDSfit-class}
+\alias{design,dmDSfit-method}
 \alias{proportions}
 \alias{proportions,dmDSfit-method}
 \alias{coefficients,dmDSfit-method}
 \title{dmDSfit object}
 \usage{
+\S4method{design}{dmDSfit}(object, type = "full_model")
+
 proportions(x, ...)
 
 \S4method{proportions}{dmDSfit}(x)
@@ -15,6 +18,10 @@ proportions(x, ...)
 \S4method{coefficients}{dmDSfit}(object, level = "gene")
 }
 \arguments{
+\item{type}{Character indicating which design matrix should be returned.
+Possible values \code{"precision"}, \code{"full_model"} or
+\code{"null_model"}.}
+
 \item{x}{dmDSprecision object.}
 
 \item{...}{Other parameters that can be defined by methods using this 
@@ -68,20 +75,20 @@ library(PasillaTranscriptExpr)
 data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 
 ## Load metadata
-metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
-  as.is = TRUE)
+pasilla_metadata <- read.table(file.path(data_dir, "metadata.txt"), 
+header = TRUE, as.is = TRUE)
 
 ## Load counts
-counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
-  as.is = TRUE)
+pasilla_counts <- read.table(file.path(data_dir, "counts.txt"), 
+header = TRUE, as.is = TRUE)
 
-## Create a samples data frame
-samples <- data.frame(sample_id = metadata$SampleName, 
-  group = metadata$condition)
-levels(samples$group)
+## Create a pasilla_samples data frame
+pasilla_samples <- data.frame(sample_id = pasilla_metadata$SampleName, 
+  group = pasilla_metadata$condition)
+levels(pasilla_samples$group)
 
 ## Create a dmDSdata object
-d <- dmDSdata(counts = counts, samples = samples)
+d <- dmDSdata(counts = pasilla_counts, samples = pasilla_samples)
 
 ## Use a subset of genes, which is defined in the following file
 gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
@@ -102,12 +109,12 @@ d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3,
 plotData(d)
 
 ## Create the design matrix
-design <- model.matrix(~ group, data = samples(d))
+design_full <- model.matrix(~ group, data = samples(d))
 
 ## To make the analysis reproducible
 set.seed(123)
 ## Calculate precision
-d <- dmPrecision(d, design = design)
+d <- dmPrecision(d, design = design_full)
 
 plotPrecision(d)
 
@@ -116,7 +123,7 @@ common_precision(d)
 head(genewise_precision(d))
 
 ## Fit full model proportions
-d <- dmFit(d, design = design)
+d <- dmFit(d, design = design_full)
 
 ## Get fitted proportions
 head(proportions(d))

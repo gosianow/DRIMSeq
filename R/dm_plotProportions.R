@@ -306,7 +306,7 @@ dm_plotProportions_boxplot2 <- function(counts, group, prop_full = NULL,
   
   ggp <- ggplot() +
     theme_bw() +
-    theme(axis.text.x = element_text(angle = 0, vjust = 0.5), 
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5), 
       axis.text=element_text(size=14), 
       axis.title=element_text(size=14, face="bold"), 
       plot.title = element_text(size=14), 
@@ -331,7 +331,7 @@ dm_plotProportions_boxplot2 <- function(counts, group, prop_full = NULL,
       geom_point(data = prop_est_full, 
         aes_string(x = "group", y = "proportion", fill = "feature_id"), 
         position = position_jitterdodge(jitter.width = 0, 
-          jitter.height = 0), 
+          jitter.height = 0, dodge.width = 1), 
         size = 3, shape = 23, colour = "black")
   }
   
@@ -427,7 +427,7 @@ dm_plotProportions_ribbonplot <- function(counts, group, prop_full = NULL,
     
     ggp <- ggplot() +
       theme_bw() +
-      theme(axis.text.x = element_text(angle = 0, vjust = 0.5), 
+      theme(axis.text.x = element_text(angle = 90, vjust = 0.5), 
         axis.text=element_text(size=16), 
         axis.title=element_text(size=14, face="bold"), 
         plot.title = element_text(size=16), 

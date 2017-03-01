@@ -51,20 +51,20 @@ NULL
 #' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 #' 
 #' ## Load metadata
-#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_metadata <- read.table(file.path(data_dir, "metadata.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
 #' ## Load counts
-#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_counts <- read.table(file.path(data_dir, "counts.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
-#' ## Create a samples data frame
-#' samples <- data.frame(sample_id = metadata$SampleName, 
-#'   group = metadata$condition)
-#' levels(samples$group)
+#' ## Create a pasilla_samples data frame
+#' pasilla_samples <- data.frame(sample_id = pasilla_metadata$SampleName, 
+#'   group = pasilla_metadata$condition)
+#' levels(pasilla_samples$group)
 #' 
 #' ## Create a dmDSdata object
-#' d <- dmDSdata(counts = counts, samples = samples)
+#' d <- dmDSdata(counts = pasilla_counts, samples = pasilla_samples)
 #' 
 #' ## Use a subset of genes, which is defined in the following file
 #' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
@@ -85,12 +85,12 @@ NULL
 #' plotData(d)
 #' 
 #' ## Create the design matrix
-#' design <- model.matrix(~ group, data = samples(d))
+#' design_full <- model.matrix(~ group, data = samples(d))
 #' 
 #' ## To make the analysis reproducible
 #' set.seed(123)
 #' ## Calculate precision
-#' d <- dmPrecision(d, design = design)
+#' d <- dmPrecision(d, design = design_full)
 #' 
 #' plotPrecision(d)
 #' 
@@ -158,6 +158,22 @@ setValidity("dmDSprecision", function(object){
 ################################################################################
 ### accessing methods
 ################################################################################
+
+#' @rdname dmDSprecision-class
+#' @param type Character indicating which design matrix should be returned.
+#'   Possible values \code{"precision"}, \code{"full_model"} or
+#'   \code{"null_model"}.
+#' @export
+setMethod("design", "dmDSprecision", function(object, type = "precision"){
+  
+  stopifnot(type %in% c("precision", "full_model", "null_model"))
+  
+  if(type == "precision")
+    object@design_precision
+  else
+    NULL
+  
+})
 
 
 #' @rdname dmDSprecision-class
@@ -254,8 +270,9 @@ setMethod("show", "dmDSprecision", function(object){
   
   callNextMethod(object)
   
+  cat("  design()\n")
   cat("  mean_expression(), common_precision(), genewise_precision()\n")
-  
+
 })
 
 
@@ -380,20 +397,20 @@ setGeneric("dmPrecision", function(x, ...) standardGeneric("dmPrecision"))
 #' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 #' 
 #' ## Load metadata
-#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_metadata <- read.table(file.path(data_dir, "metadata.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
 #' ## Load counts
-#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_counts <- read.table(file.path(data_dir, "counts.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
-#' ## Create a samples data frame
-#' samples <- data.frame(sample_id = metadata$SampleName, 
-#'   group = metadata$condition)
-#' levels(samples$group)
+#' ## Create a pasilla_samples data frame
+#' pasilla_samples <- data.frame(sample_id = pasilla_metadata$SampleName, 
+#'   group = pasilla_metadata$condition)
+#' levels(pasilla_samples$group)
 #' 
 #' ## Create a dmDSdata object
-#' d <- dmDSdata(counts = counts, samples = samples)
+#' d <- dmDSdata(counts = pasilla_counts, samples = pasilla_samples)
 #' 
 #' ## Use a subset of genes, which is defined in the following file
 #' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
@@ -414,12 +431,12 @@ setGeneric("dmPrecision", function(x, ...) standardGeneric("dmPrecision"))
 #' plotData(d)
 #' 
 #' ## Create the design matrix
-#' design <- model.matrix(~ group, data = samples(d))
+#' design_full <- model.matrix(~ group, data = samples(d))
 #' 
 #' ## To make the analysis reproducible
 #' set.seed(123)
 #' ## Calculate precision
-#' d <- dmPrecision(d, design = design)
+#' d <- dmPrecision(d, design = design_full)
 #' 
 #' plotPrecision(d)
 #' 
@@ -595,20 +612,20 @@ setGeneric("plotPrecision", function(x, ...) standardGeneric("plotPrecision"))
 #' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 #' 
 #' ## Load metadata
-#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_metadata <- read.table(file.path(data_dir, "metadata.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
 #' ## Load counts
-#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_counts <- read.table(file.path(data_dir, "counts.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
-#' ## Create a samples data frame
-#' samples <- data.frame(sample_id = metadata$SampleName, 
-#'   group = metadata$condition)
-#' levels(samples$group)
+#' ## Create a pasilla_samples data frame
+#' pasilla_samples <- data.frame(sample_id = pasilla_metadata$SampleName, 
+#'   group = pasilla_metadata$condition)
+#' levels(pasilla_samples$group)
 #' 
 #' ## Create a dmDSdata object
-#' d <- dmDSdata(counts = counts, samples = samples)
+#' d <- dmDSdata(counts = pasilla_counts, samples = pasilla_samples)
 #' 
 #' ## Use a subset of genes, which is defined in the following file
 #' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
@@ -629,12 +646,12 @@ setGeneric("plotPrecision", function(x, ...) standardGeneric("plotPrecision"))
 #' plotData(d)
 #' 
 #' ## Create the design matrix
-#' design <- model.matrix(~ group, data = samples(d))
+#' design_full <- model.matrix(~ group, data = samples(d))
 #' 
 #' ## To make the analysis reproducible
 #' set.seed(123)
 #' ## Calculate precision
-#' d <- dmPrecision(d, design = design)
+#' d <- dmPrecision(d, design = design_full)
 #' 
 #' plotPrecision(d)
 #' 

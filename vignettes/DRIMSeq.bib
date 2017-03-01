@@ -1,3 +1,14 @@
+@Article{DRIMSeq,
+AUTHOR = { Nowicka, M and Robinson, MD},
+TITLE = {DRIMSeq: a Dirichlet-multinomial framework for multivariate count outcomes in genomics [version 2; referees: 2 approved]
+},
+JOURNAL = {F1000Research},
+VOLUME = {5},
+YEAR = {2016},
+NUMBER = {1356},
+DOI = {10.12688/f1000research.8900.2}
+}
+
 @article{Brooks2011,
 abstract = {Alternative splicing is generally controlled by proteins that bind directly to regulatory sequence elements and either activate or repress splicing of adjacent splice sites in a target pre-mRNA. Here, we have combined RNAi and mRNA-seq to identify exons that are regulated by Pasilla (PS), the Drosophila melanogaster ortholog of mammalian NOVA1 and NOVA2. We identified 405 splicing events in 323 genes that are significantly affected upon depletion of ps, many of which were annotated as being constitutively spliced. The sequence regions upstream and within PS-repressed exons and downstream from PS-activated exons are enriched for YCAY repeats, and these are consistent with the location of these motifs near NOVA-regulated exons in mammals. Thus, the RNA regulatory map of PS and NOVA1/2 is highly conserved between insects and mammals despite the fact that the target gene orthologs regulated by PS and NOVA1/2 are almost entirely nonoverlapping. This observation suggests that the regulatory codes of individual RNA binding proteins may be nearly immutable, yet the regulatory modules controlled by these proteins are highly evolvable.},
 author = {Brooks, Angela N and Yang, Li and Duff, Michael O and Hansen, Kasper D and Park, Jung W and Dudoit, Sandrine and Brenner, Steven E and Graveley, Brenton R},
@@ -39,5 +50,17 @@ keywords = {kallisto},
 mendeley-groups = {RNA-seq quantification/Transcript quantification,.CM2 PhD report},
 mendeley-tags = {kallisto},
 title = {{Near-optimal RNA-Seq quantification}}
+}
+
+@article{VandenBerge2017,
+abstract = {Background: Reductions in sequencing cost and innovations in expression quantification have prompted an emergence of RNA-seq studies with complex designs and data analysis at transcript resolution. These applications involve multiple hypotheses per gene, leading to challenging multiple testing problems. Conventional approaches provide separate top-lists for every contrast and false discovery rate (FDR) control at individual hypothesis level. Hence, they fail to establish proper gene-level error control, which compromises downstream validation experiments. Tests that aggregate individual hypotheses are more powerful and provide gene-level FDR control, but in the RNA-seq literature no methods are available for post-hoc analysis of individual hypotheses. Results: We introduce a two-stage procedure that leverages the increased power of aggregated hypothesis tests while maintaining high biological resolution by post-hoc analysis of genes passing the screening hypothesis. Our method is evaluated on simulated and real RNA-seq experiments. It provides gene-level FDR control in studies with complex designs while boosting power for interaction effects without compromising the discovery of main effects. In a differential transcript usage/expression context, stage-wise testing gains power by aggregating hypotheses at the gene level, while providing transcript-level assessment of genes passing the screening stage. Finally, a prostate cancer case study highlights the relevance of combining gene with transcript level results. Conclusion: Stage-wise testing is a general paradigm that can be adopted whenever individual hypotheses can be aggregated. In our context, it achieves an optimal middle ground between biological resolution and statistical power while providing gene-level FDR control, which is beneficial for downstream biological interpretation and validation.},
+author = {{Van den Berge}, Koen and Soneson, Charlotte and Robinson, Mark D and Clement, Lieven},
+file = {:Users/gosia/Mendeley Desktop/Van den Berge et al/Van den Berge et al. - 2017 - A general and powerful stage-wise testing procedure for differential expression and differential transcrip.pdf:pdf},
+journal = {bioRxiv},
+mendeley-groups = {RNA-seq DE,.DRIMSeq paper},
+month = {feb},
+title = {{A general and powerful stage-wise testing procedure for differential expression and differential transcript usage}},
+url = {http://biorxiv.org/content/early/2017/02/16/109082.abstract},
+year = {2017}
 }
 

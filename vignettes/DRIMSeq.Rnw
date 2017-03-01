@@ -7,39 +7,31 @@
 
 
 <<style-knitr, eval=TRUE, echo=FALSE, results="asis">>=
-BiocStyle::latex(use.unsrturl=FALSE)
+BiocStyle::latex2()
 @
 
-
 \bioctitle[Differential transcript usage and transcript usage QTL analyses in RNA-seq with \Rpackage{DRIMSeq} package]{DRIMSeq: Dirichlet-multinomial framework for differential transcript usage and transcript usage QTL analyses in RNA-seq}
-%% also: \bioctitle{Title used for both header and title page}
-%% or... \title{Title used for both header and title page}
-\author{Malgorzata Nowicka\footnote{gosia.nowicka@uzh.ch}, Mark Robinson}
+\author{
+Malgorzata Nowicka\thanks{\email{gosia.nowicka@uzh.ch}},
+Mark D. Robinson\thanks{\email{second@author.com}}\\
+Institute for Molecular Life Sciences, University of Zurich, Zurich, 8057, Switzerland\\
+SIB Swiss Institute of Bioinformatics, University of Zurich, Zurich, 8057, Switzerland
+}
 
-% \Rpackage{}
-% \Biocpkg{IRanges}
-% \Biocexptpkg{parathyroidSE}
-% \CRANpkg{data.table}
 
-% \Rfunction{findOverlaps} for functions findOverlaps.
-% \Robject{olaps} for variables olaps.
-% \Rclass{GRanges} when referring to a formal class GRanges.
-% \Rcode{log(x)} for R code, log(x).
-
-% \emph{}
-% \software{kallisto}
 
 \begin{document}
-\maketitle
-\noindent This vignette describes version 
-\Sexpr{packageDescription("DRIMSeq")$Version} of the \Rpackage{DRIMSeq} package.
-\tableofcontents
 
+\maketitle
+
+\packageVersion{\Sexpr{BiocStyle::pkg_ver("DRIMSeq")}}
+
+\tableofcontents
+\newpage
 
 <<setup_knitr, include=FALSE, cache=FALSE>>=
 library(knitr)
-opts_chunk$set(cache = FALSE, tidy = FALSE, tidy.opts = list(blank = FALSE), 
-  highlight=FALSE, out.width = "7cm", out.height = "7cm", fig.align = "center")
+opts_chunk$set(cache = TRUE)
 @
 
 
@@ -50,119 +42,117 @@ opts_chunk$set(cache = FALSE, tidy = FALSE, tidy.opts = list(blank = FALSE),
 
 \section{Main changes in the DRIMSeq package}
 
+For the full list of changes, type:
+
+<<news, eval = FALSE>>=
+news(package = "DRIMSeq")
+@
 
 
-\section{Overview of Dirichlet-multinomial model}
+\itemize{
+\item Implementation of the regression framework in differential transcript usage analysis. It allows fitting more complicated than simple group comparison experimental designs, for example, one can account for the batch effects or the fact that samples are paired or model continous time course changes. It enables also testing of more complicated contrasts.
 
-In the \Rpackage{DRIMSeq} package we implemented a Dirichlet-multinomial 
-framework that can be used for modeling various multivariate count data 
-with the interest in finding the instances where the ratios of observed 
-features are different between the experimental conditions. Such a model 
-can be applied, for example, in differential splicing or sQTL analysis where 
-the multivariate features are transcripts or exons of a gene. Depending on 
-the type of counts that are used in the analysis, you can test for differential 
-splicing at the level of transcript or exon ratio changes. The implementation 
-of Dirichlet-multinomial model in \Rpackage{DRIMSeq} package is customized 
-for differential splicing and sQTL analyses, but the data objects used in 
-\Rpackage{DRIMSeq} can contain different types of counts. Therefore, other 
-types of multivariate differential analyses between groups can be performed 
-such as differential methylation analysis or differential polyA usage 
-from polyA-seq data.
+\item Transcript-level analysis based on the beta-binomial model. In this case, each transcript ratio is modelled separatelly assumming it follows the beta-binomial distribution which is a one-dimensional version of the Dirichlet-multinomial distribution. Based on the fact that when $(Y_1,\ldots,Y_q) ~ DM(\pi_1,\ldots,\pi_q, \gamma_0)$ then $Y_j ~ BB(\pi_j,\gamma_0)$, we do not need to reestimate the beta-binomial parameters, only the likelihoods are recalculated.
+\Rpackage{DRIMSeq} returns gene-level and transcript-level p-values which can be used as input to the stage-wise testing procedure \cite{VandenBerge2017} as screening and confirmation p-values, respectively. Such approach provides increased power to identify transcripts which are acctually differentially used in a gene detected as gene with DTU. 
 
-In short, the method consists of three statistical steps. 
-First, we use the profile likelihood to estimate the dispersion, i.e., 
-the variability of feature ratios between samples (replicates) within 
-conditions. Dispersion is needed in order to find the significant changes in 
-feature ratios between conditions which should be sufficiently stronger than 
-the changes/variability within conditions. Second, we use maximum likelihood 
-to estimate the full model (estimated in every group/condition separately) 
-and null model (estimated from all data) proportions and its corresponding 
-likelihoods. Finally, we use the likelihood ratio statistics to test for 
-the differences between feature proportions in different groups to identify 
-the differentially spliced genes (differential splicing analysis) or 
-the sQTLs (sQTL analysis).
+\item Usage of term 'precision' instead of 'dispersion'. In the differential analysis based on the negative-binomial model, dispersion parameter is estimated. This dispersion parameter captures all sources of the inter-library variation between replicates present in the RNA-seq data. 
+In the DM model, we do not directly estimate dispersion but a parameter called precision which is closely linked to dispersion via the formula: dispersion = 1 / (1 + precision). In the previous version of \cite{DRIMSeq}, we used 'dispersion' as a name for the functions and variables calculating and storing, in fact, the precision estimates. Now, we use the term 'precision'.
+}
+
+\section{Overview of the Dirichlet-multinomial model}
+
+For the statistical details about the Dirichlet-multinomial model, see the \Rpackage{DRIMSeq} paper \cite{DRIMSeq}.
+
+In the \Rpackage{DRIMSeq} package we implemented a Dirichlet-multinomial framework that can be used for modeling various multivariate count data with the interest in finding the instances where the ratios of observed 
+features are different between the experimental conditions. 
+Such a model can be applied, for example, in differential transcript usage (DTU) analysis or in the analysis that aim in detecting SNPs that are associated with differential transcript usage (tuQTL analysis). 
+In both cases the multivariate features of a gene are transcripts. 
+The implementation of Dirichlet-multinomial model in \Rpackage{DRIMSeq} package is customized for differential transcript usage and tuQTL analyses, but the data objects used in \Rpackage{DRIMSeq} can contain various types of counts. 
+Therefore, other types of multivariate differential analyses can be performed such as differential methylation analysis or differential polyA usage from polyA-seq data.
+
+
+In short, the method consists of three statistical steps:
+
+\iterate{
+
+\item First, we use the profile likelihood to estimate the precision which is inverse proportional to dispersion, i.e., the variability of transcript ratios between samples (replicates) within conditions. 
+Dispersion is needed in order to find the significant changes in transcript ratios between conditions which should be sufficiently stronger than the changes/variability within conditions. 
+
+\item Second, we use maximum likelihood to estimate at the gene-level the regression coefficients in the Dirichlet-multinomial (DM) regression, the fitted transcript proportions in each sample and the full model likelihoods. For the analysis at the transcript-level we apply the beta-binomial (BB) regression to each transcript separately.
+In the differential transcript usage analysis, the full model is defined by the user with the design matrix.
+In the QTL analysis, full models are defined by the genotypes of SNPs associated with a given gene. 
+
+\item Finally, we fit the null model DM and BB regression and use the likelihood ratio statistics to test for the differences in transcript proportions between the full and null models at the gene and transcript level.
+In the differential transcript usage analysis, the null model is again defined by the user. 
+In the QTL analysis, null models correspond to regression with intercept only.
+}
+
+\section{Important notes}
+
+\itemize{
+\item Currently, transcript-level analysis based on the BB model are implemented only in the DTU analysis. 
+
+\item When the model (full or null) of interest corresponds to multiple (or one) group fitting, then a shortcut algorithm called 'one\_way', which we adapted from the \Rfunction{glmFit} function in \Biocpkg{edgeR}, can be used. Choosing it is equivalent to running the original \Rpackage{DRIMSeq} implementation. In such a case, we use maximum likelihood to estimate the transcript proportions in each group separately and then the regression coefficients are calculated using matrix operations. Otherwise, the regression coefficints are directly estimated with the maximum likelihood approach.
+}
 
 
 \section{Hints for DRIMSeq pipelines}
 
-In this vignette, we present how one could perform differential splicing 
-analysis and sQTL analysis with the \Rpackage{DRIMSeq} package. We use small 
-data sets so that the whole pipelines can be run within few minutes in \R{} 
-on a single core computer. In practice, the package is designed to take 
-advantage of multicore computing for larger data sets.
+In this vignette, we present how one could perform differential transcript usage analysis and tuQTL analysis with the \Rpackage{DRIMSeq} package. 
+We use small data sets so that the whole pipelines can be run within few minutes in \R{} on a single core computer. 
+In practice, the package is designed to take advantage of multicore computing for larger data sets.
 
-Both pipelines consist of the initial steps where objects containing the data 
-for the analysis are created and then filtered. Functions used for this 
-purpose, such as \Rfunction{dmDSdata} or \Rfunction{dmSQTLdata} and
-\Rfunction{dmFilter}, have some parameters (like \Robject{counts}, 
-\Robject{genotypes}, \Robject{min\_samps\_gene\_expr}, etc.) for which no 
-default values are predefined. These parameters must be specified by user in 
-order to proceed with the pipeline.
+Here is a list of functions and parameters for which no default values are predefined, and in order to proceed with the pipeline, the user has to provide values for these parameters:
 
-Functions \Rfunction{dmDispersion}, \Rfunction{dmFit} and \Rfunction{dmTest}, 
-which perform the actual statistical analyses described above, require that 
-only one parameter \Robject{x}, containing the data, is specified by user. 
-These functions have many other parameters available for tweaking, but they 
-do have default values, which were chosen based on many real data analyses.
+\itemize{
+\item \Rfunction{dmDSdata}: \Robject{counts}, \Robject{samples},
+\item \Rfunction{dmSQTLdata}: \Robject{counts}, \Robject{gene_ranges}, \Robject{genotypes}, \Robject{snp_ranges}, \Robject{samples},
+\item \Rfunction{dmPrecision}: \Robject{x}, \Robject{design},
+\item \Rfunction{dmFit}: \Robject{x}, \Robject{design},
+\item \Rfunction{dmTest}: \Robject{x}, \Robject{coef} or \Robject{design} or \Robject{contrast}.
+}
 
-Some of the steps are quite time consuming, especially the dispersion 
-estimation, where proportions of each gene are refitted for different 
-dispersion parameters. To speed up the calculations, we have parallelized 
-many functions using \Biocpkg{BiocParallel}. Thus, if possible, we 
-recommend to increase the number of workers in \Robject{BPPARAM}.
+In the filtering function \Rfunction{dmFilter}, all the parameters that are influencing transcript count filtering are set to zero. This results in a very relaxed filtering, where transcripts with zero expression in all the samples and genes with only one transcript remained are removed.
 
-In general, sQTL analyses are more computationally intensive than differential 
-splicing analysis because one needs to do the analysis for every SNP in the 
-surrounding region of a gene. It is indeed feasible to perform sQTL analysis 
-for small chunks of genome, for example, per chromosome.
+Functions \Rfunction{dmPrecision}, \Rfunction{dmFit} and \Rfunction{dmTest}, which perform the actual statistical analyses described above, have many other parameters available for tweaking, but they do have the default values assigned. Those values were chosen based on many real data analyses. 
 
+Some of the steps are quite time consuming, especially the precision estimation, where proportions of each gene are refitted for different precision parameters. To speed up the calculations, we have parallelized 
+many functions using \Biocpkg{BiocParallel}. Thus, if possible, we recommend to increase the number of workers in \Robject{BPPARAM}.
 
+In general, tuQTL analyses are more computationally intensive than differential transcript usage analysis because one needs to do the analysis for every SNP in the surrounding region of a gene. Additionally, a permutation scheme is used to compute the p-values.
+It is indeed feasible to perform tuQTL analysis for small chunks of genome, for example, per chromosome.
 
 
 %------------------------------------------------------------------------------
-% Differential splicing analysis work-flow
+% Differential transcript usage analysis workflow
 %------------------------------------------------------------------------------
 
-\section{Differential splicing analysis work-flow}
+\section{DRIMSeq differential transcript usage analysis workflow}
 
 \subsection{Example data}
 
-To demonstrate the usage of \Rpackage{DRIMSeq} in differential splicing 
-analysis, we will use the \emph{pasilla} data set produced by Brooks et al. 
-\cite{Brooks2011}. The aim of their study was to identify exons that are 
-regulated by pasilla protein, the Drosophila melanogaster ortholog of 
-mammalian NOVA1 and NOVA2 (well studied splicing factors). In their RNA-seq 
-experiment, the libraries were prepared from 7 biologically independent 
-samples: 4 control samples and 3 samples in which pasilla was knocked-down. 
-The libraries were sequenced on Illumina Genome Analyzer II using single-end 
-and paired-end sequencing and different read lengths. The RNA-seq data can be 
-downloaded from the NCBI’s Gene Expression Omnibus (GEO) under the accession 
-number GSE18508. In the examples below, we use a subset of \software{kallisto} 
-\cite{Bray} counts available in \Biocexptpkg{PasillaTranscriptExpr} package, 
-where you can find all the steps needed, for preprocessing the GEO data, 
-to get a table with transcript counts.
+To demonstrate the application of \Rpackage{DRIMSeq} in differential transcript usage analysis, we will use the \emph{pasilla} data set produced by Brooks et al. \cite{Brooks2011}. 
+The aim of their study was to identify exons that are regulated by pasilla protein, the Drosophila melanogaster ortholog of mammalian NOVA1 and NOVA2 (well studied transcript usage factors). 
+In their RNA-seq experiment, the libraries were prepared from 7 biologically independent samples: 4 control samples and 3 samples in which pasilla was knocked-down. 
+The libraries were sequenced on Illumina Genome Analyzer II using single-end and paired-end sequencing and different read lengths. 
+The RNA-seq data can be downloaded from the NCBI’s Gene Expression Omnibus (GEO) under the accession 
+number GSE18508. 
+In the examples below, we use a subset of \software{kallisto} \cite{Bray} counts available in \Biocexptpkg{PasillaTranscriptExpr} package, where you can find all the steps needed, for preprocessing the GEO data, to get a table with transcript counts.
 
 
-\subsection{Differential splicing analysis with DRIMSeq package}
+\subsection{Differential transcript usage analysis between two conditions}
 
-In order to do the analysis, we create a \Rclass{dmDSdata} object, which
-contains feature counts and information about grouping samples into conditions. 
+In this section, we present how to perform the DTU analysis between two conditions control and knock-down without accounting for the batch effect which is the library layout. Analysis where batch effects are included are presented in the next section.
+
+We start the analysis by creating a \Rclass{dmDSdata} object, which contains transcript counts and information about grouping samples into conditions.
 With each step of the pipeline, additional elements are added to this object. 
-At the end of the analysis, the object contains results from all the steps, 
-such as dispersion estimates, proportions estimates, likelihood ratio 
-statistics, p-values, adjusted p-values. As new elements are added, 
-the object also changes its name \Rclass{dmDSdata} $\rightarrow$ 
-\Rclass{dmDSdispersion} $\rightarrow$ \Rclass{dmDSfit} $\rightarrow$ 
-\Rclass{dmDStest}, but each container inherits slots and methods available 
-for the previous one.
-
+At the end of the analysis, the object contains results from all the steps, such as precision estimates, regression coefficients, fitted transcript ratios in each sample, likelihood ratio statistics, p-values, adjusted p-values at gene and transcript level. 
+As new elements are added, the object also changes its name \Rclass{dmDSdata} $\rightarrow$ \Rclass{dmDSprecision} $\rightarrow$ \Rclass{dmDSfit} $\rightarrow$ \Rclass{dmDStest}, but each container inherits slots and methods available for the previous one.
 
 
 \subsubsection{Loading pasilla data into R}
 
-The counts obtained from \software{kallisto} and metadata are saved as text 
-files in the \Rcode{extdata} directory of the 
-\Biocexptpkg{PasillaTranscriptExpr} package.
+The transcript-level counts obtained from \software{kallisto} and metadata are saved as text files in the \Rcode{extdata} directory of the \Biocexptpkg{PasillaTranscriptExpr} package.
 
 
 <<DSpasilla1>>=
@@ -170,13 +160,13 @@ library(PasillaTranscriptExpr)
 
 data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 
-metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE,
-  as.is = TRUE)
-metadata
+## Load metadata
+pasilla_metadata <- read.table(file.path(data_dir, "metadata.txt"), 
+  header = TRUE, as.is = TRUE)
 
-counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE,
-  as.is = TRUE)
-head(counts)
+## Load counts
+pasilla_counts <- read.table(file.path(data_dir, "counts.txt"), 
+  header = TRUE, as.is = TRUE)
 
 @
 
@@ -187,41 +177,35 @@ Load the \Rpackage{DRIMSeq} package.
 library(DRIMSeq)
 @
 
-Create a \Rcode{dmDSdata} object (saved as variable \Robject{d}), which 
-contains counts and information about samples, such as sample IDs and a 
-variable \Robject{group} defining the experimental groups/conditions, 
-which has to be stored in a data frame \Robject{samples}. 
-When printing variable \Robject{d}, you can see its 
-class, size and which accessor methods can be applied. For \Rcode{dmDSdata} 
-object, there are two methods that return data frames with counts and samples.
+To create a \Rcode{dmDSdata} object, saved as variable \Robject{d}, we need to prepare a data frame containing information about samples and we will call it \Robject{pasilla_samples}. 
+It has to have a variable called \Rcode{sample_id} with unique sample names that are identical to column names in \Robject{pasilla_counts} that correspond to samples. 
+Additionally, it has to contain other variables that the user would like to use for the further regression analysis. 
+Here, we are interesed in the differential analysis between the control and knock-down condition. This information is stored in \Rcode{pasilla_metadata$condition}. 
+
+The data frame with counts called \Robject{pasilla_counts} is already formated in the right way. It contains variables \Rcode{feature_id} with unique transcript names and \Rcode{gene_id} with unique gene IDs and columns with counts have the same names as \Rcode{sample_id} in \Rcode{pasilla_samples}.
+
+When printing variable \Robject{d}, you can see its class, size (number of genes and samples) and which accessor methods can be applied. 
+For \Rcode{dmDSdata} object, there are two methods that return data frames with counts and samples.
 
 
 <<DSdmDSdata_create>>=
-samples <- data.frame(sample_id = metadata$SampleName, 
-  group = metadata$condition)
+pasilla_samples <- data.frame(sample_id = pasilla_metadata$SampleName, 
+  group = pasilla_metadata$condition)
+levels(pasilla_samples$group)
 
-d <- dmDSdata(counts = counts, samples = samples)
+d <- dmDSdata(counts = pasilla_counts, samples = pasilla_samples)
 d
 head(counts(d), 3)
 head(samples(d), 3)
 @
 
-<<DSmax_nr_isoforms, echo = FALSE>>=
-max_nr_isoforms <- max(elementNROWS(dm_counts(d)))
-@
-
-
-You can also make a data summary plot, which is a histogram of the number of 
-features per gene. For example, there are genes that have 
-\Sexpr{max_nr_isoforms} isoforms.
+You can also make a data summary plot, which is a histogram of the number of transcripts per gene. 
 
 <<DSdmDSdata_plot>>=
 plotData(d)
 @
 
-
-To make the analysis runnable within this vignette, we want to keep only a 
-small subset of genes, which is defined in the following file.
+To make the analysis runnable within this vignette, we want to keep only a small subset of genes, which is defined in the following file.
 
 <<DSdmDSdata_subset>>=
 gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
@@ -237,34 +221,20 @@ length_d <- length(d)
 
 After subsetting, \Robject{d} contains counts for \Sexpr{length_d} genes.
 
-
 \subsubsection{Filtering}
 \label{DS_filtering}
 
-Genes may have many transcripts or exons that are lowly expressed or not 
-expressed at all. You can remove them using the \Rfunction{dmFilter} function. 
-Filtering of lowly expressed features can be done at two levels: minimal 
-\textit{expression} using \Robject{min\_samps\_feature\_expr} and 
-\Robject{min\_feature\_expr} parameters or minimal \textit{proportion} 
+Genes may have many transcripts that are lowly expressed or not expressed at all. You can remove them using the \Rfunction{dmFilter} function. 
+Filtering of lowly expressed transcripts can be done at two levels: minimal \textit{expression} using \Robject{min\_samps\_feature\_expr} and \Robject{min\_feature\_expr} parameters or minimal \textit{proportion} 
 with \Robject{min\_samps\_feature\_prop} and \Robject{min\_feature\_prop}.
 
-In the \emph{pasilla} experiment we use a filtering based only on the feature 
-absolute expression and parameters are adjusted according to the number of 
-replicates per condition. Since we have 3 knock-down and 4 control samples, 
-we set \Robject{min\_samps\_feature\_expr} equal to 3. In this way, we allow
-a situation where a feature (here, a transcript) is expressed in one condition 
-but not in another, which is a case of differential splicing. The level of 
-feature expression is controlled by \Robject{min\_feature\_expr}. Our default 
-value is set up to 10, which means that only the features that have at least 
-10 estimated counts in at least 3 samples are kept for the downstream analysis.
+In the \emph{pasilla} experiment we use a filtering based only on the transcript absolute expression and parameters are adjusted according to the number of replicates per condition. 
+Since we have 3 knock-down and 4 control samples, we set \Robject{min\_samps\_feature\_expr} equal to 3. In this way, we allowa situation where a transcript is expressed in one condition but not in another, which is a case of differential transcript usage. 
+The level of transcript expression is controlled by \Robject{min\_feature\_expr}. We set it to the value of 10, which means that only the transcripts that have at least 10 estimated counts in at least 3 samples are kept for the downstream analysis.
 
-Filtering at the gene level ensures that the observed feature ratios have some 
-minimal reliability. Although, Dirichlet-multinomial model works on feature 
-counts, and not on feature ratios, which means that it gives more confidence 
-to the ratios based on 100 versus 500 reads than 1 versus 5, minimal filtering
-based on gene expression removes the genes with mostly zero counts and reduces 
-the number of tests in multiple test correction. For the \emph{pasilla} data,
-we want that genes have at least 10 counts in all the samples: 
+Filtering at the gene level ensures that the observed transcript ratios have some minimal reliability. 
+Although, Dirichlet-multinomial model works on feature counts, and not on feature ratios, which means that it gives more confidence to the ratios based on 100 versus 500 reads than 1 versus 5, minimal filtering based on gene expression removes the genes with mostly zero counts and reduces the number of tests in multiple test correction. 
+For the \emph{pasilla} data, we want that genes have at least 10 counts in all the samples: 
 \Rcode{min\_samps\_gene\_expr = 7} and \Rcode{min\_gene\_expr = 10}.
 
 
@@ -273,133 +243,246 @@ we want that genes have at least 10 counts in all the samples:
 table(samples(d)$group)
 
 d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3,
-  min_samps_feature_prop = 0)
+  min_gene_expr = 10, min_feature_expr = 10)
 plotData(d)
 @
 
-\subsubsection{Dispersion estimation}
-\label{DS_dispersion_estimation}
+\subsubsection{Precision estimation}
+\label{DS_precision_estimation}
 
-Ideally, we would like to get accurate dispersion estimates for every gene, 
-which is problematic when analyzing small data sets because dispersion 
-estimates become inaccurate when the sample size decreases, especially for 
-lowly expressed genes. As an alternative, we could assume that all the genes 
-have the same dispersion and based on all the data, we could calculate a 
-common dispersion, but we expect this to be too strong of an assumption. 
-Moderated dispersion is a trade-off between gene-wise and common dispersion. 
-The moderated estimates originate from a weighted likelihood which is a 
-combination of common and individual likelihoods. We recommend this approach 
-when analyzing small sample size data sets.
+Ideally, we would like to get accurate precision estimates for every gene, which is problematic when analyzing small data sets because precision estimates become inaccurate when the sample size decreases, especially for 
+lowly expressed genes. 
+As an alternative, we could assume that all the genes have the same precision and based on all the data, we could calculate a common precision, but we expect this to be too strong of an assumption. 
+Moderated precision is a trade-off between gene-wise and common precision. 
+The moderated estimates originate from a weighted likelihood which is a combination of common and individual likelihoods. 
+We recommend this approach when analyzing small sample size data sets.
 
-At this step, three values may be calculated: mean expression of genes, common 
-dispersion and gene-wise dispersions.
-In the default setting, all of them are computed and common dispersion is used 
-as an initial value in the grid approach to estimate moderated gene-wise 
-dispersions, which are shrunk toward the common dispersion.
+At this step, three values may be calculated: mean expression of genes, common precision and gene-wise precisions.
+In the default setting, all of them are computed and common precision is used as an initial value in the grid approach to estimate gene-wise precisions, which are shrunk toward the trended precision.
 
-This step of our pipeline is the most time consuming. Thus consider using 
-\Rcode{BPPARAM = BiocParallel::MulticoreParam()} with more than one worker.
+By default, to estimate the common precision, we use 10\% percent (\Rcode{prec_subset = 0.1}) of randomly selected genes. That is due to the fact that common precision is used only as an initial value, and estimating it based on all the genes takes a substantial part of time. 
+To ensure that the analysis are reproducible, the user should define a random seed \Rcode{set.seed()} before running the \Rcode{dmPrecision()} function. Thank to that, each time the same subset of genes is selected.
 
-<<DSdmDispersion>>=
-d <- dmDispersion(d, BPPARAM = BiocParallel::SerialParam())
+To estimate precision parameters, the user has to define a design matrix with the full model of interest, which will be also used later in the proportion estimation. Here, the full model is defined by a formula \Rcode{~ group} which indicates that samples come from two conditions.
+
+This step of our pipeline is the most time consuming. 
+Thus, for real data analysis, consider using \Rcode{BPPARAM = BiocParallel::MulticoreParam()} with more than one worker.
+
+<<DSdmPrecision>>=
+## Create the design matrix
+design_full <- model.matrix(~ group, data = samples(d))
+design_full
+
+## To make the analysis reproducible
+set.seed(123)
+## Calculate precision
+d <- dmPrecision(d, design = design_full)
 d
 head(mean_expression(d), 3)
-common_dispersion(d)
-head(genewise_dispersion(d), 3)
+common_precision(d)
+head(genewise_precision(d), 3)
 @
 
-To inspect the behavior of dispersion estimates, you can plot them against 
-the mean gene expression. Here, the effect of shrinking is not easily visible 
-because our data set is very small.
+To inspect the behavior of precision estimates, you can plot them against the mean gene expression. 
+Normally in the differential analysis based on RNA-seq data, such plot has dispersion parameter plotted on the y-axis. 
+Here, the y-axis represents precision since in the Dirichlet-multinomial model this is the parameter that is directly estimated. 
+It is important to keep in mind that the precision parameter is inverse proportional to dispersion: $dispersion = 1 / (1 + precision)$. 
+In RNA-seq data, we can typically observe a trend where the dispersion decreases (here, presicion increases) for genes with higher mean expression.
 
-If \Rcode{out\_dir = NULL} in any of the plotting functions from 
-\Rpackage{DRIMSeq} package, a \Rclass{ggplot} object is returned, and it can 
-be further modified using \CRANpkg{ggplot2} package. Here, we increase 
-the size of points.
 
-<<DSdmDispersion_plot>>=
+<<DSdmPrecision_plot1>>=
+plotPrecision(d)
+@
+
+All of the plotting functions from \Rpackage{DRIMSeq} package, return a \Rclass{ggplot} object which can be further modified using \CRANpkg{ggplot2} package. 
+For example, the user can increase the size of points.
+
+<<DSdmPrecision_plot2>>=
 library(ggplot2)
-ggp <- plotDispersion(d)
+ggp <- plotPrecision(d)
 ggp + geom_point(size = 4)
 @
 
 
 \subsubsection{Proportion estimation}
 
-In this step, we estimate the full model proportions, meaning, that transcript 
-or exon proportions are estimated for each condition separately. You can access 
-this estimates and the corresponding statistics, such as log-likelihoods, 
-with \Rfunction{proportions} and \Rfunction{statistics} functions, respectively.
+In this step, we estimate the full model regression coefficients, fitted proportions and likelihoods.
+We use the same design matrix as in the precision estimation step.
+
+By default, \Rcode{one_way = TRUE} which means that whenever the design corresponds to multiple group fitting, the 'one way' shortcut algorith will be used, which in fact corresponds to the first implementation of \Rpackage{DRIMSeq}. Transcript proportions are estimated for each condition separately and then the regression coefficients are calculated using matrix operations. 
+By setting \Rcode{verbose = 1}, we can see that the one way approach is used with the current desing.
+
+When \Rcode{bb_model = TRUE} (the default), additionally to the gene-level Dirichlet-multinomial estimates the transcript-level beta-binomial results will be computed.  
 
 
-
-<<DSdmFit, out.width = "16cm", fig.width = 16>>=
-d <- dmFit(d, BPPARAM = BiocParallel::SerialParam())
+<<DSdmFit>>=
+d <- dmFit(d, design = design_full, verbose = 1)
 d
 
-head(proportions(d), 3)
-head(statistics(d), 3)
+## Get fitted proportions
+head(proportions(d))
+## Get the DM regression coefficients (gene-level) 
+head(coefficients(d))
+## Get the BB regression coefficients (feature-level) 
+head(coefficients(d), level = "feature")
 @
 
 
-\subsubsection{Testing for differential splicing}
+\subsubsection{Testing for differential transcript usage}
 \label{DS_testing}
 
-Calling the \Rfunction{dmTest} function results in two calculations. First, 
-null model proportions, i.e., feature ratios based on pooled (no grouping 
-into conditions) counts, are estimated. Second, likelihood ratio statistics 
-are used to test for the difference between feature proportions in different 
-groups to identify the differentially spliced genes.
+Calling the \Rfunction{dmTest} function results in two calculations. 
+First, null model is fitted. This null model can be defined by the user via \Rcode{coef}, \Rcode{design} or \Rcode{contrast} parameters. 
+Second, likelihood ratio statistics are used to test for the difference between the full and null model.
+Both steps are done at the gene and transcript level when \Rcode{bb_model = TRUE}.
 
-By default, \Rcode{compared\_groups} parameter in \Rfunction{dmTest} indicates 
-all the levels of grouping variable, which means that we test for differences
-in splicing between any of the groups. In the \emph{pasilla} example, there 
-are only two conditions, and there is only one comparison that can be done. 
-In the case where grouping variable has more that two levels, you could be 
-interested in the pair-wise comparisons, which you can specify with 
-\Robject{compared\_groups} parameter.
+In our example, we would like to test whether there are differences in transcript usage between control (CTL) and knock-down (KD). 
+We can achieve that by using the \Rcode{coef} parameter which should indicate which columns of the full design should be removed to get the null design. We define it equal to \Rcode{"groupKD"}. Then the null design has only an interecpt column which means that all the samples are treated as if they came from one condition. 
+Note that \Rcode{one_way = TRUE} and the one way approach is used.
 
-Now, if you call \Rfunction{proportions} or \Rfunction{statistics} function, 
-results of null estimation are added to the previous data frames.
-
-<<DSdmTest>>=
-d <- dmTest(d, BPPARAM = BiocParallel::SerialParam())
-d
-
-head(proportions(d), 3)
-head(statistics(d), 3)
-
-@
-
-To obtain the results of likelihood ratio tests, you have to call the 
-function \Rfunction{results}, which returns a data frame with likelihood 
-ratio statistics, degrees of freedom, p-values and Benjamini and Hochberg 
-adjusted p-values for each gene.
-
-
-<<DSdmTest_results>>=
+<<DSdmTest1>>=
+d <- dmTest(d, coef = "groupKD", verbose = 1)
+design(d)
 head(results(d), 3)
 @
 
-You can plot a histogram of p-values.
+The same can be achieved by directly defining the null design matrix with the \Rcode{design} parameter.
 
-<<DSdmTest_plot>>=
-plotTest(d)
+<<DSdmTest2>>=
+design_null <- model.matrix(~ 1, data = samples(d))
+design_null
+d <- dmTest(d, design = design_null)
+head(results(d), 3)
 @
 
-For genes of interest, you can make plots (bar plots, line plots, box plots, 
-ribbon plots) of observed and estimated with Dirichlet-multinomial model 
-feature ratios. Estimated proportions are marked with diamond shapes. Here, 
-we plot the results for the top significant gene.
+Or by using the \Rcode{contrast} parameter.
+
+<<DSdmTest3>>=
+contrast <- c(0, 1)
+d <- dmTest(d, contrast = contrast)
+design(d)
+head(results(d), 3)
+@
+
+
+To obtain the results of likelihood ratio tests, you have to call the function \Rfunction{results}, which returns a data frame with likelihood ratio statistics, degrees of freedom, p-values and Benjamini and Hochberg (BH) 
+adjusted p-values for each gene by default and for each transcript when \Rcode{level = "feature"}.
+
+
+<<DSdmTest_results>>=
+head(results(d, level = "feature"), 3)
+@
+
+You can plot a histogram of gene-level and transcript-level p-values.
+
+<<DSdmTest_plot>>=
+plotPValues(d)
+plotPValues(d, level = "feature")
+@
+
+For genes of interest, you can make plots (bar plots, line plots, box plots, ribbon plots) of observed and estimated with Dirichlet-multinomial model transcript ratios. 
+You have to define the \Rcode{group_variable} parameter which should indicate a variable from \Rcode{samples(d)}. 
+Currently, plots can be done only for categorical variables. We choose the \Rcode{"group"} column since it corresponds to the comparison of our interest.
+Estimated proportions are marked with diamond shapes. 
+As an example, we plot the top significant gene.
 
 <<DSdmLRT_plotFit, out.width = "16cm", fig.width = 16>>=
 res <- results(d)
 res <- res[order(res$pvalue, decreasing = FALSE), ]
-gene_id <- res$gene_id[1]
+top_gene_id <- res$gene_id[1]
 
-plotFit(d, gene_id = gene_id)
-plotFit(d, gene_id = gene_id, plot_type = "lineplot")
-plotFit(d, gene_id = gene_id, plot_type = "ribbonplot")
+plotProportions(d, gene_id = top_gene_id, group_variable = "group")
+plotProportions(d, gene_id = top_gene_id, group_variable = "group", 
+  plot_type = "lineplot")
+plotProportions(d, gene_id = top_gene_id, group_variable = "group", 
+  plot_type = "ribbonplot")
+
+@
+
+
+\subsubsection{Two-stage test}
+
+\Rpackage{DRIMSeq} returns gene and transcript level p-values which can be used as an input to the stage-wise analysis \cite{VandenBerge2017} implemented in the \Rcode{stageR} package, currently available on github \url{https://github.com/statOmics/stageR}.
+As pointed by the authors of \Rcode{stageR}, interpreting both gene-level and transcript-level adjusted p-values does not provide appropriate FDR control and should be avoided. 
+However, applying a stage-wise testing provides a usefull biological interpretation of these results and improved statistical performance. 
+
+In short, the procedure consists of a screening stage and a confirmation stage. 
+In the screening stage, gene-level BH-adjusted p-values are screened to detect genes for which the hypothesis of interest is significanlty rejected. Only those genes are further considered in the confirmation stage, where for each gene separately, transcript-level p-values are adjusted to control the FWER and BH-adjusted significance level of the screening stage. 
+
+It is important to note that transcript-level stage-wise adjusted p-values for genes that do not pass the screening stage are set to \Rcode{NA}. Also the stage-wise adjusted p-values can not be compared to significance level other than chosen in the stage-wise analysis. If that is of interest, one has to rerun this analysis with the new significance level.
+
+The following code chunk is not evaluated by this vignette and to run it, user has to make sure that the \Rcode{stageR} package is installed. It shows how one can use the \Rpackage{DRIMSeq} output in the stage-wise analysis.
+
+<<stageR, eval = FALSE>>=
+library(stageR)
+
+## Assign gene-level pvalues to the screening stage
+pScreen <- results(d)$pvalue
+names(pScreen) <- results(d)$gene_id
+
+## Assign transcript-level pvalues to the confirmation stage
+pConfirmation <- matrix(results(d, level = "feature")$pvalue, ncol = 1)
+rownames(pConfirmation) <- results(d, level = "feature")$feature_id
+
+## Create the gene-transcript mapping
+tx2gene <- results(d, level = "feature")[, c("feature_id", "gene_id")]
+
+## Create the stageRTx object and perform the stage-wise analysis
+stageRObj <- stageRTx(pScreen = pScreen, pConfirmation = pConfirmation, 
+	pScreenAdjusted = FALSE, tx2gene = tx2gene)
+
+stageRObj <- stageWiseAdjustment(object = stageRObj, method = "dtu", 
+	alpha = 0.05)
+
+getSignificantGenes(stageRObj)
+
+getSignificantTx(stageRObj)
+
+padj <- getAdjustedPValues(stageRObj, order = TRUE, 
+	onlySignificantGenes = FALSE)
+
+head(padj)
+
+@
+
+
+\subsection{Differential transcript usage analysis between two conditions with accounting for the batch effects}
+
+The regression framework implemented in \Rpackage{DRIMSeq} allows to account for the batch effects. Here, this would be the library layout stored in \Rcode{pasilla_metadata$LibraryLayout}. 
+The steps of this analysis are the same as described above. The only difference is that we have to include the library layout variable in the \Rcode{sample} slot in the \Rcode{dmDSdata} object and define a full model that contains the batch effect. 
+
+<<DRIMSeq_batch, eval = FALSE, out.width = "16cm", fig.width = 16>>=
+pasilla_samples2 <- data.frame(sample_id = pasilla_metadata$SampleName, 
+  group = pasilla_metadata$condition, 
+  library_layout = pasilla_metadata$LibraryLayout)
+
+d2 <- dmDSdata(counts = pasilla_counts, samples = pasilla_samples2)
+## Subsetting to a vignette runnable size
+d2 <- d2[names(d2) %in% gene_id_subset, ]
+## Filtering
+d2 <- dmFilter(d2, min_samps_gene_expr = 7, min_samps_feature_expr = 3,
+  min_gene_expr = 10, min_feature_expr = 10)
+## Create the design matrix
+design_full2 <- model.matrix(~ group + library_layout, data = samples(d2))
+design_full2
+## To make the analysis reproducible
+set.seed(123)
+## Calculate precision
+d2 <- dmPrecision(d2, design = design_full2, prec_interval = c(0, 1e+02))
+plotPrecision(d2)
+## Fit proportions
+d2 <- dmFit(d2, design = design_full2, verbose = 1)
+## Test for DTU
+d2 <- dmTest(d2, coef = "groupKD", verbose = 1)
+design(d2)
+head(results(d2), 3)
+## Plot p-value distribution
+plotPValues(d2)
+## Plot the top significant gene
+res2 <- results(d2)
+res2 <- res2[order(res2$pvalue, decreasing = FALSE), ]
+top_gene_id2 <- res2$gene_id[1]
+plotProportions(d2, gene_id = top_gene_id2, group_variable = "group")
 
 @
 
@@ -407,76 +490,52 @@ plotFit(d, gene_id = gene_id, plot_type = "ribbonplot")
 
 
 %------------------------------------------------------------------------------
-% sQTL analysis work-flow
+% sQTL analysis workflow
 %------------------------------------------------------------------------------
 
 
-\section{sQTL analysis work-flow}
+\section{sQTL analysis workflow}
 
-In sQTL analysis, we want to identify genetic variants (here, bi-allelic SNPs) 
-that are associated with changes in splicing. Such SNPs are then called 
-splicing quantitative trait locies (sQTLs).
+In the transcript usage QTL analysis, we want to identify genetic variants (here, bi-allelic SNPs) that are associated with changes in transcript usage. Such SNPs are then called transcript usage quantitative trait locies (tuQTLs).
 
 Ideally, we would like to test associations of every SNP with every gene. 
-However, such an approach would be very costly computationally and in terms 
-of multiple testing correction. Under the assumption that SNPs that directly 
-affect splicing are likely to be placed in the close surrounding of genes, 
-we test only the SNPs that are located within the gene body and within some 
-range upstream and downstream of the gene.
+However, such an approach would be very costly computationally and in terms of multiple testing correction. 
+Under the assumption that SNPs that directly affect transcript usage are likely to be placed in the close surrounding of genes, we test only the SNPs that are located within the gene body and within some range upstream and downstream of the gene.
 
 \subsection{Example data}
 
-To demonstrate the sQTL analysis with the \Rpackage{DRIMSeq} package, we use 
-data from the GEUVADIS project \cite{Lappalainen2013}, where 462 RNA-Seq 
-samples from lymphoblastoid cell lines were obtained. The genome sequencing 
-data of the same individuals is provided by the 1000 Genomes Project. 
-The samples in this project come from five populations: CEPH (CEU), 
-Finns (FIN), British (GBR), Toscani (TSI) and Yoruba (YRI). We use 
-transcript quantification (expected counts from FluxCapacitor) and 
-genotypes available on the GEUVADIS project website 
-\url{http://www.ebi.ac.uk/Tools/geuvadis-das/}, and the Gencode v12 
-gene annotation is available at 
-\url{http://www.gencodegenes.org/releases/12.html}.
+To demonstrate the tuQTL analysis with the \Rpackage{DRIMSeq} package, we use data from the GEUVADIS project \cite{Lappalainen2013}, where 462 RNA-Seq samples from lymphoblastoid cell lines were obtained. 
+The genome sequencing data of the same individuals is provided by the 1000 Genomes Project. 
+The samples in this project come from five populations: CEPH (CEU), Finns (FIN), British (GBR), Toscani (TSI) and Yoruba (YRI). 
+We use transcript quantification (expected counts from FluxCapacitor) and genotypes available on the GEUVADIS project website \url{http://www.ebi.ac.uk/Tools/geuvadis-das/}, and the Gencode v12 gene annotation is available at \url{http://www.gencodegenes.org/releases/12.html}.
 
-In order to make this vignette runnable, we perform the analysis on subsets 
-of bi-allelic SNPs and transcript expected counts for CEPH population 
-(91 individuals) that correspond to 50 randomly selected genes from 
-chromosome 19. The full dataset can be accessed from 
-\Biocexptpkg{GeuvadisTranscriptExpr} package along with the description 
-of preprocessing steps.
+In order to make this vignette runnable, we perform the analysis on subsets of bi-allelic SNPs and transcript expected counts for CEPH population (91 individuals) that correspond to 50 randomly selected genes from 
+chromosome 19. 
+The full dataset can be accessed from \Biocexptpkg{GeuvadisTranscriptExpr} package along with the description of preprocessing steps.
 
 
-\subsection{sQTL analysis with DRIMSeq package}
+\subsection{tuQTL analysis with the DRIMSeq package}
 
-Assuming you have gene annotation, feature counts and bi-allelic genotypes 
-that are expressed in terms of the number of alleles different from the
-reference, the \Rpackage{DRIMSeq} work-flow for sQTL analysis is the same 
-as for differential splicing.
+Assuming you have gene annotation, feature counts and bi-allelic genotypes that are expressed in terms of the number of alleles different from the reference, the \Rpackage{DRIMSeq} workflow for tuQTL analysis is analogous 
+to the one for differential transcript usage.
 
-First, we have to create a \Rclass{dmSQTLdata} object, which contains feature 
-counts and genotypes. Similarly as in the differential splicing pipeline, 
-results from every step are added to this object and at the end of the analysis, 
-it contains dispersion estimates, proportions estimates, likelihood ratio 
-statistics, p-values, adjusted p-values. As new elements are added, 
-the object also changes its name \Rclass{dmSQTLdata} $\rightarrow$ 
-\Rclass{dmSQTLdispersion} $\rightarrow$ \Rclass{dmSQTLfit} $\rightarrow$
-\Rclass{dmSQTLtest}. For each object, slots and methods are inherited 
-from the previous one.
+First, we have to create a \Rclass{dmSQTLdata} object, which contains feature counts, sample information and genotypes. Similarly as in the differential transcript usage pipeline, results from every step are added to this object and at the end of the analysis, it contains precision estimates, proportions estimates, likelihood ratio 
+statistics, p-values, adjusted p-values. 
+As new elements are added, the object also changes its name \Rclass{dmSQTLdata} $\rightarrow$ \Rclass{dmSQTLprecision} $\rightarrow$ \Rclass{dmSQTLfit} $\rightarrow$ \Rclass{dmSQTLtest}. 
+For each object, slots and methods are inherited from the previous one.
 
 
 \subsubsection{Loading GEUVADIS data into R}
 
-
-We use the subsets of data defined in 
-\Biocexptpkg{GeuvadisTranscriptExpr} package.
+We use the subsets of data defined in the \Biocexptpkg{GeuvadisTranscriptExpr} package.
 
 <<SQTLgeuvadis, message=FALSE>>=
 library(GeuvadisTranscriptExpr)
 
-counts <- GeuvadisTranscriptExpr::counts
-genotypes <- GeuvadisTranscriptExpr::genotypes
-gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
-snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
+geuv_counts <- GeuvadisTranscriptExpr::counts
+geuv_genotypes <- GeuvadisTranscriptExpr::genotypes
+geuv_gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
+geuv_snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
 
 @
 
@@ -487,207 +546,108 @@ library(DRIMSeq)
 @
 
 
-In the sQTL analysis, an initial data object \Robject{d} is of 
-\Robject{dmSQTLdata} class and, additionally to feature counts, 
-it contains genotypes of SNPs that are in some surrounding of genes. 
+In the tuQTL analysis, an initial data object \Robject{d} is of \Robject{dmSQTLdata} class and, additionally to feature counts and sample information, it contains genotypes of SNPs that are in some surrounding of genes. 
 This surrounding is defined with the parameter \Rcode{window}. 
-In order to find out which SNPs should be tested with which genes, 
-the \Rfunction{dmSQTLdata} functions requires as 
-an input the location of genes (\Rcode{gene\_ranges}) and 
-SNPs (\Rcode{snp\_ranges}) stored as \Rclass{GRanges} objects. 
-Variables with transcripts and genes in the \Robject{counts} data frame must 
-have names \Rcode{feature\_id} and \Rcode{gene\_id}, respectively. 
-In the \Robject{genotypes} data frame, the variable with SNP IDs 
-must have name \Rcode{snp\_id}.
+In order to find out which SNPs should be tested with which genes, the \Rfunction{dmSQTLdata} functions requires as an input the location of genes (\Rcode{gene\_ranges}) and SNPs (\Rcode{snp\_ranges}) stored as \Rclass{GRanges} objects. 
+Variables with transcript IDs and gene IDs in the \Robject{counts} data frame must have names \Rcode{feature\_id} and \Rcode{gene\_id}, respectively. 
+In the \Robject{genotypes} data frame, the variable with SNP IDs must have name \Rcode{snp\_id}.
 
 
 <<SQTLdmSQTLdata_create, message=FALSE>>=
-colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
-colnames(genotypes)[4] <- "snp_id"
+colnames(geuv_counts)[c(1,2)] <- c("feature_id", "gene_id")
+colnames(geuv_genotypes)[4] <- "snp_id"
+geuv_samples <- data.frame(sample_id = colnames(geuv_counts)[-c(1,2)])
 
-samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
-
-d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
-  genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
-  window = 5e3, BPPARAM = BiocParallel::SerialParam())
-
+d <- dmSQTLdata(counts = geuv_counts, gene_ranges = geuv_gene_ranges,
+  genotypes = geuv_genotypes, snp_ranges = geuv_snp_ranges, 
+  samples = geuv_samples, window = 5e3)
 d
 @
 
-In our sQTL analysis, we do not repeat tests for the SNPs that define the 
-same grouping of samples (genotype). We identify SNPs with identical genotypes 
-across the samples and assign them to blocks. Estimation and testing are done
-at the block level, but the returned results are extended to a SNP level by 
-repeating the block statistics for each SNP that belongs to a given block.
+In our tuQTL analysis, we do not repeat tests for the SNPs that define the same grouping of samples (genotype). We identify SNPs with identical genotypes across the samples and assign them to blocks. 
+Estimation and testing are done at the block level, but the returned results are extended to a SNP level by repeating the block statistics for each SNP that belongs to a given block.
 
-Here, the data summary plot produces three histograms: the number of features
-per gene, the number of SNPs per gene and the number of blocks per gene. 
-Total number of tests done in this analysis is equal to the total number of
-blocks. You can use the \Rcode{multiplot} function from 
-\url{http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/} 
-to plot this three figures next to each other.
-
-<<multiplot, echo = FALSE>>=
-# Multiple plot function
-#
-# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
-# - cols:   Number of columns in layout
-# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
-#
-# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
-# then plot 1 will go in the upper left, 2 will go in the upper right, and
-# 3 will go all the way across the bottom.
-#
-multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
-  library(grid)
-  
-  # Make a list from the ... arguments and plotlist
-  plots <- c(list(...), plotlist)
-  
-  numPlots = length(plots)
-  
-  # If layout is NULL, then use 'cols' to determine layout
-  if (is.null(layout)) {
-    # Make the panel
-    # ncol: Number of columns of plots
-    # nrow: Number of rows needed, calculated from # of cols
-    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
-      ncol = cols, nrow = ceiling(numPlots/cols))
-  }
-  
-  if (numPlots==1) {
-    print(plots[[1]])
-    
-  } else {
-    # Set up the page
-    grid.newpage()
-    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
-    
-    # Make each plot, in the correct location
-    for (i in 1:numPlots) {
-      # Get the i,j matrix positions of the regions that contain this subplot
-      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-      
-      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
-        layout.pos.col = matchidx$col))
-    }
-  }
-}
-@
+The data summary plot \Rfunction{plotData} produces three histograms: the number of features per gene, the number of SNPs per gene and the number of blocks per gene. 
 
 
 <<SQTLdmSQTLdata_plot, out.width = "16cm", fig.width = 16>>=
-multiplot(plotlist = plotData(d), cols = 3)
+plotData(d, plot_type = "features")
+plotData(d, plot_type = "snps")
+plotData(d, plot_type = "blocks")
 @
-
 
 
 \subsubsection{Filtering}
 
-The filtering step eliminates genes and features with low expression, as in the 
-differential splicing analysis (see section \ref{DS_filtering}). 
-Additionally, it filters out the SNPs/blocks that do not define at least 
-two genotypes where each of them is present in at least
-\Robject{minor\_allele\_freq} individuals. 
-Usually, \Robject{minor\_allele\_freq} is equal to more or 
-less 5\% of total sample size.
+The filtering step eliminates genes and features with low expression, as in the differential transcript usage analysis (see section \ref{DS_filtering}). 
+Additionally, it filters out the SNPs/blocks that do not define at least two genotypes where each of them is present in at least \Robject{minor\_allele\_freq} individuals. 
+Usually, \Robject{minor\_allele\_freq} is equal to roughly 5\% of the total sample size.
 
-Ideally, we would like that genes were expressed at some minimal level in 
-all samples because this would lead to better estimates of feature ratios.
-However, for some genes, missing values may be present in the counts data, 
-or genes may be lowly expressed in some samples. Setting up 
-\Robject{min\_samps\_gene\_expr} to 91 would exclude too many genes.
-We can be slightly less stringent by taking, for example, 
-\Rcode{min\_samps\_gene\_expr = 70}.
+Ideally, we would like that genes were expressed at some minimal level in all samples because this would lead to better estimates of feature ratios.
+However, for some genes, missing values may be present in the counts data, or genes may be lowly expressed in some samples. 
+Setting up \Robject{min\_samps\_gene\_expr} to 91 may exclude too many genes from the analysis.
+We can be slightly less stringent by taking, for example, \Rcode{min\_samps\_gene\_expr = 70}.
 
 
-<<SQTLdmFilter, out.width = "16cm", fig.width = 16>>=
+<<SQTLdmFilter>>=
 d <- dmFilter(d, min_samps_gene_expr = 70, min_samps_feature_expr = 5,
-  min_samps_feature_prop = 0, minor_allele_freq = 5,
-  BPPARAM = BiocParallel::SerialParam())
-
-multiplot(plotlist = plotData(d), cols = 3)
+  minor_allele_freq = 5, min_gene_expr = 10, min_feature_expr = 10)
 @
 
 
-\subsubsection{Dispersion estimation}
+\subsubsection{Precision estimation}
 
-As for differential splicing (see section \ref{DS_dispersion_estimation}), 
-\Rfunction{dmDispersion} may calculate three values: mean expression of 
-genes, common dispersion and gene-wise dispersions. It has an additional 
-parameter \Rcode{speed}. If \Rcode{speed = FALSE}, gene-wise dispersions 
-are calculated per each gene-block. This calculation may take a long time,
-since there can be hundreds of SNPs/blocks per gene. If \Rcode{speed} is
-set to \Rcode{TRUE}, there will be only one dispersion calculated per gene 
-and it will be assigned to all blocks matched to this gene.
+In the DTU analysis (section \ref{DS_precision_estimation}), the full model used in precision estimation has to be defined by the user. Here, full models are defined by genotypes. For a given SNP, genotype can have numeric values of 0, 1, and 2. 
+When ‘one_way = TRUE’, multiple group fitting is performed. When ‘one_way = FALSE’, a regression framework is used with the design matrix defined by a formula ‘~ group’ where group is a continous (not categorical) varialbe with genotype values 0, 1, and 2.
 
-In the default setting, \Rcode{speed = TRUE} and common dispersion is used 
-as an initial value in the grid approach to estimate gene-wise dispersions 
-with NO moderation, since the sample size is quite big.
+For the tuQTL analysis, it has an additional parameter called \Rcode{speed}. 
+If \Rcode{speed = FALSE}, gene-wise precisions are calculated for each gene-block. 
+This calculation may take a long time, since there can be hundreds of SNPs/blocks per gene. 
+If \Rcode{speed} is set to \Rcode{TRUE}, there will be only one precision calculated per gene (assumming a null model, i.e., model with intercept only), and it will be assigned to all the blocks matched to this gene.
+In the default setting, \Rcode{speed = TRUE} and common precision is used as an initial value in the grid approach to estimate gene-wise precisions with NO moderation, since the sample size is quite large.
 
-Again, this step of our pipeline is the most time consuming. Thus consider 
-using \Rcode{BPPARAM = BiocParallel::MulticoreParam()} with more than one 
-worker when performing real data analysis.
+Again, this step of the pipeline is one of the most time consuming. Thus consider using \Rcode{BPPARAM = BiocParallel::MulticoreParam()} with more than one worker when performing real data analysis.
 
 
-<<SQTLdmDispersion>>=
-d <- dmDispersion(d, BPPARAM = BiocParallel::SerialParam())
-d
-@
+<<SQTLdmPrecision>>=
+## To make the analysis reproducible
+set.seed(123)
+## Calculate precision
+d <- dmPrecision(d)
 
-
-<<SQTLplotDispersion>>=
-library(ggplot2)
-ggp <- plotDispersion(d)
-ggp + geom_point(size = 4)
+plotPrecision(d)
 @
 
 
 \subsubsection{Proportion estimation}
 
-Full model proportions are estimated for each gene-block pair.
-
+Dirichlet-multinomial full model proportions/coefficients and likelihoods are estimated for each gene-block pair.
+Currently, no transcript-level analysis are implemented in the tuQTL workflow.
 
 <<SQTLdmFit>>=
-d <- dmFit(d, BPPARAM = BiocParallel::SerialParam())
-d
+d <- dmFit(d)
 @
 
 
-\subsubsection{Testing for sQTLs}
+\subsubsection{Testing for tuQTLs}
 
-As in section \ref{DS_testing}, \Rfunction{dmTest} function fits null model 
-proportions and performs the likelihood ratio test.
-The function \Rfunction{results} returns a data frame with likelihood ratio 
-statistics, degrees of freedom, p-values and Benjamini and Hochberg adjusted 
-p-values for each gene-block/SNP pair.
+\Rfunction{dmTest} function estimates gene-level null model proportions/coefficients and likelihoods and performs the likelihood ratio test. The null models equal to models with intercept only.
+
+In contrast to the DTU analysis, there are some additional challenges that have to handeled in the tuQTL analysis. They include a large number of tests per gene with highly variable allele frequencies (models) and linkage disequilibrium. As in other sQTL studies, we apply a permutation approach to empirically assess the null distribution of associations and use it for the adjustment of nominal p-values.
+
+There are two permutation schemes available. 
+When \Rcode{permutation_mode} equals to \Rcode{"all_genes"}, the null p-value distribution is calculated from all the genes.
+When \Rcode{permutation_mode = "per_gene"}, null distribution of p-values is calculated for each gene separately based on permutations of this individual gene. 
+The latter approach may take a lot of computational time. We suggest using the first option, which is also the default one.
+
+The function \Rfunction{results} returns a data frame with likelihood ratio statistics, degrees of freedom, p-values and Benjamini and Hochberg adjusted p-values for each gene-block/SNP pair.
 
 
 <<SQTLdmTest>>=
-d <- dmTest(d, BPPARAM = BiocParallel::SerialParam())
-d
-head(results(d), 3)
-plotTest(d)
+d <- dmTest(d)
+plotPValues(d)
+head(results(d))
 @
-
-
-You can plot the observed and estimated Dirichlet-multinomial model feature 
-ratios for the sQTLs of interest. When the sample size is large,
-we recommend using box plots as a \Rcode{plot\_type}. Here, we plot an 
-sQTL with the lowest p-value.
-
-<<SQTLplotFit, out.width = "16cm", fig.width = 16, warning = FALSE>>=
-res <- results(d)
-res <- res[order(res$pvalue, decreasing = FALSE), ]
-
-gene_id <- res$gene_id[1]
-snp_id <- res$snp_id[1]
-
-plotFit(d, gene_id, snp_id)
-plotFit(d, gene_id, snp_id, plot_type = "boxplot2", order = FALSE)
-plotFit(d, gene_id, snp_id, plot_type = "ribbonplot")
-@
-
 
 
 
@@ -715,8 +675,6 @@ sessionInfo()
 
 \section{References}
 
-\bibliographystyle{ieeetr}
 \bibliography{DRIMSeq}
-
 
 \end{document}

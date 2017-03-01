@@ -46,20 +46,20 @@ NULL
 #' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 #' 
 #' ## Load metadata
-#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_metadata <- read.table(file.path(data_dir, "metadata.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
 #' ## Load counts
-#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_counts <- read.table(file.path(data_dir, "counts.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
-#' ## Create a samples data frame
-#' samples <- data.frame(sample_id = metadata$SampleName, 
-#'   group = metadata$condition)
-#' levels(samples$group)
+#' ## Create a pasilla_samples data frame
+#' pasilla_samples <- data.frame(sample_id = pasilla_metadata$SampleName, 
+#'   group = pasilla_metadata$condition)
+#' levels(pasilla_samples$group)
 #' 
 #' ## Create a dmDSdata object
-#' d <- dmDSdata(counts = counts, samples = samples)
+#' d <- dmDSdata(counts = pasilla_counts, samples = pasilla_samples)
 #' 
 #' ## Use a subset of genes, which is defined in the following file
 #' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
@@ -80,12 +80,12 @@ NULL
 #' plotData(d)
 #' 
 #' ## Create the design matrix
-#' design <- model.matrix(~ group, data = samples(d))
+#' design_full <- model.matrix(~ group, data = samples(d))
 #' 
 #' ## To make the analysis reproducible
 #' set.seed(123)
 #' ## Calculate precision
-#' d <- dmPrecision(d, design = design)
+#' d <- dmPrecision(d, design = design_full)
 #' 
 #' plotPrecision(d)
 #' 
@@ -94,7 +94,7 @@ NULL
 #' head(genewise_precision(d))
 #' 
 #' ## Fit full model proportions
-#' d <- dmFit(d, design = design)
+#' d <- dmFit(d, design = design_full)
 #' 
 #' ## Get fitted proportions
 #' head(proportions(d))
@@ -149,6 +149,22 @@ setValidity("dmDSfit", function(object){
 ################################################################################
 ### accessing methods
 ################################################################################
+
+#' @rdname dmDSfit-class
+#' @inheritParams dmDSprecision-class
+#' @export
+setMethod("design", "dmDSfit", function(object, type = "full_model"){
+  
+  stopifnot(type %in% c("precision", "full_model", "null_model"))
+  
+  if(type == "precision")
+    object@design_precision
+  else if(type == "full_model")
+    object@design_fit_full
+  else
+    NULL
+  
+})
 
 
 #' @rdname dmDSfit-class
@@ -272,20 +288,20 @@ setGeneric("dmFit", function(x, ...) standardGeneric("dmFit"))
 #' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 #' 
 #' ## Load metadata
-#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_metadata <- read.table(file.path(data_dir, "metadata.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
 #' ## Load counts
-#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_counts <- read.table(file.path(data_dir, "counts.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
-#' ## Create a samples data frame
-#' samples <- data.frame(sample_id = metadata$SampleName, 
-#'   group = metadata$condition)
-#' levels(samples$group)
+#' ## Create a pasilla_samples data frame
+#' pasilla_samples <- data.frame(sample_id = pasilla_metadata$SampleName, 
+#'   group = pasilla_metadata$condition)
+#' levels(pasilla_samples$group)
 #' 
 #' ## Create a dmDSdata object
-#' d <- dmDSdata(counts = counts, samples = samples)
+#' d <- dmDSdata(counts = pasilla_counts, samples = pasilla_samples)
 #' 
 #' ## Use a subset of genes, which is defined in the following file
 #' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
@@ -306,12 +322,12 @@ setGeneric("dmFit", function(x, ...) standardGeneric("dmFit"))
 #' plotData(d)
 #' 
 #' ## Create the design matrix
-#' design <- model.matrix(~ group, data = samples(d))
+#' design_full <- model.matrix(~ group, data = samples(d))
 #' 
 #' ## To make the analysis reproducible
 #' set.seed(123)
 #' ## Calculate precision
-#' d <- dmPrecision(d, design = design)
+#' d <- dmPrecision(d, design = design_full)
 #' 
 #' plotPrecision(d)
 #' 
@@ -320,7 +336,7 @@ setGeneric("dmFit", function(x, ...) standardGeneric("dmFit"))
 #' head(genewise_precision(d))
 #' 
 #' ## Fit full model proportions
-#' d <- dmFit(d, design = design)
+#' d <- dmFit(d, design = design_full)
 #' 
 #' ## Get fitted proportions
 #' head(proportions(d))
@@ -465,20 +481,20 @@ setGeneric("plotProportions", function(x, ...)
 #' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 #' 
 #' ## Load metadata
-#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_metadata <- read.table(file.path(data_dir, "metadata.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
 #' ## Load counts
-#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_counts <- read.table(file.path(data_dir, "counts.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
-#' ## Create a samples data frame
-#' samples <- data.frame(sample_id = metadata$SampleName, 
-#'   group = metadata$condition)
-#' levels(samples$group)
+#' ## Create a pasilla_samples data frame
+#' pasilla_samples <- data.frame(sample_id = pasilla_metadata$SampleName, 
+#'   group = pasilla_metadata$condition)
+#' levels(pasilla_samples$group)
 #' 
 #' ## Create a dmDSdata object
-#' d <- dmDSdata(counts = counts, samples = samples)
+#' d <- dmDSdata(counts = pasilla_counts, samples = pasilla_samples)
 #' 
 #' ## Use a subset of genes, which is defined in the following file
 #' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
@@ -499,12 +515,12 @@ setGeneric("plotProportions", function(x, ...)
 #' plotData(d)
 #' 
 #' ## Create the design matrix
-#' design <- model.matrix(~ group, data = samples(d))
+#' design_full <- model.matrix(~ group, data = samples(d))
 #' 
 #' ## To make the analysis reproducible
 #' set.seed(123)
 #' ## Calculate precision
-#' d <- dmPrecision(d, design = design)
+#' d <- dmPrecision(d, design = design_full)
 #' 
 #' plotPrecision(d)
 #' 
@@ -513,7 +529,7 @@ setGeneric("plotProportions", function(x, ...)
 #' head(genewise_precision(d))
 #' 
 #' ## Fit full model proportions
-#' d <- dmFit(d, design = design)
+#' d <- dmFit(d, design = design_full)
 #' 
 #' ## Get fitted proportions
 #' head(proportions(d))
@@ -564,6 +580,12 @@ setMethod("plotProportions", "dmDSfit", function(x, gene_id, group_variable,
   stopifnot(group_variable %in% colnames(samples(x)))
   
   group <- x@samples[, group_variable]
+  
+  if(is.factor(group))
+    group <- factor(group)
+  else
+    group <- factor(group, levels = group)
+  
   counts_gene <- x@counts[[gene_id]]
   
   if(!is.null(group_colors) && 
@@ -575,11 +597,6 @@ setMethod("plotProportions", "dmDSfit", function(x, gene_id, group_variable,
   
   if(nrow(counts_gene) <= 1)
     stop("!Gene has to have at least 2 features! \n")
-  
-  # Order samples by group
-  o <- order(group) 
-  group <- group[o]
-  counts_gene <- counts_gene[, o, drop = FALSE]
   
   main <- NULL
   
@@ -599,10 +616,11 @@ setMethod("plotProportions", "dmDSfit", function(x, gene_id, group_variable,
   prop_full <- NULL
   
   if(plot_fit){
-    # Check if the design is equivalent to a oneway layout
+    # Check if the design is equivalent to a one way layout
     groups <- edgeR::designAsFactor(x@design_fit_full)
     
-    if(nlevels(groups) == ncol(x@design_fit_full)){
+    if(nlevels(groups) == ncol(x@design_fit_full) || 
+        group_variable == "sample_id"){
       
       prop_full <- x@fit_full[[gene_id]][, !duplicated(group), drop = FALSE]
       colnames(prop_full) <- levels(group)
@@ -613,6 +631,11 @@ setMethod("plotProportions", "dmDSfit", function(x, gene_id, group_variable,
     }
     
   }
+  
+  # Order samples by group
+  o <- order(group) 
+  group <- group[o]
+  counts_gene <- counts_gene[, o, drop = FALSE]
   
   ggp <- dm_plotProportions(counts = counts_gene, group = group, 
     prop_full = prop_full, main = main, plot_type = plot_type, 

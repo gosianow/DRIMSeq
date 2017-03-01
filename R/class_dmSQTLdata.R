@@ -42,18 +42,18 @@ NULL
 #' 
 #' library(GeuvadisTranscriptExpr)
 #' \donttest{
-#' counts <- GeuvadisTranscriptExpr::counts
-#' genotypes <- GeuvadisTranscriptExpr::genotypes
-#' gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
-#' snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
+#' geuv_counts <- GeuvadisTranscriptExpr::counts
+#' geuv_genotypes <- GeuvadisTranscriptExpr::genotypes
+#' geuv_gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
+#' geuv_snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
 #' 
-#' colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
-#' colnames(genotypes)[4] <- "snp_id"
-#' samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
+#' colnames(geuv_counts)[c(1,2)] <- c("feature_id", "gene_id")
+#' colnames(geuv_genotypes)[4] <- "snp_id"
+#' geuv_samples <- data.frame(sample_id = colnames(geuv_counts)[-c(1,2)])
 #' 
-#' d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
-#'   genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
-#'   window = 5e3)
+#' d <- dmSQTLdata(counts = geuv_counts, gene_ranges = geuv_gene_ranges,  
+#'   genotypes = geuv_genotypes, snp_ranges = geuv_snp_ranges, 
+#'   samples = geuv_samples, window = 5e3)
 #' }
 #' @author Malgorzata Nowicka
 #' @seealso \code{\linkS4class{dmSQTLdispersion}}, 
@@ -235,18 +235,18 @@ blocks_per_gene <- function(g, genotypes){
 #' 
 #' library(GeuvadisTranscriptExpr)
 #' \donttest{
-#' counts <- GeuvadisTranscriptExpr::counts
-#' genotypes <- GeuvadisTranscriptExpr::genotypes
-#' gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
-#' snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
+#' geuv_counts <- GeuvadisTranscriptExpr::counts
+#' geuv_genotypes <- GeuvadisTranscriptExpr::genotypes
+#' geuv_gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
+#' geuv_snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
 #' 
-#' colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
-#' colnames(genotypes)[4] <- "snp_id"
-#' samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
+#' colnames(geuv_counts)[c(1,2)] <- c("feature_id", "gene_id")
+#' colnames(geuv_genotypes)[4] <- "snp_id"
+#' geuv_samples <- data.frame(sample_id = colnames(geuv_counts)[-c(1,2)])
 #' 
-#' d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
-#'   genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
-#'   window = 5e3)
+#' d <- dmSQTLdata(counts = geuv_counts, gene_ranges = geuv_gene_ranges,  
+#'   genotypes = geuv_genotypes, snp_ranges = geuv_snp_ranges, 
+#'   samples = geuv_samples, window = 5e3)
 #' }
 #' @seealso \code{\link{plotData}}
 #' @author Malgorzata Nowicka
@@ -440,18 +440,18 @@ dmSQTLdata <- function(counts, gene_ranges, genotypes, snp_ranges, samples,
 #' 
 #' library(GeuvadisTranscriptExpr)
 #' \donttest{
-#' counts <- GeuvadisTranscriptExpr::counts
-#' genotypes <- GeuvadisTranscriptExpr::genotypes
-#' gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
-#' snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
+#' geuv_counts <- GeuvadisTranscriptExpr::counts
+#' geuv_genotypes <- GeuvadisTranscriptExpr::genotypes
+#' geuv_gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
+#' geuv_snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
 #' 
-#' colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
-#' colnames(genotypes)[4] <- "snp_id"
-#' samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
+#' colnames(geuv_counts)[c(1,2)] <- c("feature_id", "gene_id")
+#' colnames(geuv_genotypes)[4] <- "snp_id"
+#' geuv_samples <- data.frame(sample_id = colnames(geuv_counts)[-c(1,2)])
 #' 
-#' d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
-#'   genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
-#'   window = 5e3)
+#' d <- dmSQTLdata(counts = geuv_counts, gene_ranges = geuv_gene_ranges,  
+#'   genotypes = geuv_genotypes, snp_ranges = geuv_snp_ranges, 
+#'   samples = geuv_samples, window = 5e3)
 #' 
 #' # --------------------------------------------------------------------------
 #' # sQTL analysis - simple group comparison
@@ -513,18 +513,18 @@ setMethod("dmFilter", "dmSQTLdata", function(x, min_samps_gene_expr = 0,
 #' 
 #' library(GeuvadisTranscriptExpr)
 #' \donttest{
-#' counts <- GeuvadisTranscriptExpr::counts
-#' genotypes <- GeuvadisTranscriptExpr::genotypes
-#' gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
-#' snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
+#' geuv_counts <- GeuvadisTranscriptExpr::counts
+#' geuv_genotypes <- GeuvadisTranscriptExpr::genotypes
+#' geuv_gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
+#' geuv_snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
 #' 
-#' colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
-#' colnames(genotypes)[4] <- "snp_id"
-#' samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
+#' colnames(geuv_counts)[c(1,2)] <- c("feature_id", "gene_id")
+#' colnames(geuv_genotypes)[4] <- "snp_id"
+#' geuv_samples <- data.frame(sample_id = colnames(geuv_counts)[-c(1,2)])
 #' 
-#' d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
-#'   genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
-#'   window = 5e3)
+#' d <- dmSQTLdata(counts = geuv_counts, gene_ranges = geuv_gene_ranges,  
+#'   genotypes = geuv_genotypes, snp_ranges = geuv_snp_ranges, 
+#'   samples = geuv_samples, window = 5e3)
 #' 
 #' # --------------------------------------------------------------------------
 #' # sQTL analysis - simple group comparison

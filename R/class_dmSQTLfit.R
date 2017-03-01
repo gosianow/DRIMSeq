@@ -29,18 +29,18 @@ NULL
 #' 
 #' library(GeuvadisTranscriptExpr)
 #' \donttest{
-#' counts <- GeuvadisTranscriptExpr::counts
-#' genotypes <- GeuvadisTranscriptExpr::genotypes
-#' gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
-#' snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
+#' geuv_counts <- GeuvadisTranscriptExpr::counts
+#' geuv_genotypes <- GeuvadisTranscriptExpr::genotypes
+#' geuv_gene_ranges <- GeuvadisTranscriptExpr::gene_ranges
+#' geuv_snp_ranges <- GeuvadisTranscriptExpr::snp_ranges
 #' 
-#' colnames(counts)[c(1,2)] <- c("feature_id", "gene_id")
-#' colnames(genotypes)[4] <- "snp_id"
-#' samples <- data.frame(sample_id = colnames(counts)[-c(1,2)])
+#' colnames(geuv_counts)[c(1,2)] <- c("feature_id", "gene_id")
+#' colnames(geuv_genotypes)[4] <- "snp_id"
+#' geuv_samples <- data.frame(sample_id = colnames(geuv_counts)[-c(1,2)])
 #' 
-#' d <- dmSQTLdata(counts = counts, gene_ranges = gene_ranges,  
-#'   genotypes = genotypes, snp_ranges = snp_ranges, samples = samples, 
-#'   window = 5e3)
+#' d <- dmSQTLdata(counts = geuv_counts, gene_ranges = geuv_gene_ranges,  
+#'   genotypes = geuv_genotypes, snp_ranges = geuv_snp_ranges, 
+#'   samples = geuv_samples, window = 5e3)
 #' 
 #' # --------------------------------------------------------------------------
 #' # sQTL analysis - simple group comparison
@@ -161,7 +161,7 @@ setMethod("dmFit", "dmSQTLprecision", function(x, one_way = TRUE,
 #' @rdname plotProportions
 #' @export
 setMethod("plotProportions", "dmSQTLfit", function(x, gene_id, snp_id, 
-  plot_type = "boxplot1", order = TRUE, plot_fit = TRUE, 
+  plot_type = "boxplot1", order = TRUE, plot_fit = FALSE, 
   plot_main = TRUE, group_colors = NULL, feature_colors = NULL){
   
   stopifnot(gene_id %in% names(x@blocks))
@@ -195,11 +195,6 @@ setMethod("plotProportions", "dmSQTLfit", function(x, gene_id, snp_id,
   counts_gene <- counts_gene[, nonNAs, drop = FALSE]
   group <- factor(group[nonNAs])
   
-  # Order samples by group
-  o <- order(group) 
-  group <- group[o]
-  counts_gene <- counts_gene[, o, drop = FALSE]
-  
   main <- NULL
   
   if(plot_main){
@@ -226,6 +221,11 @@ setMethod("plotProportions", "dmSQTLfit", function(x, gene_id, snp_id,
     colnames(prop_full) <- levels(group)
 
   }
+  
+  # Order samples by group
+  o <- order(group) 
+  group <- group[o]
+  counts_gene <- counts_gene[, o, drop = FALSE]
   
   ggp <- dm_plotProportions(counts = counts_gene, group = group, 
     prop_full = prop_full, main = main, plot_type = plot_type, 

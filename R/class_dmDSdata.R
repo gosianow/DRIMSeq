@@ -44,20 +44,20 @@ NULL
 #' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 #' 
 #' ## Load metadata
-#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_metadata <- read.table(file.path(data_dir, "metadata.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
 #' ## Load counts
-#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_counts <- read.table(file.path(data_dir, "counts.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
-#' ## Create a samples data frame
-#' samples <- data.frame(sample_id = metadata$SampleName, 
-#'   group = metadata$condition)
-#' levels(samples$group)
+#' ## Create a pasilla_samples data frame
+#' pasilla_samples <- data.frame(sample_id = pasilla_metadata$SampleName, 
+#'   group = pasilla_metadata$condition)
+#' levels(pasilla_samples$group)
 #' 
 #' ## Create a dmDSdata object
-#' d <- dmDSdata(counts = counts, samples = samples)
+#' d <- dmDSdata(counts = pasilla_counts, samples = pasilla_samples)
 #' 
 #' ## Use a subset of genes, which is defined in the following file
 #' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
@@ -211,20 +211,20 @@ setMethod("[", "dmDSdata", function(x, i, j){
 #' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 #' 
 #' ## Load metadata
-#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_metadata <- read.table(file.path(data_dir, "metadata.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
 #' ## Load counts
-#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_counts <- read.table(file.path(data_dir, "counts.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
-#' ## Create a samples data frame
-#' samples <- data.frame(sample_id = metadata$SampleName, 
-#'   group = metadata$condition)
-#' levels(samples$group)
+#' ## Create a pasilla_samples data frame
+#' pasilla_samples <- data.frame(sample_id = pasilla_metadata$SampleName, 
+#'   group = pasilla_metadata$condition)
+#' levels(pasilla_samples$group)
 #' 
 #' ## Create a dmDSdata object
-#' d <- dmDSdata(counts = counts, samples = samples)
+#' d <- dmDSdata(counts = pasilla_counts, samples = pasilla_samples)
 #' 
 #' ## Use a subset of genes, which is defined in the following file
 #' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
@@ -366,20 +366,20 @@ setGeneric("dmFilter", function(x, ...) standardGeneric("dmFilter"))
 #' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 #' 
 #' ## Load metadata
-#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_metadata <- read.table(file.path(data_dir, "metadata.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
 #' ## Load counts
-#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_counts <- read.table(file.path(data_dir, "counts.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
-#' ## Create a samples data frame
-#' samples <- data.frame(sample_id = metadata$SampleName, 
-#'   group = metadata$condition)
-#' levels(samples$group)
+#' ## Create a pasilla_samples data frame
+#' pasilla_samples <- data.frame(sample_id = pasilla_metadata$SampleName, 
+#'   group = pasilla_metadata$condition)
+#' levels(pasilla_samples$group)
 #' 
 #' ## Create a dmDSdata object
-#' d <- dmDSdata(counts = counts, samples = samples)
+#' d <- dmDSdata(counts = pasilla_counts, samples = pasilla_samples)
 #' 
 #' ## Use a subset of genes, which is defined in the following file
 #' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
@@ -465,20 +465,20 @@ setGeneric("plotData", function(x, ...) standardGeneric("plotData"))
 #' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 #' 
 #' ## Load metadata
-#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_metadata <- read.table(file.path(data_dir, "metadata.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
 #' ## Load counts
-#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_counts <- read.table(file.path(data_dir, "counts.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
-#' ## Create a samples data frame
-#' samples <- data.frame(sample_id = metadata$SampleName, 
-#'   group = metadata$condition)
-#' levels(samples$group)
+#' ## Create a pasilla_samples data frame
+#' pasilla_samples <- data.frame(sample_id = pasilla_metadata$SampleName, 
+#'   group = pasilla_metadata$condition)
+#' levels(pasilla_samples$group)
 #' 
 #' ## Create a dmDSdata object
-#' d <- dmDSdata(counts = counts, samples = samples)
+#' d <- dmDSdata(counts = pasilla_counts, samples = pasilla_samples)
 #' 
 #' ## Use a subset of genes, which is defined in the following file
 #' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))

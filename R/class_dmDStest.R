@@ -46,20 +46,20 @@ NULL
 #' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 #' 
 #' ## Load metadata
-#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_metadata <- read.table(file.path(data_dir, "metadata.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
 #' ## Load counts
-#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_counts <- read.table(file.path(data_dir, "counts.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
-#' ## Create a samples data frame
-#' samples <- data.frame(sample_id = metadata$SampleName, 
-#'   group = metadata$condition)
-#' levels(samples$group)
+#' ## Create a pasilla_samples data frame
+#' pasilla_samples <- data.frame(sample_id = pasilla_metadata$SampleName, 
+#'   group = pasilla_metadata$condition)
+#' levels(pasilla_samples$group)
 #' 
 #' ## Create a dmDSdata object
-#' d <- dmDSdata(counts = counts, samples = samples)
+#' d <- dmDSdata(counts = pasilla_counts, samples = pasilla_samples)
 #' 
 #' ## Use a subset of genes, which is defined in the following file
 #' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
@@ -80,12 +80,12 @@ NULL
 #' plotData(d)
 #' 
 #' ## Create the design matrix
-#' design <- model.matrix(~ group, data = samples(d))
+#' design_full <- model.matrix(~ group, data = samples(d))
 #' 
 #' ## To make the analysis reproducible
 #' set.seed(123)
 #' ## Calculate precision
-#' d <- dmPrecision(d, design = design)
+#' d <- dmPrecision(d, design = design_full)
 #' 
 #' plotPrecision(d)
 #' 
@@ -94,7 +94,7 @@ NULL
 #' head(genewise_precision(d))
 #' 
 #' ## Fit full model proportions
-#' d <- dmFit(d, design = design)
+#' d <- dmFit(d, design = design_full)
 #' 
 #' ## Get fitted proportions
 #' head(proportions(d))
@@ -163,6 +163,23 @@ setValidity("dmDStest", function(object){
 
 
 #' @rdname dmDStest-class
+#' @inheritParams dmDSprecision-class
+#' @export
+setMethod("design", "dmDStest", function(object, type = "null_model"){
+  
+  stopifnot(type %in% c("precision", "full_model", "null_model"))
+  
+  if(type == "precision")
+    object@design_precision
+  else if(type == "full_model")
+    object@design_fit_full
+  else
+    object@design_fit_null
+  
+})
+
+
+#' @rdname dmDStest-class
 #' @export
 setGeneric("results", function(x, ...) standardGeneric("results"))
 
@@ -218,15 +235,15 @@ setGeneric("dmTest", function(x, ...) standardGeneric("dmTest"))
 #'   \code{\linkS4class{dmFit}}.
 #' @param design Numeric matrix definig the null model.
 #' @param contrast Numeric vector or matrix specifying one or more contrasts of 
-#'   the linear model coefficients to be tested equal to zero. Number of rows 
-#'   must equal to the number of columns of \code{design} used in 
-#'   \code{\linkS4class{dmFit}}.
+#'   the linear model coefficients to be tested equal to zero. For a matrix, 
+#'   number of rows (for a vector, its length) must equal to the number of
+#'   columns of \code{design} used in \code{\linkS4class{dmFit}}.
 #'   
 #' @details One must specify one of the arguments: \code{coef}, \code{design} or
 #'   \code{contrast}.
 #'   
-#'   When \code{contrast} is used to define the null model, the null design
-#'   matrix is recalculated using the same approach as in
+#'   When \code{contrast} is used to define the null model, the null design 
+#'   matrix is recalculated using the same approach as in 
 #'   \code{\link[edgeR]{glmLRT}} function from \code{\link{edgeR}}.
 #'   
 #' @return Returns a \code{\linkS4class{dmDStest}} or 
@@ -242,20 +259,20 @@ setGeneric("dmTest", function(x, ...) standardGeneric("dmTest"))
 #' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 #' 
 #' ## Load metadata
-#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_metadata <- read.table(file.path(data_dir, "metadata.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
 #' ## Load counts
-#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_counts <- read.table(file.path(data_dir, "counts.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
-#' ## Create a samples data frame
-#' samples <- data.frame(sample_id = metadata$SampleName, 
-#'   group = metadata$condition)
-#' levels(samples$group)
+#' ## Create a pasilla_samples data frame
+#' pasilla_samples <- data.frame(sample_id = pasilla_metadata$SampleName, 
+#'   group = pasilla_metadata$condition)
+#' levels(pasilla_samples$group)
 #' 
 #' ## Create a dmDSdata object
-#' d <- dmDSdata(counts = counts, samples = samples)
+#' d <- dmDSdata(counts = pasilla_counts, samples = pasilla_samples)
 #' 
 #' ## Use a subset of genes, which is defined in the following file
 #' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
@@ -276,12 +293,12 @@ setGeneric("dmTest", function(x, ...) standardGeneric("dmTest"))
 #' plotData(d)
 #' 
 #' ## Create the design matrix
-#' design <- model.matrix(~ group, data = samples(d))
+#' design_full <- model.matrix(~ group, data = samples(d))
 #' 
 #' ## To make the analysis reproducible
 #' set.seed(123)
 #' ## Calculate precision
-#' d <- dmPrecision(d, design = design)
+#' d <- dmPrecision(d, design = design_full)
 #' 
 #' plotPrecision(d)
 #' 
@@ -290,7 +307,7 @@ setGeneric("dmTest", function(x, ...) standardGeneric("dmTest"))
 #' head(genewise_precision(d))
 #' 
 #' ## Fit full model proportions
-#' d <- dmFit(d, design = design)
+#' d <- dmFit(d, design = design_full)
 #' 
 #' ## Get fitted proportions
 #' head(proportions(d))
@@ -324,9 +341,9 @@ setGeneric("dmTest", function(x, ...) standardGeneric("dmTest"))
 #' }
 #' @author Malgorzata Nowicka
 #' @seealso \code{\link{plotPValues}} \code{\link[edgeR]{glmLRT}}
-#' @references McCarthy, DJ, Chen, Y, Smyth, GK (2012). Differential expression
-#' analysis of multifactor RNA-Seq experiments with respect to biological
-#' variation. Nucleic Acids Research 40, 4288-4297.
+#' @references McCarthy, DJ, Chen, Y, Smyth, GK (2012). Differential expression 
+#'   analysis of multifactor RNA-Seq experiments with respect to biological 
+#'   variation. Nucleic Acids Research 40, 4288-4297.
 #' @rdname dmTest
 #' @export
 setMethod("dmTest", "dmDSfit", function(x, 
@@ -533,20 +550,20 @@ setGeneric("plotPValues", function(x, ...) standardGeneric("plotPValues"))
 #' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 #' 
 #' ## Load metadata
-#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_metadata <- read.table(file.path(data_dir, "metadata.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
 #' ## Load counts
-#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
-#'   as.is = TRUE)
+#' pasilla_counts <- read.table(file.path(data_dir, "counts.txt"), 
+#' header = TRUE, as.is = TRUE)
 #' 
-#' ## Create a samples data frame
-#' samples <- data.frame(sample_id = metadata$SampleName, 
-#'   group = metadata$condition)
-#' levels(samples$group)
+#' ## Create a pasilla_samples data frame
+#' pasilla_samples <- data.frame(sample_id = pasilla_metadata$SampleName, 
+#'   group = pasilla_metadata$condition)
+#' levels(pasilla_samples$group)
 #' 
 #' ## Create a dmDSdata object
-#' d <- dmDSdata(counts = counts, samples = samples)
+#' d <- dmDSdata(counts = pasilla_counts, samples = pasilla_samples)
 #' 
 #' ## Use a subset of genes, which is defined in the following file
 #' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
@@ -567,12 +584,12 @@ setGeneric("plotPValues", function(x, ...) standardGeneric("plotPValues"))
 #' plotData(d)
 #' 
 #' ## Create the design matrix
-#' design <- model.matrix(~ group, data = samples(d))
+#' design_full <- model.matrix(~ group, data = samples(d))
 #' 
 #' ## To make the analysis reproducible
 #' set.seed(123)
 #' ## Calculate precision
-#' d <- dmPrecision(d, design = design)
+#' d <- dmPrecision(d, design = design_full)
 #' 
 #' plotPrecision(d)
 #' 
@@ -581,7 +598,7 @@ setGeneric("plotPValues", function(x, ...) standardGeneric("plotPValues"))
 #' head(genewise_precision(d))
 #' 
 #' ## Fit full model proportions
-#' d <- dmFit(d, design = design)
+#' d <- dmFit(d, design = design_full)
 #' 
 #' ## Get fitted proportions
 #' head(proportions(d))

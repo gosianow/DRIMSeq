@@ -34,9 +34,9 @@ numbers or column names of the \code{design} used in
 \item{design}{Numeric matrix definig the null model.}
 
 \item{contrast}{Numeric vector or matrix specifying one or more contrasts of 
-the linear model coefficients to be tested equal to zero. Number of rows 
-must equal to the number of columns of \code{design} used in 
-\code{\linkS4class{dmFit}}.}
+the linear model coefficients to be tested equal to zero. For a matrix, 
+number of rows (for a vector, its length) must equal to the number of
+columns of \code{design} used in \code{\linkS4class{dmFit}}.}
 
 \item{one_way}{Logical. Should the shortcut fitting be used when the design 
 corresponds to multiple group comparison. This is a similar approach as in 
@@ -90,8 +90,8 @@ model is implemented only in the differential usage analysis.
 One must specify one of the arguments: \code{coef}, \code{design} or
   \code{contrast}.
   
-  When \code{contrast} is used to define the null model, the null design
-  matrix is recalculated using the same approach as in
+  When \code{contrast} is used to define the null model, the null design 
+  matrix is recalculated using the same approach as in 
   \code{\link[edgeR]{glmLRT}} function from \code{\link{edgeR}}.
 }
 \examples{
@@ -105,20 +105,20 @@ library(PasillaTranscriptExpr)
 data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 
 ## Load metadata
-metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
-  as.is = TRUE)
+pasilla_metadata <- read.table(file.path(data_dir, "metadata.txt"), 
+header = TRUE, as.is = TRUE)
 
 ## Load counts
-counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
-  as.is = TRUE)
+pasilla_counts <- read.table(file.path(data_dir, "counts.txt"), 
+header = TRUE, as.is = TRUE)
 
-## Create a samples data frame
-samples <- data.frame(sample_id = metadata$SampleName, 
-  group = metadata$condition)
-levels(samples$group)
+## Create a pasilla_samples data frame
+pasilla_samples <- data.frame(sample_id = pasilla_metadata$SampleName, 
+  group = pasilla_metadata$condition)
+levels(pasilla_samples$group)
 
 ## Create a dmDSdata object
-d <- dmDSdata(counts = counts, samples = samples)
+d <- dmDSdata(counts = pasilla_counts, samples = pasilla_samples)
 
 ## Use a subset of genes, which is defined in the following file
 gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
@@ -139,12 +139,12 @@ d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3,
 plotData(d)
 
 ## Create the design matrix
-design <- model.matrix(~ group, data = samples(d))
+design_full <- model.matrix(~ group, data = samples(d))
 
 ## To make the analysis reproducible
 set.seed(123)
 ## Calculate precision
-d <- dmPrecision(d, design = design)
+d <- dmPrecision(d, design = design_full)
 
 plotPrecision(d)
 
@@ -153,7 +153,7 @@ common_precision(d)
 head(genewise_precision(d))
 
 ## Fit full model proportions
-d <- dmFit(d, design = design)
+d <- dmFit(d, design = design_full)
 
 ## Get fitted proportions
 head(proportions(d))
@@ -187,9 +187,9 @@ plotProportions(d, gene_id = top_gene_id, group_variable = "group",
 }
 }
 \references{
-McCarthy, DJ, Chen, Y, Smyth, GK (2012). Differential expression
-analysis of multifactor RNA-Seq experiments with respect to biological
-variation. Nucleic Acids Research 40, 4288-4297.
+McCarthy, DJ, Chen, Y, Smyth, GK (2012). Differential expression 
+  analysis of multifactor RNA-Seq experiments with respect to biological 
+  variation. Nucleic Acids Research 40, 4288-4297.
 }
 \seealso{
 \code{\link{plotPValues}} \code{\link[edgeR]{glmLRT}}
