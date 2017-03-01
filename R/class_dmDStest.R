@@ -145,20 +145,30 @@ setGeneric("dmTest", function(x, ...) standardGeneric("dmTest"))
 #' @rdname dmTest
 #' @export
 setMethod("dmTest", "dmDSfit", function(x, 
-  coef = NULL, design = NULL, contrast = NULL,
-  prop_mode = "constrOptim", prop_tol = 1e-12, verbose = 0, 
-  BPPARAM = BiocParallel::SerialParam()){
+  coef = NULL, design = NULL, contrast = NULL, 
+  one_way = TRUE,
+  prop_mode = "constrOptim", prop_tol = 1e-12, 
+  coef_mode = "optim", coef_tol = 1e-12,
+  verbose = 0, BPPARAM = BiocParallel::SerialParam()){
   
   # Check parameters
+  stopifnot(is.logical(one_way))
+  
   stopifnot(length(prop_mode) == 1)
   stopifnot(prop_mode %in% c("constrOptim"))
   stopifnot(length(prop_tol) == 1)
   stopifnot(is.numeric(prop_tol) && prop_tol > 0)
+  
+  stopifnot(length(coef_mode) == 1)
+  stopifnot(coef_mode %in% c("optim", "nlminb", "Rcgmin"))
+  stopifnot(length(coef_tol) == 1)
+  stopifnot(is.numeric(coef_tol) && coef_tol > 0)
+  
   stopifnot(verbose %in% 0:2)
   
   if(!sum(!unlist(lapply(list(coef, design, contrast), is.null))) == 1)
-    stop(paste0("One of the ways to define the null model 'coef', 
-      'design' or 'contrast' must be used!"))
+    stop(paste0("Only one of the ways to define the null model 'coef', 
+      'design' or 'contrast' can be used!"))
   
   # Check coef
   if(!is.null(coef)){
@@ -232,7 +242,9 @@ setMethod("dmTest", "dmDSfit", function(x,
   # Fit the DM null model: proportions and likelihoods
   fit0 <- dmDS_fit(counts = x@counts, design = design0, 
     dispersion = x@genewise_dispersion,
+    one_way = one_way,
     prop_mode = prop_mode, prop_tol = prop_tol, 
+    coef_mode = coef_mode, coef_tol = coef_tol, 
     verbose = verbose, BPPARAM = BPPARAM)
   
   # Calculate the DM degrees of freedom for the LR test: df_full - df_null
@@ -249,7 +261,9 @@ setMethod("dmTest", "dmDSfit", function(x,
   # Calculate the Beta-Binomial null likelihoods for each feature
   fit0_bb <- bbDS_fit(counts = x@counts, fit = fit0[["fit"]], design = design0, 
     dispersion = x@genewise_dispersion,
+    one_way = one_way,
     prop_mode = prop_mode, prop_tol = prop_tol, 
+    coef_mode = coef_mode, coef_tol = coef_tol,
     verbose = verbose, BPPARAM = BPPARAM)
   
   # Calculate the BB degrees of freedom for the LR test

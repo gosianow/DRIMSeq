@@ -6,8 +6,8 @@
 
 dm_fitOneGroup <- function(y, disp, 
   prop_mode = "constrOptim", prop_tol = 1e-12, verbose = FALSE){
-  ### y must be features vs. samples
-  ### If something is wrong, return NAs
+  # y matrix q x n
+  # If something is wrong, return NAs
   
   q <- nrow(y)
   
@@ -35,6 +35,7 @@ dm_fitOneGroup <- function(y, disp,
   
   prop_init <- rowSums(y)/sum(y)
   
+  # If there is only one replicate, use empirical props as output
   if(sum(keep_col) == 1){
     
     lik <- dm_likG(prop = prop_init[-q], disp = disp, y = y)

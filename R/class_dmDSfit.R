@@ -147,7 +147,7 @@ setMethod("show", "dmDSfit", function(object){
 setGeneric("dmFit", function(x, ...) standardGeneric("dmFit"))
 
 
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 #' @inheritParams dmDispersion
@@ -164,9 +164,10 @@ setGeneric("dmFit", function(x, ...) standardGeneric("dmFit"))
 #'   \code{\link{plotFit}}, \code{\link{dmDispersion}}, \code{\link{dmTest}}
 #' @rdname dmFit
 #' @export
-setMethod("dmFit", "dmDSdispersion", function(x, design,
-  prop_mode = "constrOptim", prop_tol = 1e-12, verbose = 0, 
-  BPPARAM = BiocParallel::SerialParam()){
+setMethod("dmFit", "dmDSdispersion", function(x, design, one_way = TRUE,
+  prop_mode = "constrOptim", prop_tol = 1e-12, 
+  coef_mode = "optim", coef_tol = 1e-12,
+  verbose = 0, BPPARAM = BiocParallel::SerialParam()){
   
   # Check design as in edgeR
   design <- as.matrix(design)
@@ -182,22 +183,34 @@ setMethod("dmFit", "dmDSdispersion", function(x, design,
       'design' used for dispersion estimation !\n"))
   
   # Check other parameters
+  stopifnot(is.logical(one_way))
+  
   stopifnot(length(prop_mode) == 1)
   stopifnot(prop_mode %in% c("constrOptim"))
   stopifnot(length(prop_tol) == 1)
   stopifnot(is.numeric(prop_tol) && prop_tol > 0)
+  
+  stopifnot(length(coef_mode) == 1)
+  stopifnot(coef_mode %in% c("optim", "nlminb", "Rcgmin"))
+  stopifnot(length(coef_tol) == 1)
+  stopifnot(is.numeric(coef_tol) && coef_tol > 0)
+  
   stopifnot(verbose %in% 0:2)
   
   # Fit the DM model: proportions and likelihoods
   fit <- dmDS_fit(counts = x@counts, design = design, 
     dispersion = x@genewise_dispersion,
+    one_way = one_way,
     prop_mode = prop_mode, prop_tol = prop_tol, 
+    coef_mode = coef_mode, coef_tol = coef_tol,
     verbose = verbose, BPPARAM = BPPARAM)
   
   # Calculate the Beta-Binomial likelihoods for each feature
   fit_bb <- bbDS_fit(counts = x@counts, fit = fit[["fit"]], design = design, 
     dispersion = x@genewise_dispersion,
+    one_way = one_way,
     prop_mode = prop_mode, prop_tol = prop_tol, 
+    coef_mode = coef_mode, coef_tol = coef_tol,
     verbose = verbose, BPPARAM = BPPARAM)
   
   return(new("dmDSfit", design_fit_full = design, 

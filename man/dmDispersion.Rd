@@ -14,8 +14,9 @@ dmDispersion(x, ...)
   disp_adjust = TRUE, disp_subset = 0.1, disp_interval = c(0, 1e+05),
   disp_tol = 10, disp_init = 100, disp_grid_length = 21,
   disp_grid_range = c(-10, 10), disp_moderation = "trended",
-  disp_prior_df = 0, disp_span = 0.1, prop_mode = "constrOptimG",
-  prop_tol = 1e-12, verbose = 0,
+  disp_prior_df = 0, disp_span = 0.1, one_way = TRUE,
+  prop_mode = "constrOptim", prop_tol = 1e-12, coef_mode = "optim",
+  coef_tol = 1e-12, verbose = 0,
   BPPARAM = BiocParallel::MulticoreParam(workers = 1))
 
 \S4method{dmDispersion}{dmSQTLdata}(x, mean_expression = TRUE,
@@ -24,7 +25,7 @@ dmDispersion(x, ...)
   disp_tol = 1e-08, disp_init = 100, disp_init_weirMoM = TRUE,
   disp_grid_length = 21, disp_grid_range = c(-10, 10),
   disp_moderation = "none", disp_prior_df = 0, disp_span = 0.1,
-  prop_mode = "constrOptimG", prop_tol = 1e-12, verbose = 0,
+  prop_mode = "constrOptim", prop_tol = 1e-12, verbose = 0,
   speed = TRUE, BPPARAM = BiocParallel::MulticoreParam(workers = 1))
 }
 \arguments{
@@ -34,7 +35,7 @@ object.}
 \item{...}{Other parameters that can be defined by methods using this
 generic.}
 
-\item{design}{Numeric matrix definig the model that should be used when
+\item{design}{Numeric matrix definig the model that should be used when 
 estimating dispersion. Normally this should be a full model design.}
 
 \item{mean_expression}{Logical. Whether to estimate the mean expression of 
@@ -78,10 +79,21 @@ is smaller than 10). By default it is equal to 0.}
 smoothing sliding window when calculating the dispersion versus mean 
 expression trend.}
 
+\item{one_way}{Logical. Should the shortcut fitting be used when the design 
+corresponds to multiple group comparison. If \code{TRUE} (the default), 
+then proportions are fitted per group and regression coefficients are 
+recalculated from these fittings.}
+
 \item{prop_mode}{Optimization method used to estimate proportions. Possible 
-values \code{"constrOptim"} and \code{"constrOptimG"}.}
+value \code{"constrOptim"}.}
 
 \item{prop_tol}{The desired accuracy when estimating proportions.}
+
+\item{coef_mode}{Optimization method used to estimate regression
+coefficients. Possible values \code{"optim"} (the default), \code{"nlminb"}
+or \code{"Rcgmin"}.}
+
+\item{coef_tol}{The desired accuracy when estimating regression coefficients.}
 
 \item{verbose}{Numeric. Definie the level of progress messages displayed. 0 -
 no messages, 1 - main messages, 2 - message for every gene fitting.}
@@ -114,16 +126,10 @@ Parameters that are used in the dispersion estimation start with
   
   Arguments that are used by all the methods are:
   
-  \itemize{ \item \code{disp_adjust} \item \code{prop_mode}: Both 
-  \code{"constrOptim"} and \code{"constrOptimG"} use 
-  \code{\link{constrOptim}} function to maximize the likelihood of 
-  Dirichlet-multinomial proportions. The difference lays in the way the 
-  likelihood and score are computed. \code{"constrOptim"} uses the likelihood
-  and score that are calculated based on the fact that x*Gamma(x) = 
-  Gamma(x+1). In \code{"constrOptimG"}, we compute them using 
-  \code{\link{lgamma}} function. We recommend using the second approach, 
-  since it is much faster than the first one. \item \code{prop_tol}: The 
-  accuracy for proportions estimation defined as \code{reltol} in 
+  \itemize{ \item \code{disp_adjust} \item \code{prop_mode}: 
+  \code{"constrOptim"} uses \code{\link{constrOptim}} function to maximize 
+  the likelihood of Dirichlet-multinomial proportions. \item \code{prop_tol}:
+  The accuracy for proportions estimation defined as \code{reltol} in 
   \code{\link{constrOptim}}. }
   
   Only some of the rest of dispersion parameters in dmDispersion have an 

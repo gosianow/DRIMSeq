@@ -4,10 +4,20 @@ dm_CRadjustmentOneGroup <- function(y, disp, prop){
   # prop vector of length q
   # If something is wrong, return NAs
   
+  if(any(is.na(prop)))
+    return(NA)
+  
   q <- nrow(y)
+  
+  # NAs for genes with one feature
+  if(q < 2 || is.na(disp)) 
+    return(NA)
   
   # Check for 0s in rows (features)
   keep_row <- rowSums(y) > 0
+  # There must be at least two non-zero features
+  if(sum(keep_row) < 2) 
+    return(NA)
   
   # Last feature can not be zero since
   # we use the last feature as a denominator in logit
@@ -17,12 +27,12 @@ dm_CRadjustmentOneGroup <- function(y, disp, prop){
   y <- y[keep_row, , drop=FALSE]
   q <- nrow(y)
   
-  # Check for 0s in cols (replicates)
+  # Check for 0s in columns (replicates)
   keep_col <- colSums(y) > 0
   y <- y[, keep_col, drop=FALSE]
   
-  n <- ncol(y) 
   prop <- prop[keep_row]
+  n <- ncol(y) 
   
   adj <- log(det(n * (- dm_HessianG(prop = prop[-q], disp, y)) ))/2 
   ## with Gamma functions ## if prop is NULL then:

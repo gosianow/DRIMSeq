@@ -54,7 +54,7 @@ setClass("dmDSdispersion",
     design_dispersion = "matrix"))
 
 
-####################################
+# -----------------------------------------------------------------------------
 
 setValidity("dmDSdispersion", function(object){
   # has to return TRUE when valid object!
@@ -170,11 +170,12 @@ setMethod("genewise_dispersion", "dmDSdispersion", function(x){
 setGeneric("genewise_dispersion<-", function(x, value) 
   standardGeneric("genewise_dispersion<-"))
 
+
 #' @rdname dmDSdispersion-class
 #' @export
 setMethod("genewise_dispersion<-", "dmDSdispersion", function(x, value){
+  # value must be a data frame with gene_id and genewise_dispersion
   
-  # Value must be a data.frame with gene_id and genewise_dispersion columns
   stopifnot(all(c("gene_id", "genewise_dispersion") %in% colnames(value)))
   stopifnot(all(names(x@counts) %in% value[,"gene_id"]))
   order <- match(names(x@counts), value[,"gene_id"])
@@ -189,7 +190,8 @@ setMethod("genewise_dispersion<-", "dmDSdispersion", function(x, value){
 
 
 
-#################################
+# -----------------------------------------------------------------------------
+
 
 setMethod("show", "dmDSdispersion", function(object){
   
@@ -217,7 +219,8 @@ setMethod("show", "dmDSdispersion", function(object){
 setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
 
 
-#################################
+# -----------------------------------------------------------------------------
+
 
 #' @details Parameters that are used in the dispersion estimation start with 
 #'   prefix \code{disp_}, and those that are used for the proportion estimation 
@@ -229,13 +232,10 @@ setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
 #'   
 #'   Arguments that are used by all the methods are:
 #'   
-#'   \itemize{ \item \code{disp_adjust} 
-#'   \item \code{prop_mode}: 
-#'   \code{"constrOptim"} uses 
-#'   \code{\link{constrOptim}} function to maximize the likelihood of 
-#'   Dirichlet-multinomial proportions. 
-#'   \item \code{prop_tol}: The 
-#'   accuracy for proportions estimation defined as \code{reltol} in 
+#'   \itemize{ \item \code{disp_adjust} \item \code{prop_mode}: 
+#'   \code{"constrOptim"} uses \code{\link{constrOptim}} function to maximize 
+#'   the likelihood of Dirichlet-multinomial proportions. \item \code{prop_tol}:
+#'   The accuracy for proportions estimation defined as \code{reltol} in 
 #'   \code{\link{constrOptim}}. }
 #'   
 #'   Only some of the rest of dispersion parameters in dmDispersion have an 
@@ -260,7 +260,7 @@ setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
 #'   toward common or trended dispersion is applied. \item \code{disp_span}: 
 #'   Used only when dispersion moderation toward trend is activated. }
 #'   
-#' @param design Numeric matrix definig the model that should be used when
+#' @param design Numeric matrix definig the model that should be used when 
 #'   estimating dispersion. Normally this should be a full model design.
 #' @param mean_expression Logical. Whether to estimate the mean expression of 
 #'   genes.
@@ -269,18 +269,22 @@ setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
 #'   dispersion.
 #' @param disp_adjust Logical. Whether to use the Cox-Reid adjusted or 
 #'   non-adjusted profile likelihood.
+#' @param one_way Logical. Should the shortcut fitting be used when the design 
+#'   corresponds to multiple group comparison. If \code{TRUE} (the default), 
+#'   then proportions are fitted per group and regression coefficients are 
+#'   recalculated from these fittings.
 #' @param disp_subset Value from 0 to 1 defining the percentage of genes used in
 #'   common dispersion estimation. The default is 0.1, which uses 10% of 
 #'   randomly selected genes to speed up the dispersion estimation process. Use 
 #'   \code{set.seed} function to make the analysis reproducible. See Examples.
-#' @param  disp_interval Numeric vector of length 2 defining the interval of 
+#' @param disp_interval Numeric vector of length 2 defining the interval of 
 #'   possible values for the common dispersion.
 #' @param disp_tol The desired accuracy when estimating common dispersion.
 #' @param disp_init Initial dispersion. If \code{common_dispersion} is 
 #'   \code{TRUE}, then \code{disp_init} is overwritten by common dispersion 
 #'   estimate.
-#' @param  disp_grid_length Length of the search grid.
-#' @param  disp_grid_range Vector giving the limits of grid interval.
+#' @param disp_grid_length Length of the search grid.
+#' @param disp_grid_range Vector giving the limits of grid interval.
 #' @param disp_moderation Dispersion moderation method. One can choose to shrink
 #'   the dispersion estimates toward the common dispersion (\code{"common"}) or 
 #'   toward the (dispersion versus mean expression) trend (\code{"trended"})
@@ -293,6 +297,10 @@ setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
 #' @param prop_mode Optimization method used to estimate proportions. Possible 
 #'   value \code{"constrOptim"}.
 #' @param prop_tol The desired accuracy when estimating proportions.
+#' @param coef_mode Optimization method used to estimate regression
+#'   coefficients. Possible values \code{"optim"} (the default), \code{"nlminb"}
+#'   or \code{"Rcgmin"}.
+#' @param coef_tol The desired accuracy when estimating regression coefficients.
 #' @param verbose Numeric. Definie the level of progress messages displayed. 0 -
 #'   no messages, 1 - main messages, 2 - message for every gene fitting.
 #' @param BPPARAM Parallelization method used by 
@@ -316,7 +324,9 @@ setMethod("dmDispersion", "dmDSdata", function(x, design,
   disp_interval = c(0, 1e+5), disp_tol = 1e+01, 
   disp_init = 100, disp_grid_length = 21, disp_grid_range = c(-10, 10), 
   disp_moderation = "trended", disp_prior_df = 0, disp_span = 0.1, 
+  one_way = TRUE, 
   prop_mode = "constrOptim", prop_tol = 1e-12, 
+  coef_mode = "optim", coef_tol = 1e-12,
   verbose = 0, BPPARAM = BiocParallel::MulticoreParam(workers = 1)){
   
   # Check design as in edgeR
@@ -350,10 +360,18 @@ setMethod("dmDispersion", "dmDSdata", function(x, design,
   stopifnot(is.numeric(disp_prior_df) && disp_prior_df >= 0)
   stopifnot(length(disp_span) == 1)
   stopifnot(is.numeric(disp_span) && disp_span > 0 && disp_span < 1)
+  
+  stopifnot(is.logical(one_way))
   stopifnot(length(prop_mode) == 1)
   stopifnot(prop_mode %in% c("constrOptim"))
   stopifnot(length(prop_tol) == 1)
   stopifnot(is.numeric(prop_tol) && prop_tol > 0)
+  
+  stopifnot(length(coef_mode) == 1)
+  stopifnot(coef_mode %in% c("optim", "nlminb", "Rcgmin"))
+  stopifnot(length(coef_tol) == 1)
+  stopifnot(is.numeric(coef_tol) && coef_tol > 0)
+  
   stopifnot(verbose %in% 0:2)
   
   if(mean_expression || (genewise_dispersion && 
@@ -373,6 +391,7 @@ setMethod("dmDispersion", "dmDSdata", function(x, design,
       
       genes2keep <- sample(1:length(x@counts), 
         max(round(disp_subset * length(x@counts)), 1), replace = FALSE)
+      
     }else{
       genes2keep <- 1:length(x@counts)
     }
@@ -381,7 +400,9 @@ setMethod("dmDispersion", "dmDSdata", function(x, design,
       counts = x@counts[genes2keep, ], 
       design = design, disp_adjust = disp_adjust, 
       disp_interval = disp_interval, disp_tol = disp_tol,
+      one_way = one_way,
       prop_mode = prop_mode, prop_tol = prop_tol, 
+      coef_mode = coef_mode, coef_tol = coef_tol,
       verbose = verbose, BPPARAM = BPPARAM)
     
   }else{
@@ -402,7 +423,9 @@ setMethod("dmDispersion", "dmDSdata", function(x, design,
       disp_grid_length = disp_grid_length, disp_grid_range = disp_grid_range, 
       disp_moderation = disp_moderation, 
       disp_prior_df = disp_prior_df, disp_span = disp_span, 
+      one_way = one_way,
       prop_mode = prop_mode, prop_tol = prop_tol, 
+      coef_mode = coef_mode, coef_tol = coef_tol,
       verbose = verbose, BPPARAM = BPPARAM)
     
   }else{
@@ -436,9 +459,7 @@ setMethod("dmDispersion", "dmDSdata", function(x, design,
 setGeneric("plotDispersion", function(x, ...) standardGeneric("plotDispersion"))
 
 
-
-
-##############################
+# -----------------------------------------------------------------------------
 
 
 #' @inheritParams plotData

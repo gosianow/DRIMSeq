@@ -3,7 +3,7 @@
 
 dm_fitRegression <- function(y, design, 
   disp, coef_mode = "optim", coef_tol = 1e-12, verbose = FALSE){
-  # y can not have any rowSums(y) == 0
+  # y can not have any rowSums(y) == 0 - assured during dmFilter
   
   q <- nrow(y)
   p <- ncol(design)

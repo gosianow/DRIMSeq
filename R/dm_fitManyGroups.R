@@ -1,7 +1,7 @@
 
 dm_fitManyGroups <- function(y, ngroups, lgroups, igroups, 
   disp, prop_mode = "constrOptim", prop_tol = 1e-12, verbose = FALSE){
-  # y can not have any rowSums(y) == 0
+  # y can not have any rowSums(y) == 0 - assured during dmFilter
   
   q <- nrow(y)
   
@@ -47,7 +47,7 @@ bb_fitManyGroups <- function(y, prop, ngroups, lgroups, igroups,
   disp, verbose = FALSE){
   # This function calculates BB likelihoods 
   # Proportions prop are estimated with the DM model
-  # y can not have any rowSums(y) == 0
+  # y can not have any rowSums(y) == 0 - assured during dmFilter
   
   q <- nrow(y)
   
@@ -67,7 +67,7 @@ bb_fitManyGroups <- function(y, prop, ngroups, lgroups, igroups,
     
   }
   
-  lik[rowSums(is.na(lik)) > 0, ] <- rep(NA, ngroups)
+  lik[rowSums(is.na(lik)) > 0, ] <- NA
   
   # prop and lik can have NAs
   # prop matrix q x ngroups

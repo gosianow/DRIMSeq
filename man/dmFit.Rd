@@ -9,11 +9,12 @@
 \usage{
 dmFit(x, ...)
 
-\S4method{dmFit}{dmDSdispersion}(x, design, prop_mode = "constrOptimG",
-  prop_tol = 1e-12, verbose = 0, BPPARAM = BiocParallel::SerialParam())
+\S4method{dmFit}{dmDSdispersion}(x, design, one_way = TRUE,
+  prop_mode = "constrOptim", prop_tol = 1e-12, coef_mode = "optim",
+  coef_tol = 1e-12, verbose = 0, BPPARAM = BiocParallel::SerialParam())
 
 \S4method{dmFit}{dmSQTLdispersion}(x, dispersion = "genewise_dispersion",
-  prop_mode = "constrOptimG", prop_tol = 1e-12, verbose = 0,
+  prop_mode = "constrOptim", prop_tol = 1e-12, verbose = 0,
   BPPARAM = BiocParallel::MulticoreParam(workers = 1))
 }
 \arguments{
@@ -25,10 +26,21 @@ generic.}
 
 \item{design}{Numeric matrix definig the full model.}
 
+\item{one_way}{Logical. Should the shortcut fitting be used when the design 
+corresponds to multiple group comparison. If \code{TRUE} (the default), 
+then proportions are fitted per group and regression coefficients are 
+recalculated from these fittings.}
+
 \item{prop_mode}{Optimization method used to estimate proportions. Possible 
-values \code{"constrOptim"} and \code{"constrOptimG"}.}
+value \code{"constrOptim"}.}
 
 \item{prop_tol}{The desired accuracy when estimating proportions.}
+
+\item{coef_mode}{Optimization method used to estimate regression
+coefficients. Possible values \code{"optim"} (the default), \code{"nlminb"}
+or \code{"Rcgmin"}.}
+
+\item{coef_tol}{The desired accuracy when estimating regression coefficients.}
 
 \item{verbose}{Numeric. Definie the level of progress messages displayed. 0 -
 no messages, 1 - main messages, 2 - message for every gene fitting.}

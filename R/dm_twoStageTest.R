@@ -1,19 +1,14 @@
 #######################################################
-#  group testing
+# Perform the two stage test
 #######################################################
 
 
-#' Perform the two stage test
-#' 
-#' @param pvalue_gene data frame with pvalue and gene_id
-#' @param pvalue_feature data frame with pvalue, gene_id and feature_id
-#' @param FDR numeric cutoff for the FDR
-#' @param verbose logical 
-#' @return Returns a data frame with adjusted feature level p-values
 #' @importFrom stats pchisq p.adjust
-#' 
+
 dm_twoStageTest <- function(pvalue_gene, pvalue_feature, FDR = 0.05, 
   verbose = FALSE){
+  # pvalue_gene data frame with pvalue and gene_id
+  # pvalue_feature data frame with pvalue, gene_id and feature_id
   
   if(verbose) message("* Perform the two stage test.. \n")
   
@@ -45,7 +40,6 @@ dm_twoStageTest <- function(pvalue_gene, pvalue_feature, FDR = 0.05,
   pvalue_feature[, "adj_pvalue"] <- unlist(pvalue_two_stages)
   
   time_end <- Sys.time()
-  
   if(verbose) message("Took ", round(time_end - time_start, 4), " seconds.\n")
   
   return(pvalue_feature[, c("gene_id", "feature_id", "adj_pvalue")])

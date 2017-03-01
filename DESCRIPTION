@@ -26,6 +26,7 @@ Imports:
     BiocGenerics,
     methods,
     BiocParallel,
+    limma,
     edgeR,
     utils,
     stats,
@@ -72,6 +73,7 @@ Collate:
     'dmSQTL_test.R'
     'dm_CRadjustmentManyGroups.R'
     'dm_CRadjustmentOneGroup.R'
+    'dm_CRadjustmentRegression.R'
     'dm_LRT.R'
     'dm_core_Hessian.R'
     'dm_core_colorb.R'

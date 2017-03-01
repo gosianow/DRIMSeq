@@ -10,11 +10,12 @@
 dmTest(x, ...)
 
 \S4method{dmTest}{dmDSfit}(x, coef = NULL, design = NULL, contrast = NULL,
-  prop_mode = "constrOptimG", prop_tol = 1e-12, verbose = 0,
+  one_way = TRUE, prop_mode = "constrOptim", prop_tol = 1e-12,
+  coef_mode = "optim", coef_tol = 1e-12, verbose = 0,
   BPPARAM = BiocParallel::SerialParam())
 
 \S4method{dmTest}{dmSQTLfit}(x, permutations = "all_genes",
-  prop_mode = "constrOptimG", prop_tol = 1e-12, verbose = 0,
+  prop_mode = "constrOptim", prop_tol = 1e-12, verbose = 0,
   BPPARAM = BiocParallel::MulticoreParam(workers = 1))
 }
 \arguments{
@@ -36,10 +37,21 @@ the linear model coefficients to be tested equal to zero. Number of rows
 must equal to the number of columns of \code{design} used in 
 \code{\linkS4class{dmFit}}.}
 
+\item{one_way}{Logical. Should the shortcut fitting be used when the design 
+corresponds to multiple group comparison. If \code{TRUE} (the default), 
+then proportions are fitted per group and regression coefficients are 
+recalculated from these fittings.}
+
 \item{prop_mode}{Optimization method used to estimate proportions. Possible 
-values \code{"constrOptim"} and \code{"constrOptimG"}.}
+value \code{"constrOptim"}.}
 
 \item{prop_tol}{The desired accuracy when estimating proportions.}
+
+\item{coef_mode}{Optimization method used to estimate regression
+coefficients. Possible values \code{"optim"} (the default), \code{"nlminb"}
+or \code{"Rcgmin"}.}
+
+\item{coef_tol}{The desired accuracy when estimating regression coefficients.}
 
 \item{verbose}{Numeric. Definie the level of progress messages displayed. 0 -
 no messages, 1 - main messages, 2 - message for every gene fitting.}
