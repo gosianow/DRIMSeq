@@ -9,42 +9,48 @@ dm_fitOneGroup <- function(y, gamma0, prop_mode = c("constrOptim",
   ### y must be features vs. samples
   ### If something is wrong, return NAs
   
-  # NAs for genes with one feature
   q <- nrow(y)
+  
+  # NAs for genes with one feature
   if(q < 2 || is.na(gamma0)) 
     return(list(pi = rep(NA, q), lik = NA))
   
-  ### check for 0s in rows (features)
+  # Check for 0s in rows (features)
   keep_row <- rowSums(y) > 0
-  ### must be at least two features
+  # Must be at least two features
   if(sum(keep_row) < 2) 
     return(list(pi = rep(NA, q), lik = NA))
-  
+    
+  # Last feature can not be zero since
+  # we use the last feature as a denominator in logit
+  if(keep_row[q] == 0)
+    return(list(pi = rep(NA, q), lik = NA))
+
   y <- y[keep_row, , drop=FALSE]
+  q <- nrow(y)
   
-  ### check for 0s in columns (replicates)
+  # Check for 0s in columns (replicates)
   keep_col <- colSums(y) > 0
   y <- y[, keep_col, drop=FALSE]
   
   pi_init <- rowSums(y)/sum(y)
-  q <- length(pi_init) ## q - number of features
   
   if(sum(keep_col) == 1){
     
+    lik <- dm_likG(pi = pi_init[-q], gamma0 = gamma0, y = y)
+    
     keep_row[keep_row] <- pi_init
     pi <- keep_row
-    
-    lik <- dm_likG(pi = pi_init[-q], gamma0 = gamma0, y = y)
     
     return(list(pi = pi, lik = lik))
   }
   
   switch(prop_mode, 
     
-    ### must have constraint for SUM pi = 1 --> 
+    ### Must have constraint for SUM pi = 1 --> 
     ### sum(pi) < 1 + eps & sum(pi) > 1 - eps
-    constrOptim = { ## for q-1 parameters
-      # if(verbose) message("\n gene:", colnames(y)[1], "gamma0:", gamma0)
+    constrOptim = { 
+    ## For q-1 parameters
       
       ui <- rbind(diag(rep(1, q-1), q-1), diag(rep(-1, q-1), q-1), rep(-1, q-1))
       ci <- c(rep(0, q-1), rep(-1, q-1), -1 + .Machine$double.eps) 
@@ -61,8 +67,8 @@ dm_fitOneGroup <- function(y, gamma0, prop_mode = c("constrOptim",
       
     }, 
     
-    constrOptimG = { ## for q-1 parameters with Gamma functions
-      # if(verbose) message("\n gene:", colnames(y)[1], "gamma0:", gamma0)
+    constrOptimG = { 
+    # For q-1 parameters with Gamma functions
       
       ui <- rbind(diag(rep(1, q-1), q-1), diag(rep(-1, q-1), q-1), rep(-1, q-1))
       ci <- c(rep(0, q-1), rep(-1, q-1), -1 + .Machine$double.eps) 
@@ -82,6 +88,8 @@ dm_fitOneGroup <- function(y, gamma0, prop_mode = c("constrOptim",
   keep_row[keep_row] <- pi
   pi <- keep_row
   
+  # pi numeric vector of length q
+  # lik numeric of lenght 1
   return(list(pi = pi, lik = lik))
   
 }
@@ -91,34 +99,57 @@ dm_fitOneGroup <- function(y, gamma0, prop_mode = c("constrOptim",
 bb_fitOneGroup <- function(y, pi, gamma0, verbose = FALSE){
   # Recalculates likelihood for BB, where pi is estimated with DM
   
-  # NAs for genes with one feature
   q <- nrow(y)
-  if(q < 2 || is.na(gamma0)) 
-    return(list(pi = rep(NA, q), lik = NA))
   
-  ### check for 0s in rows (features)
+  # BB lik only for non-NA pi from DM
+  if(any(is.na(pi)))
+    return(list(pi = rep(NA, q), lik = rep(NA, q)))
+  
+  # NAs for genes with one feature
+  if(q < 2 || is.na(gamma0)) 
+    return(list(pi = rep(NA, q), lik = rep(NA, q)))
+  
+  # Check for 0s in rows (features with zero proportions)
   keep_row <- rowSums(y) > 0
-  ### must be at least two features
+  # Must be at least two non zero features
   if(sum(keep_row) < 2) 
-    return(list(pi = rep(NA, q), lik = NA))
+    return(list(pi = rep(NA, q), lik = rep(NA, q)))
   
   y <- y[keep_row, , drop=FALSE]
   pi <- pi[keep_row]
   
-  ### check for 0s in columns (replicates)
+  # Check for 0s in columns (replicates)
   keep_col <- colSums(y) > 0
   y <- y[, keep_col, drop=FALSE]
   
-  lik <- rep(NA, length(keep_row))
+  lik <- rep(NA, q)
   
   lik[keep_row] <- bb_likG(pi = pi, gamma0 = gamma0, y = y)
-    
+  
   keep_row[keep_row] <- pi
   pi <- keep_row
-  
+
+  # pi numeric vector of length q
+  # lik numeric vector of length q
   return(list(pi = pi, lik = lik))
   
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

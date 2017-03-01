@@ -237,12 +237,17 @@ setMethod("dmFit", "dmDSdispersion", function(x, design,
     verbose = verbose, BPPARAM = BPPARAM)
   
   # Calculate the Beta-Binomial likelihoods for each feature
-  # TODO: fit_bb <- bbDS_fit()
+  fit_bb <- bbDS_fit(counts = x@counts, fit = fit[["fit"]], design = design, 
+    dispersion = x@genewise_dispersion,
+    prop_mode = prop_mode, prop_tol = prop_tol, 
+    verbose = verbose, BPPARAM = BPPARAM)
   
   return(new("dmDSfit", design_fit_full = design, 
     fit_full = fit[["fit"]], 
     lik_full = fit[["lik"]], 
     coeffs_full = fit[["coeffs"]],
+    lik_full_bb = fit_bb[["lik"]], 
+    coeffs_full_bb = fit_bb[["coeffs"]],
     mean_expression = x@mean_expression, 
     common_dispersion = x@common_dispersion, 
     genewise_dispersion = x@genewise_dispersion, 

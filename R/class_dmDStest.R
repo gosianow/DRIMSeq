@@ -256,6 +256,7 @@ setMethod("dmTest", "dmDSfit", function(x,
   results_gene <- dmDS_test(
     lik_full = x@lik_full[, compared_groups, drop = FALSE], 
     lik_null = fit[["lik"]], df = fit[["df"]], verbose = verbose)
+  
   results_gene <- data.frame(gene_id = rownames(results_gene), 
     results_gene, stringsAsFactors = FALSE, row.names = NULL)
   
@@ -267,6 +268,7 @@ setMethod("dmTest", "dmDSfit", function(x,
   results_feature <- dmDS_test(
     lik_full = x@lik_full_bb[, compared_groups, drop = FALSE], 
     lik_null = fit_bb[["lik"]], df = fit_bb[["df"]], verbose = verbose)
+  
   results_feature <- data.frame(
     gene_id = rep(names(x@counts), elementNROWS(x@counts)), 
     feature_id = rownames(results_feature), 

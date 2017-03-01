@@ -12,14 +12,12 @@ dm_fitGroups <- function(y, ngroups, lgroups, igroups,
   if(is.na(gamma0) || q < 2) 
     return(list(pi = pi, lik = lik))
   
-  
   for(gr in 1:ngroups){
     # gr = 1
     
     fit_gr <- dm_fitOneGroup(y = y[, igroups[[gr]], 
       drop = FALSE], gamma0 = gamma0, prop_mode = prop_mode, 
-      prop_tol = prop_tol, verbose = verbose)
-    
+      prop_tol = prop_tol, verbose = verbose) 
     
     if(is.na(fit_gr[["lik"]])) {
       pi <- matrix(NA, nrow = q, ncol = ngroups, dimnames = list(rownames(y), 
@@ -28,7 +26,6 @@ dm_fitGroups <- function(y, ngroups, lgroups, igroups,
       names(lik) <- lgroups
       return(list(pi = pi, lik = lik))
     }
-    
     
     pi[, gr] <- fit_gr[["pi"]] 
     lik[gr] <- fit_gr[["lik"]]
@@ -43,20 +40,18 @@ dm_fitGroups <- function(y, ngroups, lgroups, igroups,
 }
 
 
-bb_fitGroups <- function(y, ngroups, lgroups, igroups, 
-  pi, gamma0, verbose = FALSE){
+bb_fitGroups <- function(y, pi, ngroups, lgroups, igroups, 
+  gamma0, verbose = FALSE){
   # This function calculates BB likelihoods 
-  # Proportions pi are estimated with DM model
+  # Proportions pi are estimated with the DM model
   
   q <- nrow(y)
   
   lik <- matrix(NA, nrow = q, ncol = ngroups, dimnames = list(rownames(y), 
     lgroups))
-
   
   if(is.na(gamma0) || q < 2) 
     return(list(pi = pi, lik = lik))
-  
   
   for(gr in 1:ngroups){
     # gr = 1
