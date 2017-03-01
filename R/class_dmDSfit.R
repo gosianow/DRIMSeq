@@ -8,21 +8,22 @@ NULL
 #' dmDSfit object
 #' 
 #' dmDSfit extends the \code{\linkS4class{dmDSprecision}} class by adding the 
-#' full model Dirichlet-multinomial (DM) and beta-binomial (BB) likelihoods,
-#' regression coefficients and feature proportion estimates. Result of calling
+#' full model Dirichlet-multinomial (DM) and beta-binomial (BB) likelihoods, 
+#' regression coefficients and feature proportion estimates. Result of calling 
 #' the \code{\link{dmFit}} function.
 #' 
 #' @return
 #' 
-#' \itemize{ \item \code{proportions(x)}: get a data frame with estimated 
-#' feature ratios for each sample. \item \code{coefficients(x)}: get the DM or
-#' BB regression coefficients. }
+#' \itemize{ \item \code{design(object)}: Get a matrix with the full design.
+#' \item \code{proportions(x)}: Get a data frame with estimated feature ratios
+#' for each sample. \item \code{coefficients(x)}: Get the DM or BB regression
+#' coefficients. }
 #' 
-#' @param x dmDSprecision object.
+#' @param x,object dmDSprecision object.
 #' @param ... Other parameters that can be defined by methods using this 
 #'   generic.
 #'   
-#' @slot design_fit_full Numeric matrix of the desing used to fit the full 
+#' @slot design_fit_full Numeric matrix of the design used to fit the full 
 #'   model.
 #' @slot fit_full \code{\linkS4class{MatrixList}} containing estimated feature 
 #'   ratios in each sample based on the full Dirichlet-multinomial (DM) model.
@@ -104,8 +105,8 @@ NULL
 #' head(coefficients(d), level = "feature")
 #' }
 #' @author Malgorzata Nowicka
-#' @seealso \code{\link{data_dmDSdata}}, \code{\linkS4class{dmDSdata}}, 
-#'   \code{\linkS4class{dmDSprecision}}, \code{\linkS4class{dmDStest}}
+#' @seealso \code{\linkS4class{dmDSdata}}, \code{\linkS4class{dmDSprecision}}, 
+#'   \code{\linkS4class{dmDStest}}
 setClass("dmDSfit", 
   contains = "dmDSprecision",
   representation(design_fit_full = "matrix",
@@ -253,14 +254,14 @@ setGeneric("dmFit", function(x, ...) standardGeneric("dmFit"))
 #' @inheritParams dmPrecision
 #'   
 #' @details In the regression framework here, we adapt the idea from 
-#'   \code{\link[edgeR]{glmFit}} in \code{\link{edgeR}} about using a shortcut
-#'   algorithm when the design is equivalent to simple group fitting. In such a
-#'   case, we estimate the DM proportions for each group of samples separately
-#'   and then recalculate the DM (and/or the BB) regression coefficients
-#'   corresponding to the design matrix. If the design matrix does not define a
-#'   simple group fitting, for example, when it contains a column with continous
-#'   values, then the regression framework is used to directly estimate the
-#'   regression coefficients.
+#'   \code{\link[edgeR]{glmFit}} in \code{\link{edgeR}} about using a shortcut 
+#'   algorithm when the design is equivalent to simple group fitting. In such a 
+#'   case, we estimate the DM proportions for each group of samples separately 
+#'   and then recalculate the DM (and/or the BB) regression coefficients 
+#'   corresponding to the design matrix. If the design matrix does not define a 
+#'   simple group fitting, for example, when it contains a column with
+#'   continuous values, then the regression framework is used to directly
+#'   estimate the regression coefficients.
 #'   
 #'   Arguments that are used for the proportion estimation in each group when 
 #'   the shortcut fitting can be used start with \code{prop_}, and those that 
@@ -272,7 +273,7 @@ setGeneric("dmFit", function(x, ...) standardGeneric("dmFit"))
 #'   the regression framework.
 #'   
 #'   
-#' @param design Numeric matrix definig the full model.
+#' @param design Numeric matrix defining the full model.
 #' @param bb_model Logical. Whether to perform the feature-level analysis using 
 #'   the beta-binomial model.
 #' @return Returns a \code{\linkS4class{dmDSfit}} or 
@@ -347,10 +348,11 @@ setGeneric("dmFit", function(x, ...) standardGeneric("dmFit"))
 #' }
 #' @author Malgorzata Nowicka
 #' @seealso \code{\link{plotProportions}} \code{\link[edgeR]{glmFit}}
-#' @references McCarthy, DJ, Chen, Y, Smyth, GK (2012). Differential expression
-#' analysis of multifactor RNA-Seq experiments with respect to biological
-#' variation. Nucleic Acids Research 40, 4288-4297.
+#' @references McCarthy, DJ, Chen, Y, Smyth, GK (2012). Differential expression 
+#'   analysis of multifactor RNA-Seq experiments with respect to biological 
+#'   variation. Nucleic Acids Research 40, 4288-4297.
 #' @rdname dmFit
+#' @importFrom limma nonEstimable
 #' @export
 setMethod("dmFit", "dmDSprecision", function(x, design, 
   one_way = TRUE, bb_model = TRUE,
@@ -403,7 +405,8 @@ setMethod("dmFit", "dmDSprecision", function(x, design,
       verbose = verbose, BPPARAM = BPPARAM)
     
     return(new("dmDSfit", design_fit_full = design, 
-      fit_full = fit[["fit"]], lik_full = fit[["lik"]], coef_full = fit[["coef"]],
+      fit_full = fit[["fit"]], 
+      lik_full = fit[["lik"]], coef_full = fit[["coef"]],
       lik_full_bb = fit_bb[["lik"]], coef_full_bb = fit_bb[["coef"]],
       mean_expression = x@mean_expression, 
       common_precision = x@common_precision, 
@@ -414,7 +417,8 @@ setMethod("dmFit", "dmDSprecision", function(x, design,
   }else{
     
     return(new("dmDSfit", design_fit_full = design, 
-      fit_full = fit[["fit"]], lik_full = fit[["lik"]], coef_full = fit[["coef"]],
+      fit_full = fit[["fit"]], 
+      lik_full = fit[["lik"]], coef_full = fit[["coef"]],
       mean_expression = x@mean_expression, 
       common_precision = x@common_precision, 
       genewise_precision = x@genewise_precision, 
@@ -461,7 +465,7 @@ setGeneric("plotProportions", function(x, ...)
 #'   \code{"lineplot"}, \code{"ribbonplot"}.
 #' @param order Logical. Whether to plot the features ordered by their 
 #'   expression.
-#' @param plot_full Logical. Whether to plot the proportions estimated by the 
+#' @param plot_fit Logical. Whether to plot the proportions estimated by the 
 #'   full model.
 #' @param plot_main Logical. Whether to plot a title with the information about 
 #'   the Dirichlet-multinomial estimates.

@@ -2,11 +2,11 @@
 % Please edit documentation in R/class_dmDSfit.R
 \docType{class}
 \name{dmDSfit-class}
-\alias{dmDSfit-class}
+\alias{coefficients,dmDSfit-method}
 \alias{design,dmDSfit-method}
+\alias{dmDSfit-class}
 \alias{proportions}
 \alias{proportions,dmDSfit-method}
-\alias{coefficients,dmDSfit-method}
 \title{dmDSfit object}
 \usage{
 \S4method{design}{dmDSfit}(object, type = "full_model")
@@ -22,7 +22,7 @@ proportions(x, ...)
 Possible values \code{"precision"}, \code{"full_model"} or
 \code{"null_model"}.}
 
-\item{x}{dmDSprecision object.}
+\item{x, object}{dmDSprecision object.}
 
 \item{...}{Other parameters that can be defined by methods using this 
 generic.}
@@ -31,20 +31,21 @@ generic.}
 values \code{"gene"} or \code{"feature"}.}
 }
 \value{
-\itemize{ \item \code{proportions(x)}: get a data frame with estimated 
-feature ratios for each sample. \item \code{coefficients(x)}: get the DM or
-BB regression coefficients. }
+\itemize{ \item \code{design(object)}: Get a matrix with the full design.
+\item \code{proportions(x)}: Get a data frame with estimated feature ratios
+for each sample. \item \code{coefficients(x)}: Get the DM or BB regression
+coefficients. }
 }
 \description{
 dmDSfit extends the \code{\linkS4class{dmDSprecision}} class by adding the 
-full model Dirichlet-multinomial (DM) and beta-binomial (BB) likelihoods,
-regression coefficients and feature proportion estimates. Result of calling
+full model Dirichlet-multinomial (DM) and beta-binomial (BB) likelihoods, 
+regression coefficients and feature proportion estimates. Result of calling 
 the \code{\link{dmFit}} function.
 }
 \section{Slots}{
 
 \describe{
-\item{\code{design_fit_full}}{Numeric matrix of the desing used to fit the full 
+\item{\code{design_fit_full}}{Numeric matrix of the design used to fit the full 
 model.}
 
 \item{\code{fit_full}}{\code{\linkS4class{MatrixList}} containing estimated feature 
@@ -63,7 +64,6 @@ feature ratios in each sample based on the full beta-binomial (BB) model.}
 \item{\code{coef_full_bb}}{\code{\linkS4class{MatrixList}} with the regression 
 coefficients based on the BB model.}
 }}
-
 \examples{
 # --------------------------------------------------------------------------
 # Create dmDSdata object 
@@ -133,10 +133,11 @@ head(coefficients(d))
 head(coefficients(d), level = "feature")
 }
 }
-\seealso{
-\code{\link{data_dmDSdata}}, \code{\linkS4class{dmDSdata}}, 
-  \code{\linkS4class{dmDSprecision}}, \code{\linkS4class{dmDStest}}
-}
 \author{
 Malgorzata Nowicka
 }
+\seealso{
+\code{\linkS4class{dmDSdata}}, \code{\linkS4class{dmDSprecision}}, 
+  \code{\linkS4class{dmDStest}}
+}
+

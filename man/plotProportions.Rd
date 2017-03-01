@@ -36,6 +36,9 @@ values \code{"barplot"}, \code{"boxplot1"}, \code{"boxplot2"},
 \item{order}{Logical. Whether to plot the features ordered by their 
 expression.}
 
+\item{plot_fit}{Logical. Whether to plot the proportions estimated by the 
+full model.}
+
 \item{plot_main}{Logical. Whether to plot a title with the information about 
 the Dirichlet-multinomial estimates.}
 
@@ -46,9 +49,6 @@ the Dirichlet-multinomial estimates.}
 defined by \code{gene_id}.}
 
 \item{snp_id}{Character indicating the ID of a SNP to be plotted.}
-
-\item{plot_full}{Logical. Whether to plot the proportions estimated by the 
-full model.}
 }
 \value{
 For a given gene, plot the observed and estimated with 
@@ -63,7 +63,7 @@ equivalent to multiple group fitting.
 In the QTL analysis, plotting of fitted proportions is deactivated 
   even when \code{plot_fit = TRUE}. It is due to the fact that neither fitted
   values nor regression coefficients are returned by the \code{dmFit}
-  function as they ocuppy a lot of memory.
+  function as they occupy a lot of memory.
 }
 \examples{
 # --------------------------------------------------------------------------
@@ -157,10 +157,11 @@ plotProportions(d, gene_id = top_gene_id, group_variable = "group",
   plot_type = "ribbonplot")
 }
 }
+\author{
+Malgorzata Nowicka
+}
 \seealso{
 \code{\link{plotData}}, \code{\link{plotPrecision}}, 
   \code{\link{plotPValues}}
 }
-\author{
-Malgorzata Nowicka
-}
+

@@ -2,22 +2,22 @@
 % Please edit documentation in R/class_MatrixList.R
 \docType{class}
 \name{MatrixList-class}
-\alias{MatrixList-class}
-\alias{names,MatrixList-method}
-\alias{names<-,MatrixList-method}
-\alias{rownames,MatrixList-method}
-\alias{rownames<-,MatrixList-method}
-\alias{colnames,MatrixList-method}
-\alias{colnames<-,MatrixList-method}
-\alias{length,MatrixList-method}
-\alias{elementNROWS,MatrixList-method}
-\alias{dim,MatrixList-method}
-\alias{nrow,MatrixList-method}
-\alias{ncol,MatrixList-method}
-\alias{[[,MatrixList-method}
 \alias{$,MatrixList-method}
+\alias{MatrixList-class}
 \alias{[,MatrixList,ANY-method}
 \alias{[,MatrixList-method}
+\alias{[[,MatrixList-method}
+\alias{colnames,MatrixList-method}
+\alias{colnames<-,MatrixList-method}
+\alias{dim,MatrixList-method}
+\alias{elementNROWS,MatrixList-method}
+\alias{length,MatrixList-method}
+\alias{names,MatrixList-method}
+\alias{names<-,MatrixList-method}
+\alias{ncol,MatrixList-method}
+\alias{nrow,MatrixList-method}
+\alias{rownames,MatrixList-method}
+\alias{rownames<-,MatrixList-method}
 \title{MatrixList object}
 \usage{
 \S4method{names}{MatrixList}(x)
@@ -92,7 +92,7 @@ unlistData matrix into the original matrices.}
 \item{\code{metadata}}{Matrix of additional information where each row corresponds to
 one of the matrices in a list.}
 }}
-
 \author{
 Malgorzata Nowicka
 }
+

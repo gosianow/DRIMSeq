@@ -107,7 +107,7 @@ setMethod("show", "dmSQTLfit", function(object){
 #' values 0, 1, and 2. When \code{one_way = TRUE}, simple multiple group fitting
 #' is performed. When \code{one_way = FALSE}, a regression framework is used
 #' with the design matrix defined by a formula \code{~ group} where group is a 
-#' continous (not categorical) varialbe with values 0, 1, and 2.
+#' continuous (not categorical) variable with values 0, 1, and 2.
 #' @rdname dmFit
 #' @export
 setMethod("dmFit", "dmSQTLprecision", function(x, one_way = TRUE, 
@@ -157,7 +157,7 @@ setMethod("dmFit", "dmSQTLprecision", function(x, one_way = TRUE,
 #' @details In the QTL analysis, plotting of fitted proportions is deactivated 
 #'   even when \code{plot_fit = TRUE}. It is due to the fact that neither fitted
 #'   values nor regression coefficients are returned by the \code{dmFit}
-#'   function as they ocuppy a lot of memory.
+#'   function as they occupy a lot of memory.
 #' @rdname plotProportions
 #' @export
 setMethod("plotProportions", "dmSQTLfit", function(x, gene_id, snp_id, 

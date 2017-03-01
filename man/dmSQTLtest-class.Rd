@@ -37,7 +37,6 @@ IDs, \code{lr} - likelihood ratio statistics based on the DM model,
 permutations and \code{adj_pvalue} - Benjamini & Hochberg adjusted 
 p-values.}
 }}
-
 \examples{
 # --------------------------------------------------------------------------
 # Create dmSQTLdata object
@@ -90,10 +89,11 @@ plotPValues(d)
 head(results(d))
 
 }
+\author{
+Malgorzata Nowicka
+}
 \seealso{
 \code{\linkS4class{dmSQTLdata}}, 
   \code{\linkS4class{dmSQTLprecision}}, \code{\linkS4class{dmSQTLfit}}
 }
-\author{
-Malgorzata Nowicka
-}
+

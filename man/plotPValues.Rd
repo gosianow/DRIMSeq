@@ -121,10 +121,11 @@ plotProportions(d, gene_id = top_gene_id, group_variable = "group",
   plot_type = "ribbonplot")
 }
 }
+\author{
+Malgorzata Nowicka
+}
 \seealso{
 \code{\link{plotData}}, \code{\link{plotPrecision}},
   \code{\link{plotProportions}}
 }
-\author{
-Malgorzata Nowicka
-}
+

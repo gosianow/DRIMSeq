@@ -1,5 +1,5 @@
 
-#' @importFrom stats optim nlminb
+#' @importFrom stats optim
 
 dm_fitRegression <- function(y, design, 
   prec, coef_mode = "optim", coef_tol = 1e-12){
@@ -46,43 +46,44 @@ dm_fitRegression <- function(y, design,
         lik <- NA
       }
       
-    },
+    }
     
-    nlminb = { 
-      
-      # Minimization
-      co <- nlminb(start = b_init, objective = dm_lik_regG_neg, 
-        gradient = dm_score_regG_neg, hessian = NULL,
-        design = design, prec = prec, y = y,
-        control = list(rel.tol = coef_tol))
-      
-      if(co$convergence == 0){
-        b <- rbind(t(matrix(co$par, p, q-1)), rep(0, p))
-        lik <- -co$objective
-      }else{
-        b <- matrix(NA, nrow = q, ncol = p)
-        lik <- NA
-      }
-      
-    },
-    
-    Rcgmin = {
-      
-      # Minimization
-      # Can not use x as an argument because grad() uses x
-      co <- Rcgmin::Rcgmin(par = b_init, fn = dm_lik_regG_neg, 
-        gr = dm_score_regG_neg, 
-        design = design, prec = prec, y = y) 
-      
-      if(co$convergence == 0){
-        b <- rbind(t(matrix(co$par, p, q-1)), rep(0, p))
-        lik <- -co$value
-      }else{
-        b <- matrix(NA, nrow = q, ncol = p)
-        lik <- NA
-      }
-      
-    })
+    # nlminb = { 
+    #   
+    #   # Minimization
+    #   co <- nlminb(start = b_init, objective = dm_lik_regG_neg, 
+    #     gradient = dm_score_regG_neg, hessian = NULL,
+    #     design = design, prec = prec, y = y,
+    #     control = list(rel.tol = coef_tol))
+    #   
+    #   if(co$convergence == 0){
+    #     b <- rbind(t(matrix(co$par, p, q-1)), rep(0, p))
+    #     lik <- -co$objective
+    #   }else{
+    #     b <- matrix(NA, nrow = q, ncol = p)
+    #     lik <- NA
+    #   }
+    #   
+    # },
+    # 
+    # Rcgmin = {
+    #   
+    #   # Minimization
+    #   # Can not use x as an argument because grad() uses x
+    #   co <- Rcgmin::Rcgmin(par = b_init, fn = dm_lik_regG_neg, 
+    #     gr = dm_score_regG_neg, 
+    #     design = design, prec = prec, y = y) 
+    #   
+    #   if(co$convergence == 0){
+    #     b <- rbind(t(matrix(co$par, p, q-1)), rep(0, p))
+    #     lik <- -co$value
+    #   }else{
+    #     b <- matrix(NA, nrow = q, ncol = p)
+    #     lik <- NA
+    #   }
+    #   
+    # }
+  )
   
   # Compute the fitted proportions
   if(!is.na(lik)){
@@ -130,7 +131,7 @@ bb_fitRegression <- function(y, design, prec, fit){
   prop <- t(fit) # n x q
   
   lik <- bb_lik_regG_prop(y = y, prec = prec, prop = prop)
-
+  
   # Get the coefficients like in edgeR::mglmOneWay
   # But use MASS::ginv instead of solve since the design does not have to be 
   # a squared matrix
@@ -142,9 +143,9 @@ bb_fitRegression <- function(y, design, prec, fit){
   prop <- prop[unique_samps, , drop = FALSE]
   
   logit_prop <- log(prop / (1 - prop))
-
+  
   b <- t(MASS::ginv(design) %*% logit_prop)
-
+  
   rownames(b) <- colnames(y)
   
   # b matrix q x p

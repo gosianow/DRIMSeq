@@ -24,7 +24,7 @@ dmFit(x, ...)
 \item{...}{Other parameters that can be defined by methods using this 
 generic.}
 
-\item{design}{Numeric matrix definig the full model.}
+\item{design}{Numeric matrix defining the full model.}
 
 \item{one_way}{Logical. Should the shortcut fitting be used when the design 
 corresponds to multiple group comparison. This is a similar approach as in 
@@ -41,8 +41,7 @@ value \code{"constrOptim"}.}
 \item{prop_tol}{The desired accuracy when estimating proportions.}
 
 \item{coef_mode}{Optimization method used to estimate regression 
-coefficients. Possible values \code{"optim"} (the default), \code{"nlminb"}
-or \code{"Rcgmin"}.}
+coefficients. Possible value \code{"optim"}.}
 
 \item{coef_tol}{The desired accuracy when estimating regression coefficients.}
 
@@ -67,14 +66,14 @@ the differential usage analysis.
 }
 \details{
 In the regression framework here, we adapt the idea from 
-  \code{\link[edgeR]{glmFit}} in \code{\link{edgeR}} about using a shortcut
-  algorithm when the design is equivalent to simple group fitting. In such a
-  case, we estimate the DM proportions for each group of samples separately
-  and then recalculate the DM (and/or the BB) regression coefficients
-  corresponding to the design matrix. If the design matrix does not define a
-  simple group fitting, for example, when it contains a column with continous
-  values, then the regression framework is used to directly estimate the
-  regression coefficients.
+  \code{\link[edgeR]{glmFit}} in \code{\link{edgeR}} about using a shortcut 
+  algorithm when the design is equivalent to simple group fitting. In such a 
+  case, we estimate the DM proportions for each group of samples separately 
+  and then recalculate the DM (and/or the BB) regression coefficients 
+  corresponding to the design matrix. If the design matrix does not define a 
+  simple group fitting, for example, when it contains a column with
+  continuous values, then the regression framework is used to directly
+  estimate the regression coefficients.
   
   Arguments that are used for the proportion estimation in each group when 
   the shortcut fitting can be used start with \code{prop_}, and those that 
@@ -89,7 +88,7 @@ In the QTL analysis, currently, genotypes are defined as numeric
 values 0, 1, and 2. When \code{one_way = TRUE}, simple multiple group fitting
 is performed. When \code{one_way = FALSE}, a regression framework is used
 with the design matrix defined by a formula \code{~ group} where group is a 
-continous (not categorical) varialbe with values 0, 1, and 2.
+continuous (not categorical) variable with values 0, 1, and 2.
 }
 \examples{
 # --------------------------------------------------------------------------
@@ -160,14 +159,15 @@ head(coefficients(d))
 head(coefficients(d), level = "feature")
 }
 }
+\author{
+Malgorzata Nowicka
+}
 \references{
-McCarthy, DJ, Chen, Y, Smyth, GK (2012). Differential expression
-analysis of multifactor RNA-Seq experiments with respect to biological
-variation. Nucleic Acids Research 40, 4288-4297.
+McCarthy, DJ, Chen, Y, Smyth, GK (2012). Differential expression 
+  analysis of multifactor RNA-Seq experiments with respect to biological 
+  variation. Nucleic Acids Research 40, 4288-4297.
 }
 \seealso{
 \code{\link{plotProportions}} \code{\link[edgeR]{glmFit}}
 }
-\author{
-Malgorzata Nowicka
-}
+

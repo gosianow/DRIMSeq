@@ -169,9 +169,10 @@ d <- dmFilter(d, min_samps_gene_expr = 70, min_samps_feature_expr = 5,
 plotData(d)
 }
 }
-\seealso{
-\code{\link{plotData}}
-}
 \author{
 Malgorzata Nowicka
 }
+\seealso{
+\code{\link{plotData}}
+}
+

@@ -2,10 +2,10 @@
 % Please edit documentation in R/class_dmSQTLprecision.R
 \docType{class}
 \name{dmSQTLprecision-class}
-\alias{dmSQTLprecision-class}
-\alias{mean_expression,dmSQTLprecision-method}
 \alias{common_precision,dmSQTLprecision-method}
+\alias{dmSQTLprecision-class}
 \alias{genewise_precision,dmSQTLprecision-method}
+\alias{mean_expression,dmSQTLprecision-method}
 \title{dmSQTLprecision object}
 \usage{
 \S4method{mean_expression}{dmSQTLprecision}(x)
@@ -13,6 +13,14 @@
 \S4method{common_precision}{dmSQTLprecision}(x)
 
 \S4method{genewise_precision}{dmSQTLprecision}(x)
+}
+\arguments{
+\item{x}{dmSQTLprecision object.}
+}
+\value{
+\itemize{ \item \code{mean_expression(x)}: Get a data frame with mean gene 
+expression. \item \code{common_precision(x)}: Get common precision. \item 
+\code{genewise_precision(x)}: Get a data frame with gene-wise precision.}
 }
 \description{
 dmSQTLprecision extends the \code{\linkS4class{dmSQTLdata}} by adding the 
@@ -27,11 +35,10 @@ the QTL analysis. Result of \code{\link{dmPrecision}}.
 
 \item{\code{common_precision}}{Numeric value of estimated common precision.}
 
-\item{\code{genewise_precision}}{List of estimated gene-wise precisions. Each 
-element of this list is a vector of precisions estimated for all the 
-genotype blocks assigned to a given gene.}
+\item{\code{genewise_precision}}{List of estimated gene-wise precisions. Each element
+of this list is a vector of precisions estimated for all the genotype
+blocks assigned to a given gene.}
 }}
-
 \examples{
 # --------------------------------------------------------------------------
 # Create dmSQTLdata object
@@ -71,10 +78,11 @@ d <- dmPrecision(d)
 plotPrecision(d)
 }
 }
-\seealso{
-\code{\linkS4class{dmSQTLdata}}, \code{\linkS4class{dmSQTLfit}},
-  \code{\linkS4class{dmSQTLtest}}
-}
 \author{
 Malgorzata Nowicka
 }
+\seealso{
+\code{\linkS4class{dmSQTLdata}}, \code{\linkS4class{dmSQTLfit}}, 
+  \code{\linkS4class{dmSQTLtest}}
+}
+

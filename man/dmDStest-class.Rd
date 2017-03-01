@@ -2,8 +2,8 @@
 % Please edit documentation in R/class_dmDStest.R
 \docType{class}
 \name{dmDStest-class}
-\alias{dmDStest-class}
 \alias{design,dmDStest-method}
+\alias{dmDStest-class}
 \alias{results}
 \alias{results,dmDStest-method}
 \title{dmDStest object}
@@ -19,7 +19,7 @@ results(x, ...)
 Possible values \code{"precision"}, \code{"full_model"} or
 \code{"null_model"}.}
 
-\item{x}{dmDStest object.}
+\item{x, object}{dmDStest object.}
 
 \item{...}{Other parameters that can be defined by methods using this 
 generic.}
@@ -40,7 +40,7 @@ exon/transcript usage. Result of calling the \code{\link{dmTest}} function.
 \section{Slots}{
 
 \describe{
-\item{\code{design_fit_null}}{Numeric matrix of the desing used to fit the null 
+\item{\code{design_fit_null}}{Numeric matrix of the design used to fit the null 
 model.}
 
 \item{\code{lik_null}}{Numeric vector of the per gene DM null model likelihoods.}
@@ -58,7 +58,6 @@ likelihood ratio statistics based on the BB model, \code{df} - degrees of
 freedom, \code{pvalue} - p-values and \code{adj_pvalue} - Benjamini & 
 Hochberg adjusted p-values.}
 }}
-
 \examples{
 # --------------------------------------------------------------------------
 # Create dmDSdata object 
@@ -151,10 +150,11 @@ plotProportions(d, gene_id = top_gene_id, group_variable = "group",
   plot_type = "ribbonplot")
 
 }
+\author{
+Malgorzata Nowicka
+}
 \seealso{
 \code{\linkS4class{dmDSdata}}, \code{\linkS4class{dmDSprecision}},
   \code{\linkS4class{dmDSfit}}
 }
-\author{
-Malgorzata Nowicka
-}
+

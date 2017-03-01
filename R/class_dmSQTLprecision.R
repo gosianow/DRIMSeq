@@ -12,11 +12,19 @@ NULL
 #' feature (e.g., transcript, exon, exonic bin) counts for each gene-SNP pair in
 #' the QTL analysis. Result of \code{\link{dmPrecision}}.
 #' 
+#' @return
+#' 
+#' \itemize{ \item \code{mean_expression(x)}: Get a data frame with mean gene 
+#' expression. \item \code{common_precision(x)}: Get common precision. \item 
+#' \code{genewise_precision(x)}: Get a data frame with gene-wise precision.}
+#' 
+#' @param x dmSQTLprecision object.
+#'   
 #' @slot mean_expression Numeric vector of mean gene expression.
 #' @slot common_precision Numeric value of estimated common precision.
-#' @slot genewise_precision List of estimated gene-wise precisions. Each 
-#'   element of this list is a vector of precisions estimated for all the 
-#'   genotype blocks assigned to a given gene.
+#' @slot genewise_precision List of estimated gene-wise precisions. Each element
+#'   of this list is a vector of precisions estimated for all the genotype
+#'   blocks assigned to a given gene.
 #'   
 #' @examples 
 #' # --------------------------------------------------------------------------
@@ -57,7 +65,7 @@ NULL
 #' plotPrecision(d)
 #' }
 #' @author Malgorzata Nowicka
-#' @seealso \code{\linkS4class{dmSQTLdata}}, \code{\linkS4class{dmSQTLfit}},
+#' @seealso \code{\linkS4class{dmSQTLdata}}, \code{\linkS4class{dmSQTLfit}}, 
 #'   \code{\linkS4class{dmSQTLtest}}
 setClass("dmSQTLprecision", 
   contains = "dmSQTLdata",
@@ -164,7 +172,7 @@ setMethod("show", "dmSQTLprecision", function(object){
 #' @param speed Logical. If \code{FALSE}, precision is calculated per each
 #'   gene-block. Such calculation may take a long time, since there can be
 #'   hundreds of SNPs/blocks per gene. If \code{TRUE}, there will be only one
-#'   dipsersion calculated per gene and it will be assigned to all the blocks
+#'   precision calculated per gene and it will be assigned to all the blocks
 #'   matched with this gene.
 #' @export
 setMethod("dmPrecision", "dmSQTLdata", function(x, mean_expression = TRUE, 
@@ -210,7 +218,7 @@ setMethod("dmPrecision", "dmSQTLdata", function(x, mean_expression = TRUE,
   stopifnot(is.numeric(prop_tol) && prop_tol > 0)
   
   stopifnot(length(coef_mode) == 1)
-  stopifnot(coef_mode %in% c("optim", "nlminb", "Rcgmin"))
+  stopifnot(coef_mode %in% c("optim"))
   stopifnot(length(coef_tol) == 1)
   stopifnot(is.numeric(coef_tol) && coef_tol > 0)
   

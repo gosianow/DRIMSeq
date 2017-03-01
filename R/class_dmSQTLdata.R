@@ -18,7 +18,7 @@ NULL
 #' object that consists of counts, genotypes and blocks corresponding to genes i
 #' and samples j. }
 #' 
-#' @param x dmSQTLdata object.
+#' @param x,object dmSQTLdata object.
 #' @param i,j Parameters used for subsetting.
 #'   
 #' @slot counts \code{\linkS4class{MatrixList}} of expression, in counts, of 
@@ -56,7 +56,7 @@ NULL
 #'   samples = geuv_samples, window = 5e3)
 #' }
 #' @author Malgorzata Nowicka
-#' @seealso \code{\linkS4class{dmSQTLdispersion}}, 
+#' @seealso \code{\linkS4class{dmSQTLprecision}}, 
 #'   \code{\linkS4class{dmSQTLfit}}, \code{\linkS4class{dmSQTLtest}}
 setClass("dmSQTLdata", 
   representation(counts = "MatrixList", 

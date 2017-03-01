@@ -28,15 +28,14 @@ generic.}
 
 \item{coef}{Integer or character vector indicating which coefficients of the 
 linear model are to be tested equal to zero. Values must indicate column 
-numbers or column names of the \code{design} used in 
-\code{\linkS4class{dmFit}}.}
+numbers or column names of the \code{design} used in \code{\link{dmFit}}.}
 
-\item{design}{Numeric matrix definig the null model.}
+\item{design}{Numeric matrix defining the null model.}
 
 \item{contrast}{Numeric vector or matrix specifying one or more contrasts of 
 the linear model coefficients to be tested equal to zero. For a matrix, 
-number of rows (for a vector, its length) must equal to the number of
-columns of \code{design} used in \code{\linkS4class{dmFit}}.}
+number of rows (for a vector, its length) must equal to the number of 
+columns of \code{design} used in \code{\link{dmFit}}.}
 
 \item{one_way}{Logical. Should the shortcut fitting be used when the design 
 corresponds to multiple group comparison. This is a similar approach as in 
@@ -53,8 +52,7 @@ value \code{"constrOptim"}.}
 \item{prop_tol}{The desired accuracy when estimating proportions.}
 
 \item{coef_mode}{Optimization method used to estimate regression 
-coefficients. Possible values \code{"optim"} (the default), \code{"nlminb"}
-or \code{"Rcgmin"}.}
+coefficients. Possible value \code{"optim"}.}
 
 \item{coef_tol}{The desired accuracy when estimating regression coefficients.}
 
@@ -186,6 +184,9 @@ plotProportions(d, gene_id = top_gene_id, group_variable = "group",
   plot_type = "ribbonplot")
 }
 }
+\author{
+Malgorzata Nowicka
+}
 \references{
 McCarthy, DJ, Chen, Y, Smyth, GK (2012). Differential expression 
   analysis of multifactor RNA-Seq experiments with respect to biological 
@@ -194,6 +195,4 @@ McCarthy, DJ, Chen, Y, Smyth, GK (2012). Differential expression
 \seealso{
 \code{\link{plotPValues}} \code{\link[edgeR]{glmLRT}}
 }
-\author{
-Malgorzata Nowicka
-}
+

@@ -2,18 +2,18 @@
 % Please edit documentation in R/class_dmDSprecision.R
 \docType{class}
 \name{dmDSprecision-class}
-\alias{dmDSprecision-class}
-\alias{design,dmDSprecision-method}
-\alias{mean_expression}
-\alias{mean_expression,dmDSprecision-method}
 \alias{common_precision}
 \alias{common_precision,dmDSprecision-method}
 \alias{common_precision<-}
 \alias{common_precision<-,dmDSprecision-method}
+\alias{design,dmDSprecision-method}
+\alias{dmDSprecision-class}
 \alias{genewise_precision}
 \alias{genewise_precision,dmDSprecision-method}
 \alias{genewise_precision<-}
 \alias{genewise_precision<-,dmDSprecision-method}
+\alias{mean_expression}
+\alias{mean_expression,dmDSprecision-method}
 \title{dmDSprecision object}
 \usage{
 \S4method{design}{dmDSprecision}(object, type = "precision")
@@ -43,7 +43,7 @@ genewise_precision(x) <- value
 Possible values \code{"precision"}, \code{"full_model"} or
 \code{"null_model"}.}
 
-\item{x}{dmDSprecision object.}
+\item{x, object}{dmDSprecision object.}
 
 \item{...}{Other parameters that can be defined by methods using this 
 generic.}
@@ -82,10 +82,9 @@ Normally, in the differential analysis based on RNA-seq data, such
 
 \item{\code{genewise_precision}}{Numeric vector of estimated gene-wise precisions.}
 
-\item{\code{design_precision}}{Numeric matrix of the desing used to estimate 
+\item{\code{design_precision}}{Numeric matrix of the design used to estimate 
 precision.}
 }}
-
 \examples{
 # --------------------------------------------------------------------------
 # Create dmDSdata object 
@@ -145,10 +144,11 @@ common_precision(d)
 head(genewise_precision(d))
 }
 }
+\author{
+Malgorzata Nowicka
+}
 \seealso{
 \code{\linkS4class{dmDSdata}}, \code{\linkS4class{dmDSfit}}, 
   \code{\linkS4class{dmDStest}}
 }
-\author{
-Malgorzata Nowicka
-}
+

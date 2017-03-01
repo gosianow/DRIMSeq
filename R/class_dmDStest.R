@@ -17,11 +17,11 @@ NULL
 #' \itemize{ \item \code{results(x)}: get a data frame with gene-level or 
 #' feature-level results.}
 #' 
-#' @param x dmDStest object.
+#' @param x,object dmDStest object.
 #' @param ... Other parameters that can be defined by methods using this 
 #'   generic.
 #'   
-#' @slot design_fit_null Numeric matrix of the desing used to fit the null 
+#' @slot design_fit_null Numeric matrix of the design used to fit the null 
 #'   model.
 #' @slot lik_null Numeric vector of the per gene DM null model likelihoods.
 #' @slot lik_null_bb Numeric vector of the per gene BB null model likelihoods.
@@ -231,13 +231,12 @@ setGeneric("dmTest", function(x, ...) standardGeneric("dmTest"))
 #' @inheritParams dmFit
 #' @param coef Integer or character vector indicating which coefficients of the 
 #'   linear model are to be tested equal to zero. Values must indicate column 
-#'   numbers or column names of the \code{design} used in 
-#'   \code{\linkS4class{dmFit}}.
-#' @param design Numeric matrix definig the null model.
+#'   numbers or column names of the \code{design} used in \code{\link{dmFit}}.
+#' @param design Numeric matrix defining the null model.
 #' @param contrast Numeric vector or matrix specifying one or more contrasts of 
 #'   the linear model coefficients to be tested equal to zero. For a matrix, 
-#'   number of rows (for a vector, its length) must equal to the number of
-#'   columns of \code{design} used in \code{\linkS4class{dmFit}}.
+#'   number of rows (for a vector, its length) must equal to the number of 
+#'   columns of \code{design} used in \code{\link{dmFit}}.
 #'   
 #' @details One must specify one of the arguments: \code{coef}, \code{design} or
 #'   \code{contrast}.
@@ -345,6 +344,7 @@ setGeneric("dmTest", function(x, ...) standardGeneric("dmTest"))
 #'   analysis of multifactor RNA-Seq experiments with respect to biological 
 #'   variation. Nucleic Acids Research 40, 4288-4297.
 #' @rdname dmTest
+#' @importFrom limma nonEstimable
 #' @export
 setMethod("dmTest", "dmDSfit", function(x, 
   coef = NULL, design = NULL, contrast = NULL, 

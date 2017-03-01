@@ -9,33 +9,35 @@ dm_plotProportions(counts, group, prop_full = NULL, main = NULL,
   feature_colors = NULL)
 }
 \arguments{
-\item{counts}{Matrix with rows corresponding to features and columns
+\item{counts}{Matrix with rows corresponding to features and columns 
 corresponding to samples. Row names are used as labels on the plot.}
 
 \item{group}{Factor that groups samples into conditions.}
 
-\item{prop_full}{Matrix of estimated proportions with rows corresponding to
-features and columns corresponding to conditions defined by factor
+\item{prop_full}{Matrix of estimated proportions with rows corresponding to 
+features and columns corresponding to conditions defined by factor 
 \code{group}. If \code{NULL}, nothing is plotted.}
 
-\item{main}{Character vector with main title for the plot. If \code{NULL},
+\item{main}{Character vector with main title for the plot. If \code{NULL}, 
 nothing is plotted.}
 
-\item{plot_type}{Character defining the type of the plot produced. Possible
-values \code{"barplot"}, \code{"boxplot1"}, \code{"boxplot2"},
+\item{plot_type}{Character defining the type of the plot produced. Possible 
+values \code{"barplot"}, \code{"boxplot1"}, \code{"boxplot2"}, 
 \code{"lineplot"}, \code{"ribbonplot"}.}
 
-\item{order}{Logical. Whether to plot the features ordered by their
+\item{order}{Logical. Whether to plot the features ordered by their 
 expression.}
 
-\item{prop_null}{Matrix of estimated proportions with rows corresponding to
-features and one column. If \code{NULL}, nothing is plotted.}
+\item{group_colors}{Character vector with colors for each group.}
+
+\item{feature_colors}{Character vector with colors for each feature.}
 }
 \value{
-\code{ggplot} object with the observed and/or estimated with
-Dirichlet-multinomial model feature ratios. Estimated proportions are marked
-with diamond shapes.
+\code{ggplot} object with the observed and/or estimated with 
+  Dirichlet-multinomial model feature ratios. Estimated proportions are
+  marked with diamond shapes.
 }
 \description{
 Plot observed and/or estimated feature proportions.
 }
+

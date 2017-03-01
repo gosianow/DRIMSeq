@@ -457,30 +457,30 @@ dm_plotProportions_ribbonplot <- function(counts, group, prop_full = NULL,
 #' 
 #' Plot observed and/or estimated feature proportions.
 #' 
-#' @param counts Matrix with rows corresponding to features and columns
+#' @param counts Matrix with rows corresponding to features and columns 
 #'   corresponding to samples. Row names are used as labels on the plot.
 #' @param group Factor that groups samples into conditions.
-#' @param prop_full Matrix of estimated proportions with rows corresponding to
-#'   features and columns corresponding to conditions defined by factor
+#' @param prop_full Matrix of estimated proportions with rows corresponding to 
+#'   features and columns corresponding to conditions defined by factor 
 #'   \code{group}. If \code{NULL}, nothing is plotted.
-#' @param prop_null Matrix of estimated proportions with rows corresponding to
-#'   features and one column. If \code{NULL}, nothing is plotted.
-#' @param main Character vector with main title for the plot. If \code{NULL},
+#' @param main Character vector with main title for the plot. If \code{NULL}, 
 #'   nothing is plotted.
-#' @param plot_type Character defining the type of the plot produced. Possible
-#'   values \code{"barplot"}, \code{"boxplot1"}, \code{"boxplot2"},
+#' @param plot_type Character defining the type of the plot produced. Possible 
+#'   values \code{"barplot"}, \code{"boxplot1"}, \code{"boxplot2"}, 
 #'   \code{"lineplot"}, \code{"ribbonplot"}.
-#' @param order Logical. Whether to plot the features ordered by their
+#' @param order Logical. Whether to plot the features ordered by their 
 #'   expression.
+#' @param group_colors Character vector with colors for each group.
+#' @param feature_colors Character vector with colors for each feature.
 #'   
-#' @return \code{ggplot} object with the observed and/or estimated with
-#' Dirichlet-multinomial model feature ratios. Estimated proportions are marked
-#' with diamond shapes.
+#' @return \code{ggplot} object with the observed and/or estimated with 
+#'   Dirichlet-multinomial model feature ratios. Estimated proportions are
+#'   marked with diamond shapes.
 #' @importFrom reshape2 melt
-#' @importFrom ggplot2 ggplot aes_string theme_bw xlab ylab theme element_text
-#'   coord_cartesian geom_text   ggtitle geom_bar scale_fill_manual geom_point
-#'   geom_jitter position_dodge position_jitterdodge geom_boxplot
-#'   scale_colour_manual scale_colour_manual guides element_blank geom_vline
+#' @importFrom ggplot2 ggplot aes_string theme_bw xlab ylab theme element_text 
+#'   coord_cartesian geom_text ggtitle geom_bar scale_fill_manual geom_point 
+#'   geom_jitter position_dodge position_jitterdodge geom_boxplot 
+#'   scale_colour_manual scale_colour_manual guides element_blank geom_vline 
 #'   scale_x_discrete guide_legend geom_line geom_ribbon
 #' @importFrom stats aggregate median
 

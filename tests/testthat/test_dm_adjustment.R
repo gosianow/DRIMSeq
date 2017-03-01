@@ -1,13 +1,13 @@
 context("DM adjustement")
 
 
-gamma0 = 10
+prec = 10
 y = matrix(c(30, 75, 35, 70), nrow = 2)
-pi = c(0.3, 0.7)
+prop = c(0.3, 0.7)
 
-test_that("dm_adjustmentOneGeneOneGroup returns the right values", {
+test_that("dm_CRadjustmentOneGroup returns the right values", {
   
-  expect_equal(round(dm_adjustmentOneGeneOneGroup(y, gamma0, pi), 4), 2.6562)
+  expect_equal(round(dm_CRadjustmentOneGroup(y, prec, prop), 4), 2.6562)
   
 })
 

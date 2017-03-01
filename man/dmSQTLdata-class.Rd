@@ -2,13 +2,13 @@
 % Please edit documentation in R/class_dmSQTLdata.R
 \docType{class}
 \name{dmSQTLdata-class}
-\alias{dmSQTLdata-class}
-\alias{counts,dmSQTLdata-method}
-\alias{samples,dmSQTLdata-method}
-\alias{names,dmSQTLdata-method}
-\alias{length,dmSQTLdata-method}
 \alias{[,dmSQTLdata,ANY-method}
 \alias{[,dmSQTLdata-method}
+\alias{counts,dmSQTLdata-method}
+\alias{dmSQTLdata-class}
+\alias{length,dmSQTLdata-method}
+\alias{names,dmSQTLdata-method}
+\alias{samples,dmSQTLdata-method}
 \title{dmSQTLdata object}
 \usage{
 \S4method{counts}{dmSQTLdata}(object)
@@ -22,7 +22,7 @@
 \S4method{[}{dmSQTLdata,ANY}(x, i, j)
 }
 \arguments{
-\item{x}{dmSQTLdata object.}
+\item{x, object}{dmSQTLdata object.}
 
 \item{i, j}{Parameters used for subsetting.}
 }
@@ -56,7 +56,6 @@ samples and assigns them to blocks.}
 \item{\code{samples}}{Data frame with information about samples. It must contain 
 variable \code{sample_id} with unique sample names.}
 }}
-
 \examples{
 # --------------------------------------------------------------------------
 # Create dmSQTLdata object
@@ -79,10 +78,11 @@ d <- dmSQTLdata(counts = geuv_counts, gene_ranges = geuv_gene_ranges,
   samples = geuv_samples, window = 5e3)
 }
 }
-\seealso{
-\code{\linkS4class{dmSQTLdispersion}}, 
-  \code{\linkS4class{dmSQTLfit}}, \code{\linkS4class{dmSQTLtest}}
-}
 \author{
 Malgorzata Nowicka
 }
+\seealso{
+\code{\linkS4class{dmSQTLprecision}}, 
+  \code{\linkS4class{dmSQTLfit}}, \code{\linkS4class{dmSQTLtest}}
+}
+

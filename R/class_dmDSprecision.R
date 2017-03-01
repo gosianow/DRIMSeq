@@ -29,7 +29,7 @@ NULL
 #' frame with gene-wise precision or set new gene-wise precision. \code{value}
 #' must be a data frame with "gene_id" and "genewise_precision" columns. }
 #' 
-#' @param x dmDSprecision object.
+#' @param x,object dmDSprecision object.
 #' @param value Values that replace current attributes.
 #' @param ... Other parameters that can be defined by methods using this 
 #'   generic.
@@ -37,7 +37,7 @@ NULL
 #' @slot mean_expression Numeric vector of mean gene expression.
 #' @slot common_precision Numeric value of estimated common precision.
 #' @slot genewise_precision Numeric vector of estimated gene-wise precisions.
-#' @slot design_precision Numeric matrix of the desing used to estimate 
+#' @slot design_precision Numeric matrix of the design used to estimate 
 #'   precision.
 #'   
 #' @examples 
@@ -336,7 +336,7 @@ setGeneric("dmPrecision", function(x, ...) standardGeneric("dmPrecision"))
 #'   toward common or trended precision is applied. \item \code{prec_span}: 
 #'   Used only when precision moderation toward trend is activated. }
 #'   
-#' @param design Numeric matrix definig the model that should be used when 
+#' @param design Numeric matrix defining the model that should be used when 
 #'   estimating precision. Normally this should be a full model design used 
 #'   also in \code{\link{dmFit}}.
 #' @param mean_expression Logical. Whether to estimate the mean expression of 
@@ -376,8 +376,7 @@ setGeneric("dmPrecision", function(x, ...) standardGeneric("dmPrecision"))
 #'   value \code{"constrOptim"}.
 #' @param prop_tol The desired accuracy when estimating proportions.
 #' @param coef_mode Optimization method used to estimate regression 
-#'   coefficients. Possible values \code{"optim"} (the default), \code{"nlminb"}
-#'   or \code{"Rcgmin"}.
+#'   coefficients. Possible value \code{"optim"}.
 #' @param coef_tol The desired accuracy when estimating regression coefficients.
 #' @param verbose Numeric. Definie the level of progress messages displayed. 0 -
 #'   no messages, 1 - main messages, 2 - message for every gene fitting.
@@ -450,6 +449,7 @@ setGeneric("dmPrecision", function(x, ...) standardGeneric("dmPrecision"))
 #' analysis of multifactor RNA-Seq experiments with respect to biological
 #' variation. Nucleic Acids Research 40, 4288-4297.
 #' @rdname dmPrecision
+#' @importFrom limma nonEstimable
 #' @export
 setMethod("dmPrecision", "dmDSdata", function(x, design, 
   mean_expression = TRUE, common_precision = TRUE, genewise_precision = TRUE,
@@ -501,7 +501,7 @@ setMethod("dmPrecision", "dmDSdata", function(x, design,
   stopifnot(is.numeric(prop_tol) && prop_tol > 0)
   
   stopifnot(length(coef_mode) == 1)
-  stopifnot(coef_mode %in% c("optim", "nlminb", "Rcgmin"))
+  stopifnot(coef_mode %in% c("optim"))
   stopifnot(length(coef_tol) == 1)
   stopifnot(is.numeric(coef_tol) && coef_tol > 0)
   
@@ -586,7 +586,7 @@ setMethod("dmPrecision", "dmDSdata", function(x, design,
 #'   parameter that is directly estimated. It is important to keep in mind that
 #'   the precision parameter (gamma0) is inverse proportional to dispersion 
 #'   (theta): theta = 1 / (1 + gamma0). In RNA-seq data, we can typically
-#'   observe a trend where the dispersion decreases (here, presicion increases)
+#'   observe a trend where the dispersion decreases (here, precision increases)
 #'   for genes with higher mean expression.
 #'   
 #' @param x \code{\linkS4class{dmDSprecision}} or 
@@ -660,8 +660,8 @@ setGeneric("plotPrecision", function(x, ...) standardGeneric("plotPrecision"))
 #' head(genewise_precision(d))
 #' }
 #' @author Malgorzata Nowicka
-#' @seealso \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}},
-#'   \code{\link{plotData}}, \code{\link{plotProportions}}, \code{\link{plotPValues}}
+#' @seealso \code{\link{plotData}}, \code{\link{plotProportions}},
+#'   \code{\link{plotPValues}}
 #'   
 #' @rdname plotPrecision
 #' @export
