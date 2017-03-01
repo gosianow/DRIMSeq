@@ -351,8 +351,12 @@ dm_plotProportions <- function(counts, group, fit_full = NULL,
         
         prop_fit <- prop_fit[keep, , drop = FALSE]
         
-        dm_plotProportions_ribbonplot(prop_fit,
-          main = main, feature_colors = feature_colors)
+        if(sum(duplicated(prop_fit$group)) > 0){
+          message("Ribbonplot can not be generated.")
+        }else{
+          dm_plotProportions_ribbonplot(prop_fit,
+            main = main, feature_colors = feature_colors)
+        }
         
       }else{
         message("Ribbonplot can not be generated.")

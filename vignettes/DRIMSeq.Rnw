@@ -85,7 +85,7 @@ In the QTL analysis, null models correspond to regression with intercept only.
 \itemize{
 \item Currently, transcript-level analysis based on the BB model are implemented only in the DTU analysis (\Rcode{bb\_model = TRUE}). 
 
-\item When the model (full or null) of interest corresponds to multiple (or one) group fitting, then a shortcut algorithm called 'one way' (\Rcode{one\_way = TRUE}), which we adapted from the \Rfunction{glmFit} function in \Biocpkg{edgeR}, can be used. Choosing it is equivalent to running the original \Rpackage{DRIMSeq} implementation. In such a case, we use maximum likelihood to estimate the transcript proportions in each group separately and then the regression coefficients are calculated using matrix operations. Otherwise, the regression coefficients are directly estimated with the maximum likelihood approach.
+\item When the model (full or null) of interest corresponds to multiple (or one) group fitting, then a shortcut algorithm called 'one way' (\Rcode{one\_way = TRUE}), which we adapted from the \Rfunction{glmFit} function in \Biocpkg{edgeR} \cite{McCarthy2012}, can be used. Choosing it is equivalent to running the original \Rpackage{DRIMSeq} implementation. In such a case, we use maximum likelihood to estimate the transcript proportions in each group separately and then the regression coefficients are calculated using matrix operations. Otherwise, the regression coefficients are directly estimated with the maximum likelihood approach.
 }
 
 
@@ -231,12 +231,12 @@ The moderated estimates originate from a weighted likelihood which is a combinat
 We recommend this approach when analyzing small sample size data sets.
 
 At this step, three values may be calculated: mean expression of genes, common precision and gene-wise precisions.
-In the default setting, all of them are computed and common precision is used as an initial value in the grid approach to estimate gene-wise precisions, which are shrunk toward the trended precision.
+In the default setting, all of them are computed and common precision is used as an initial value in the grid approach to estimate gene-wise precisions, which are shrunk toward the trended precision. The grid approach is adapted from the \Rfunction{estimateDisp} function in \Biocpkg{edgeR} \cite{McCarthy2012}.
 
 By default, to estimate the common precision, we use 10\% percent (\Rcode{prec\_subset = 0.1}) of randomly selected genes. That is due to the fact that common precision is used only as an initial value, and estimating it based on all the genes takes a substantial part of time. 
 To ensure that the analysis are reproducible, the user should define a random seed \Rcode{set.seed()} before running the \Rcode{dmPrecision()} function. Thank to that, each time the same subset of genes is selected.
 
-To estimate precision parameters, the user has to define a design matrix with the full model of interest, which will be also used later in the proportion estimation. Here, the full model is defined by a formula \Rcode{~ group} which indicates that samples come from two conditions.
+To estimate precision parameters, the user has to define a design matrix with the full model of interest, which will be also used later in the proportion estimation. Here, the full model is defined by a formula \Rcode{\~ group} which indicates that samples come from two conditions.
 
 This step of our pipeline is the most time consuming. 
 Thus, for real data analysis, consider using \Rcode{BPPARAM = BiocParallel::MulticoreParam()} with more than one worker.
@@ -285,7 +285,7 @@ ggp + geom_point(size = 4)
 In this step, we estimate the full model regression coefficients, fitted proportions and likelihoods.
 We use the same design matrix as in the precision estimation step.
 
-By default, \Rcode{one\_way = TRUE} which means that whenever the design corresponds to multiple group fitting, the 'one way' shortcut algorithm will be used, which in fact corresponds to the first implementation of \Rpackage{DRIMSeq}. Transcript proportions are estimated for each condition separately and then the regression coefficients are calculated using matrix operations. 
+By default, \Rcode{one\_way = TRUE} which means that whenever the design corresponds to multiple group fitting, the 'one way' shortcut algorithm will be used, which in fact corresponds to the first implementation of \Rpackage{DRIMSeq}. Transcript proportions are estimated for each condition separately and then the regression coefficients are calculated using matrix operations. The 'one way' algorithm is adapted from the \Rfunction{glmFit} function in \Biocpkg{edgeR} \cite{McCarthy2012}.
 By setting \Rcode{verbose = 1}, we can see that the one way approach is used with the current design.
 
 When \Rcode{bb\_model = TRUE} (the default), additionally to the gene-level Dirichlet-multinomial estimates the transcript-level beta-binomial results will be computed.  
@@ -331,7 +331,7 @@ d <- dmTest(d, design = design_null)
 head(results(d), 3)
 @
 
-Or by using the \Rcode{contrast} parameter.
+Or by using the \Rcode{contrast} parameter. The null design is calculated using the approach from the \Rfunction{glmLRT} function in \Biocpkg{edgeR} \cite{McCarthy2012}.
 
 <<DSdmTest3>>=
 contrast <- c(0, 1)
@@ -588,7 +588,7 @@ d <- dmFilter(d, min_samps_gene_expr = 70, min_samps_feature_expr = 5,
 \subsubsection{Precision estimation}
 
 In the DTU analysis (section \ref{DS_precision_estimation}), the full model used in precision estimation has to be defined by the user. Here, full models are defined by genotypes. For a given SNP, genotype can have numeric values of 0, 1, and 2. 
-When \Rcode{one\_way = TRUE}, multiple group fitting is performed. When \Rcode{one\_way = FALSE}, a regression framework is used with the design matrix defined by a formula ‘~ group’ where group is a continuous (not categorical) variable with genotype values 0, 1, and 2.
+When \Rcode{one\_way = TRUE}, multiple group fitting is performed. When \Rcode{one\_way = FALSE}, a regression framework is used with the design matrix defined by a formula \Rcode{\~ group} where \Rcode{group} is a continuous (not categorical) variable with genotype values 0, 1, and 2.
 
 For the tuQTL analysis, it has an additional parameter called \Rcode{speed}. 
 If \Rcode{speed = FALSE}, gene-wise precisions are calculated for each gene-block. 
