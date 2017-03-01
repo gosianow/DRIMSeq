@@ -42,16 +42,16 @@ dm_score_regG <- function(b, x, disp, y){
   b <- matrix(b, p, q-1) # p x (q-1)
   
   z <- exp(x %*% b)
-  prop <- z/(1 + rowSums(z))
-  propq <- 1 - rowSums(prop)
+  prop_qm1 <- z/(1 + rowSums(z))
+  prop <- cbind(prop_qm1, 1 - rowSums(prop_qm1))
   
-  yq <- y[, q]
-  y <- y[, -q, drop = FALSE] # n x (q-1)
+  y_qm1 <- y[, -q, drop = FALSE] # n x (q-1)
   
   S <- t(x) %*% 
-    ((digamma(y + prop*disp) - digamma(prop*disp) 
-      - digamma(yq + propq*disp) + digamma(propq*disp)) 
-      * prop * (1 - prop) * disp) # p x (q-1)
+    (disp * prop_qm1 * (- rowSums(digamma(y + prop*disp) * prop) +
+        digamma(y_qm1 + prop_qm1*disp) +
+        rowSums(digamma(prop*disp) * prop) -
+        digamma(prop_qm1*disp))) # p x (q-1)
   
   return(c(S))
   

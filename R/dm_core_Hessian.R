@@ -22,10 +22,15 @@ dm_HessianG <- function(prop, disp, y){
   
   diag(H) <- diag(H) + Djj
   
+  # H martix (q-1) x (q-1)
   return(H)
   
-  
 }
+
+
+
+
+
 
 ##############################################################################
 # Hessian for q-1 parameters -- with sums
@@ -68,6 +73,7 @@ dm_Hessian <- function(prop, disp, y){
   
   diag(H) <- diag(H) + Djj
   
+  # H martix (q-1) x (q-1)
   return(H)
   
 }
