@@ -3,3 +3,5 @@ v1.1.2: - Bioconductor accepted devel version
 v1.1.3: - New features: i) the level of moderation is calculated automatically; ii) permutation approach to adjust p-values in sQTL analyses
 v1.1.4: - Use data frames with counts and genotypes when creating the dmDSdata and dmSQTLdata objects
 v1.3.1: - Equals to v1.1.4 
+v1.3.2: - Implementation of two-stage test 
+v1.3.3: - Regression framework

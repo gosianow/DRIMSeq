@@ -1,5 +1,5 @@
 
-dm_fitOneGeneManyGroups <- function(y, ngroups, lgroups, igroups, 
+dm_fitGroups <- function(y, ngroups, lgroups, igroups, 
   gamma0, prop_mode = "constrOptimG", prop_tol = 1e-12, verbose = FALSE) {
   
   q <- nrow(y)
@@ -16,7 +16,7 @@ dm_fitOneGeneManyGroups <- function(y, ngroups, lgroups, igroups,
   for(gr in 1:ngroups){
     # gr = 1
     
-    fit_gr <- dm_fitOneGeneOneGroup(y = y[, igroups[[gr]], 
+    fit_gr <- dm_fitOneGroup(y = y[, igroups[[gr]], 
       drop = FALSE], gamma0 = gamma0, prop_mode = prop_mode, 
       prop_tol = prop_tol, verbose = verbose)
     
@@ -35,13 +35,18 @@ dm_fitOneGeneManyGroups <- function(y, ngroups, lgroups, igroups,
     
   }
   
-  return(list(pi = pi, lik = lik))  ### pi and lik can have NAs
+  # pi and lik can have NAs
+  # pi matrix q x ngroups
+  # lik vector of length ngroups
+  return(list(pi = pi, lik = lik))  
   
 }
 
 
-bb_fitOneGeneManyGroups <- function(y, ngroups, lgroups, igroups, 
-  pi, gamma0, verbose = FALSE) {
+bb_fitGroups <- function(y, ngroups, lgroups, igroups, 
+  pi, gamma0, verbose = FALSE){
+  # This function calculates BB likelihoods 
+  # Proportions pi are estimated with DM model
   
   q <- nrow(y)
   
@@ -56,7 +61,7 @@ bb_fitOneGeneManyGroups <- function(y, ngroups, lgroups, igroups,
   for(gr in 1:ngroups){
     # gr = 1
     
-    fit_gr <- bb_fitOneGeneOneGroup(y = y[, igroups[[gr]], drop = FALSE], 
+    fit_gr <- bb_fitOneGroup(y = y[, igroups[[gr]], drop = FALSE], 
       gamma0 = gamma0, pi = pi[, gr], verbose = verbose)
     
     lik[, gr] <- fit_gr[["lik"]]
@@ -65,8 +70,10 @@ bb_fitOneGeneManyGroups <- function(y, ngroups, lgroups, igroups,
   
   lik[rowSums(is.na(lik)) > 0, ] <- rep(NA, ngroups)
   
-  
-  return(list(pi = pi, lik = lik))  ### pi and lik can have NAs
+  # pi and lik can have NAs
+  # pi matrix q x ngroups
+  # lik vector of length ngroups
+  return(list(pi = pi, lik = lik)) 
   
 }
 

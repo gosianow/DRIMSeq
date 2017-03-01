@@ -1,12 +1,6 @@
-##############################################################################
-### Tagwise profile likelihood to be optimized
-##############################################################################
 
-# gamma0 = splineDisp[i]; y = counts[[g]]
 
-# gamma0 = splineDisp[j]; y = yg
-
-dm_profileLikTagwise <- function(gamma0, y, ngroups, lgroups, igroups, 
+dmDS_profileLik <- function(gamma0, y, design, 
   disp_adjust = TRUE, prop_mode = "constrOptimG", prop_tol = 1e-12, 
   verbose = FALSE){
   

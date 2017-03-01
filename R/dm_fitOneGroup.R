@@ -4,21 +4,21 @@
 
 #' @importFrom stats constrOptim
 
-dm_fitOneGeneOneGroup <- function(y, gamma0, prop_mode = c("constrOptim", 
+dm_fitOneGroup <- function(y, gamma0, prop_mode = c("constrOptim", 
   "constrOptimG")[2], prop_tol = 1e-12, verbose = FALSE){
   ### y must be features vs. samples
   ### If something is wrong, return NAs
   
   # NAs for genes with one feature
-  kk <- nrow(y)
-  if(kk < 2 || is.na(gamma0)) 
-    return(list(pi = rep(NA, kk), lik = NA, df = NA))
+  q <- nrow(y)
+  if(q < 2 || is.na(gamma0)) 
+    return(list(pi = rep(NA, q), lik = NA))
   
   ### check for 0s in rows (features)
   keep_row <- rowSums(y) > 0
   ### must be at least two features
   if(sum(keep_row) < 2) 
-    return(list(pi = rep(NA, kk), lik = NA, df = NA))
+    return(list(pi = rep(NA, q), lik = NA))
   
   y <- y[keep_row, , drop=FALSE]
   
@@ -27,32 +27,31 @@ dm_fitOneGeneOneGroup <- function(y, gamma0, prop_mode = c("constrOptim",
   y <- y[, keep_col, drop=FALSE]
   
   pi_init <- rowSums(y)/sum(y)
-  k <- length(pi_init) ## k - number of features
+  q <- length(pi_init) ## q - number of features
   
   if(sum(keep_col) == 1){
     
     keep_row[keep_row] <- pi_init
     pi <- keep_row
     
-    df <- k - 1
-    lik <- dm_likG(pi = pi_init[-k], gamma0 = gamma0, y = y)
+    lik <- dm_likG(pi = pi_init[-q], gamma0 = gamma0, y = y)
     
-    return(list(pi = pi, lik = lik, df = df))
+    return(list(pi = pi, lik = lik))
   }
   
   switch(prop_mode, 
     
     ### must have constraint for SUM pi = 1 --> 
     ### sum(pi) < 1 + eps & sum(pi) > 1 - eps
-    constrOptim = { ## for k-1 parameters
+    constrOptim = { ## for q-1 parameters
       # if(verbose) message("\n gene:", colnames(y)[1], "gamma0:", gamma0)
       
-      ui <- rbind(diag(rep(1, k-1), k-1), diag(rep(-1, k-1), k-1), rep(-1, k-1))
-      ci <- c(rep(0, k-1), rep(-1, k-1), -1 + .Machine$double.eps) 
-      # ui <- rbind(diag(rep(1, k-1)), diag(rep(-1, k-1)))
-      # ci <- c(rep(0, k-1), rep(-1, k-1))
+      ui <- rbind(diag(rep(1, q-1), q-1), diag(rep(-1, q-1), q-1), rep(-1, q-1))
+      ci <- c(rep(0, q-1), rep(-1, q-1), -1 + .Machine$double.eps) 
+      # ui <- rbind(diag(rep(1, q-1)), diag(rep(-1, q-1)))
+      # ci <- c(rep(0, q-1), rep(-1, q-1))
       
-      co <- constrOptim(pi_init[-k], f = dm_lik, grad = dm_score, 
+      co <- constrOptim(pi_init[-q], f = dm_lik, grad = dm_score, 
         ui = ui, ci = ci, control = list(fnscale = -1, reltol = prop_tol), 
         gamma0 = gamma0, y = y)
       
@@ -62,15 +61,15 @@ dm_fitOneGeneOneGroup <- function(y, gamma0, prop_mode = c("constrOptim",
       
     }, 
     
-    constrOptimG = { ## for k-1 parameters with Gamma functions
+    constrOptimG = { ## for q-1 parameters with Gamma functions
       # if(verbose) message("\n gene:", colnames(y)[1], "gamma0:", gamma0)
       
-      ui <- rbind(diag(rep(1, k-1), k-1), diag(rep(-1, k-1), k-1), rep(-1, k-1))
-      ci <- c(rep(0, k-1), rep(-1, k-1), -1 + .Machine$double.eps) 
-      # ui <- rbind(diag(rep(1, k-1)), diag(rep(-1, k-1)))
-      # ci <- c(rep(0, k-1), rep(-1, k-1))
+      ui <- rbind(diag(rep(1, q-1), q-1), diag(rep(-1, q-1), q-1), rep(-1, q-1))
+      ci <- c(rep(0, q-1), rep(-1, q-1), -1 + .Machine$double.eps) 
+      # ui <- rbind(diag(rep(1, q-1)), diag(rep(-1, q-1)))
+      # ci <- c(rep(0, q-1), rep(-1, q-1))
       
-      co <- constrOptim(pi_init[-k], f = dm_likG, grad = dm_scoreG, 
+      co <- constrOptim(pi_init[-q], f = dm_likG, grad = dm_scoreG, 
         ui = ui, ci = ci, control = list(fnscale = -1, reltol = prop_tol), 
         gamma0 = gamma0, y = y)
       
@@ -83,26 +82,25 @@ dm_fitOneGeneOneGroup <- function(y, gamma0, prop_mode = c("constrOptim",
   keep_row[keep_row] <- pi
   pi <- keep_row
   
-  df <- k - 1
-  
-  return(list(pi = pi, lik = lik, df = df))
+  return(list(pi = pi, lik = lik))
   
 }
 
 
 
-bb_fitOneGeneOneGroup <- function(y, pi, gamma0, verbose = FALSE){
+bb_fitOneGroup <- function(y, pi, gamma0, verbose = FALSE){
+  # Recalculates likelihood for BB, where pi is estimated with DM
   
   # NAs for genes with one feature
-  kk <- nrow(y)
-  if(kk < 2 || is.na(gamma0)) 
-    return(list(pi = rep(NA, kk), lik = NA, df = NA))
+  q <- nrow(y)
+  if(q < 2 || is.na(gamma0)) 
+    return(list(pi = rep(NA, q), lik = NA))
   
   ### check for 0s in rows (features)
   keep_row <- rowSums(y) > 0
   ### must be at least two features
   if(sum(keep_row) < 2) 
-    return(list(pi = rep(NA, kk), lik = NA, df = NA))
+    return(list(pi = rep(NA, q), lik = NA))
   
   y <- y[keep_row, , drop=FALSE]
   pi <- pi[keep_row]
@@ -118,9 +116,7 @@ bb_fitOneGeneOneGroup <- function(y, pi, gamma0, verbose = FALSE){
   keep_row[keep_row] <- pi
   pi <- keep_row
   
-  df <- rep(1, length(keep_row))
-  
-  return(list(pi = pi, lik = lik, df = df))
+  return(list(pi = pi, lik = lik))
   
 }
 
