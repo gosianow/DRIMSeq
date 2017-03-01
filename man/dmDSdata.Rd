@@ -24,15 +24,40 @@ Returns a \linkS4class{dmDSdata} object.
 Constructor function for a \code{\linkS4class{dmDSdata}} object.
 }
 \examples{
-###################################
-### Differential splicing analysis
-###################################
+# --------------------------------------------------------------------------
+# Create dmDSdata object 
+# --------------------------------------------------------------------------
+## Get kallisto transcript counts from the 'PasillaTranscriptExpr' package
+
+library(PasillaTranscriptExpr)
+\donttest{
+data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
+
+## Load metadata
+metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
+  as.is = TRUE)
+
+## Load counts
+counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
+  as.is = TRUE)
+
+## Create a samples data frame
+samples <- data.frame(sample_id = metadata$SampleName, 
+  group = metadata$condition)
+levels(samples$group)
+
+## Create a dmDSdata object
+d <- dmDSdata(counts = counts, samples = samples)
+
+## Use a subset of genes, which is defined in the following file
+gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
+
+d <- d[names(d) \%in\% gene_id_subset, ]
+}
+}
+\seealso{
+\code{\link{plotData}}
 }
 \author{
 Malgorzata Nowicka
 }
-\seealso{
-\code{\link{plotData}}, \code{\link{dmFilter}}, 
-  \code{\link{dmDispersion}}, \code{\link{dmFit}}, \code{\link{dmTest}}
-}
-

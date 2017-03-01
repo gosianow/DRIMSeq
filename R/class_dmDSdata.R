@@ -7,52 +7,66 @@ NULL
 
 #' dmDSdata object
 #' 
-#' dmDSdata contains expression, in counts, of genomic features such as exons or 
-#' transcripts and sample information needed for the differential splicing (DS) 
-#' analysis. It can be created with function \code{\link{dmDSdata}}.
+#' dmDSdata contains expression, in counts, of genomic features such as exons or
+#' transcripts and sample information needed for the differential 
+#' exon/transcript usage (DEU or DTU) analysis. It can be created with function 
+#' \code{\link{dmDSdata}}.
 #' 
 #' @return
 #' 
-#' \itemize{
-#'  \item \code{counts(object)}: Get a data frame with counts.
-#'  \item \code{samples(x)}: Get a data frame with the sample information.
-#'   \item \code{names(x)}: Get the gene names.
-#'   \item \code{length(x)}: Get the number of genes.
-#'   \item \code{x[i, j]}: Get a subset of dmDSdata object that consists of 
-#'   counts for genes i and samples j. 
-#' }
+#' \itemize{ \item \code{counts(object)}: Get a data frame with counts. \item 
+#' \code{samples(x)}: Get a data frame with the sample information. \item 
+#' \code{names(x)}: Get the gene names. \item \code{length(x)}: Get the number 
+#' of genes. \item \code{x[i, j]}: Get a subset of dmDSdata object that consists
+#' of counts for genes i and samples j. }
 #' 
 #' @param object,x dmDSdata object.
 #' @param i,j Parameters used for subsetting.
-#' @param ... Other parameters that can be defined by methods using 
-#' this generic.
-#' 
-#' @slot counts \code{\linkS4class{MatrixList}} of expression, in counts, 
-#' of genomic features. Rows correspond to genomic features, such as exons 
-#' or transcripts. Columns correspond to samples. MatrixList is partitioned 
-#' in a way that each of the matrices in a list contains counts for a single 
-#' gene.
+#' @param ... Other parameters that can be defined by methods using this 
+#'   generic.
+#'   
+#' @slot counts \code{\linkS4class{MatrixList}} of expression, in counts, of 
+#'   genomic features. Rows correspond to genomic features, such as exons or 
+#'   transcripts. Columns correspond to samples. MatrixList is partitioned in a 
+#'   way that each of the matrices in a list contains counts for a single gene.
 #' @slot samples Data frame with information about samples. It must contain 
-#' variables: \code{sample_id} of unique sample names and \code{group} which 
-#' groups samples into conditions.
-#' 
+#'   \code{sample_id} variable with unique sample names and other covariates 
+#'   that desribe samples and are needed for the differential analysis.
+#'   
 #' @examples 
-#' ###################################
-#' ### Differential splicing analysis
-#' ###################################
+#' # --------------------------------------------------------------------------
+#' # Create dmDSdata object 
+#' # --------------------------------------------------------------------------
+#' ## Get kallisto transcript counts from the 'PasillaTranscriptExpr' package
 #' 
-#' d <- data_dmDSdata
+#' library(PasillaTranscriptExpr)
+#' \donttest{
+#' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 #' 
-#' head(counts(d))
-#' samples(d)
-#' head(names(d))
-#' length(d)
-#' d[1:20, ]
-#' d[1:20, 1:3]
+#' ## Load metadata
+#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
+#'   as.is = TRUE)
 #' 
+#' ## Load counts
+#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
+#'   as.is = TRUE)
+#' 
+#' ## Create a samples data frame
+#' samples <- data.frame(sample_id = metadata$SampleName, 
+#'   group = metadata$condition)
+#' levels(samples$group)
+#' 
+#' ## Create a dmDSdata object
+#' d <- dmDSdata(counts = counts, samples = samples)
+#' 
+#' ## Use a subset of genes, which is defined in the following file
+#' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
+#' 
+#' d <- d[names(d) %in% gene_id_subset, ]
+#' }
 #' @author Malgorzata Nowicka
-#' @seealso \code{\link{data_dmDSdata}}, \code{\linkS4class{dmDSdispersion}}, 
-#' \code{\linkS4class{dmDSfit}}, \code{\linkS4class{dmDStest}}
+#' @seealso \code{\linkS4class{dmDSdispersion}}, \code{\linkS4class{dmDSfit}},
+#'   \code{\linkS4class{dmDStest}}
 setClass("dmDSdata", 
   representation(counts = "MatrixList", samples = "data.frame"))
 
@@ -92,8 +106,8 @@ setMethod("counts", "dmDSdata", function(object){
   
   data.frame(gene_id = rep(names(object@counts), elementNROWS(object@counts)), 
     feature_id = rownames(object@counts), 
-    object@counts@unlistData, stringsAsFactors = FALSE, 
-    row.names = NULL)
+    object@counts@unlistData, 
+    stringsAsFactors = FALSE, row.names = NULL)
   
 })
 
@@ -187,11 +201,37 @@ setMethod("[", "dmDSdata", function(x, i, j){
 #'   grouping variable \code{group}.
 #' @return Returns a \linkS4class{dmDSdata} object.
 #' @examples
-#' ###################################
-#' ### Differential splicing analysis
-#' ###################################
-#' @seealso \code{\link{plotData}}, \code{\link{dmFilter}}, 
-#'   \code{\link{dmDispersion}}, \code{\link{dmFit}}, \code{\link{dmTest}}
+#' # --------------------------------------------------------------------------
+#' # Create dmDSdata object 
+#' # --------------------------------------------------------------------------
+#' ## Get kallisto transcript counts from the 'PasillaTranscriptExpr' package
+#' 
+#' library(PasillaTranscriptExpr)
+#' \donttest{
+#' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
+#' 
+#' ## Load metadata
+#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
+#'   as.is = TRUE)
+#' 
+#' ## Load counts
+#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
+#'   as.is = TRUE)
+#' 
+#' ## Create a samples data frame
+#' samples <- data.frame(sample_id = metadata$SampleName, 
+#'   group = metadata$condition)
+#' levels(samples$group)
+#' 
+#' ## Create a dmDSdata object
+#' d <- dmDSdata(counts = counts, samples = samples)
+#' 
+#' ## Use a subset of genes, which is defined in the following file
+#' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
+#' 
+#' d <- d[names(d) %in% gene_id_subset, ]
+#' }
+#' @seealso \code{\link{plotData}}
 #' @author Malgorzata Nowicka
 #' @export
 dmDSdata <- function(counts, samples){
@@ -210,9 +250,9 @@ dmDSdata <- function(counts, samples){
   gene_id <- counts$gene_id
   feature_id <- counts$feature_id
   
-  stopifnot( class( gene_id ) %in% c("character", "factor"))
-  stopifnot( class( feature_id ) %in% c("character", "factor"))
-  stopifnot( class( samples$sample_id ) %in% c("character", "factor"))
+  stopifnot(class(gene_id) %in% c("character", "factor"))
+  stopifnot(class(feature_id) %in% c("character", "factor"))
+  stopifnot(class(samples$sample_id) %in% c("character", "factor"))
   
   stopifnot(all(!is.na(gene_id)))
   stopifnot(all(!is.na(feature_id)))
@@ -277,33 +317,33 @@ dmDSdata <- function(counts, samples){
 #' @export
 setGeneric("dmFilter", function(x, ...) standardGeneric("dmFilter"))
 
-
-
-################################
+# -----------------------------------------------------------------------------
 
 #' @details Filtering parameters should be adjusted according to the sample size
-#' of the experiment data and the number of replicates per condition.
-#' 
-#' \code{min_samps_gene_expr} defines the minimal number of samples where genes 
-#' are required to be expressed at the minimal level of \code{min_gene_expr} in
-#' order to be included in the downstream analysis. Ideally, we would like that
-#' genes were expressed at some minimal level in all samples because this would
-#' lead to better estimates of feature ratios.
-#' 
-#' Similarly, \code{min_samps_feature_expr} and \code{min_samps_feature_prop} 
-#' defines the minimal number of samples where features are required to be
-#' expressed at the minimal levels of counts \code{min_feature_expr} or
-#' proportions \code{min_feature_prop}. In differential splicing analysis, we
-#' suggest using \code{min_samps_feature_expr} and \code{min_samps_feature_prop}
-#' equal to the minimal number of replicates in any of the conditions. For
-#' example, in an assay with 3 versus 5 replicates, we would set these
-#' parameters to 3, which allows a situation where a feature is expressed in one
-#' condition but may not be expressed at all in another one, which is an example
-#' of differential splicing.
-#' 
-#' By default, all the filtering parameters equal zero which means that features with zero expression in all samples are removed as well as genes with only one non-zero feature. 
-#' 
-#' @param min_samps_gene_expr Minimal number of samples where genes should be
+#'   of the experiment data and the number of replicates per condition.
+#'   
+#'   \code{min_samps_gene_expr} defines the minimal number of samples where 
+#'   genes are required to be expressed at the minimal level of 
+#'   \code{min_gene_expr} in order to be included in the downstream analysis. 
+#'   Ideally, we would like that genes were expressed at some minimal level in 
+#'   all samples because this would lead to better estimates of feature ratios.
+#'   
+#'   Similarly, \code{min_samps_feature_expr} and \code{min_samps_feature_prop} 
+#'   defines the minimal number of samples where features are required to be 
+#'   expressed at the minimal levels of counts \code{min_feature_expr} or 
+#'   proportions \code{min_feature_prop}. In differential transcript/exon usage
+#'   analysis, we suggest using \code{min_samps_feature_expr} and 
+#'   \code{min_samps_feature_prop} equal to the minimal number of replicates in 
+#'   any of the conditions. For example, in an assay with 3 versus 5 replicates,
+#'   we would set these parameters to 3, which allows a situation where a 
+#'   feature is expressed in one condition but may not be expressed at all in 
+#'   another one, which is an example of differential transcript/exon usage.
+#'   
+#'   By default, all the filtering parameters equal zero which means that 
+#'   features with zero expression in all samples are removed as well as genes 
+#'   with only one non-zero feature.
+#'   
+#' @param min_samps_gene_expr Minimal number of samples where genes should be 
 #'   expressed. See Details.
 #' @param min_gene_expr Minimal gene expression.
 #' @param min_samps_feature_expr Minimal number of samples where features should
@@ -316,12 +356,50 @@ setGeneric("dmFilter", function(x, ...) standardGeneric("dmFilter"))
 #' @return Returns filtered \code{\linkS4class{dmDSdata}} or 
 #'   \code{\linkS4class{dmSQTLdata}} object.
 #' @examples 
-#' ###################################
-#' ### Differential splicing analysis
-#' ###################################
-#' @seealso \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}}, 
-#'   \code{\link{plotData}}, \code{\link{dmDispersion}}, \code{\link{dmFit}}, 
-#'   \code{\link{dmTest}}
+#' # --------------------------------------------------------------------------
+#' # Create dmDSdata object 
+#' # --------------------------------------------------------------------------
+#' ## Get kallisto transcript counts from the 'PasillaTranscriptExpr' package
+#' 
+#' library(PasillaTranscriptExpr)
+#' \donttest{
+#' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
+#' 
+#' ## Load metadata
+#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
+#'   as.is = TRUE)
+#' 
+#' ## Load counts
+#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
+#'   as.is = TRUE)
+#' 
+#' ## Create a samples data frame
+#' samples <- data.frame(sample_id = metadata$SampleName, 
+#'   group = metadata$condition)
+#' levels(samples$group)
+#' 
+#' ## Create a dmDSdata object
+#' d <- dmDSdata(counts = counts, samples = samples)
+#' 
+#' ## Use a subset of genes, which is defined in the following file
+#' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
+#' 
+#' d <- d[names(d) %in% gene_id_subset, ]
+#' 
+#' # --------------------------------------------------------------------------
+#' # Differential transcript usage analysis - simple two group comparison 
+#' # --------------------------------------------------------------------------
+#' 
+#' ## Filtering
+#' ## Check what is the minimal number of replicates per condition 
+#' table(samples(d)$group)
+#' 
+#' d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3,
+#'   min_gene_expr = 10, min_feature_expr = 10)
+#' 
+#' plotData(d)
+#' }
+#' @seealso \code{\link{plotData}}
 #' @author Malgorzata Nowicka
 #' @rdname dmFilter
 #' @export
@@ -377,10 +455,49 @@ setGeneric("plotData", function(x, ...) standardGeneric("plotData"))
 
 
 #' @examples 
-#' ###################################
-#' ### Differential splicing analysis
-#' ###################################
+#' # --------------------------------------------------------------------------
+#' # Create dmDSdata object 
+#' # --------------------------------------------------------------------------
+#' ## Get kallisto transcript counts from the 'PasillaTranscriptExpr' package
 #' 
+#' library(PasillaTranscriptExpr)
+#' \donttest{
+#' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
+#' 
+#' ## Load metadata
+#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
+#'   as.is = TRUE)
+#' 
+#' ## Load counts
+#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
+#'   as.is = TRUE)
+#' 
+#' ## Create a samples data frame
+#' samples <- data.frame(sample_id = metadata$SampleName, 
+#'   group = metadata$condition)
+#' levels(samples$group)
+#' 
+#' ## Create a dmDSdata object
+#' d <- dmDSdata(counts = counts, samples = samples)
+#' 
+#' ## Use a subset of genes, which is defined in the following file
+#' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
+#' 
+#' d <- d[names(d) %in% gene_id_subset, ]
+#' 
+#' # --------------------------------------------------------------------------
+#' # Differential transcript usage analysis - simple two group comparison 
+#' # --------------------------------------------------------------------------
+#' 
+#' ## Filtering
+#' ## Check what is the minimal number of replicates per condition 
+#' table(samples(d)$group)
+#' 
+#' d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3,
+#'   min_gene_expr = 10, min_feature_expr = 10)
+#' 
+#' plotData(d)
+#' }
 #' @author Malgorzata Nowicka
 #' @seealso \code{\link{plotDispersion}}, \code{\link{plotProportions}},
 #'   \code{\link{plotPValues}}

@@ -5,7 +5,7 @@
 \alias{dmFit}
 \alias{dmFit,dmDSdispersion-method}
 \alias{dmFit,dmSQTLdispersion-method}
-\title{Estimate proportions in Dirichlet-multinomial model}
+\title{Fit the Dirichlet-multinomial and/or the beta-binomial full model regression}
 \usage{
 dmFit(x, ...)
 
@@ -13,25 +13,26 @@ dmFit(x, ...)
   prop_mode = "constrOptim", prop_tol = 1e-12, coef_mode = "optim",
   coef_tol = 1e-12, verbose = 0, BPPARAM = BiocParallel::SerialParam())
 
-\S4method{dmFit}{dmSQTLdispersion}(x, dispersion = "genewise_dispersion",
-  prop_mode = "constrOptim", prop_tol = 1e-12, verbose = 0,
-  BPPARAM = BiocParallel::MulticoreParam(workers = 1))
+\S4method{dmFit}{dmSQTLdispersion}(x, one_way = TRUE,
+  prop_mode = "constrOptim", prop_tol = 1e-12, coef_mode = "optim",
+  coef_tol = 1e-12, verbose = 0, BPPARAM = BiocParallel::SerialParam())
 }
 \arguments{
-\item{x}{\code{\linkS4class{dmDSdispersion}} or
+\item{x}{\code{\linkS4class{dmDSdispersion}} or 
 \code{\linkS4class{dmSQTLdispersion}} object.}
 
-\item{...}{Other parameters that can be defined by methods using this
+\item{...}{Other parameters that can be defined by methods using this 
 generic.}
 
 \item{design}{Numeric matrix definig the full model.}
 
 \item{one_way}{Logical. Should the shortcut fitting be used when the design 
-corresponds to multiple group comparison. If \code{TRUE} (the default), 
-then proportions are fitted per group and regression coefficients are 
-recalculated from these fittings.}
+corresponds to multiple group comparison. This is a similar approach as in 
+\code{\link{edgeR}}. If \code{TRUE} (the default), then proportions are 
+fitted per group and regression coefficients are recalculated from those 
+fits.}
 
-\item{bb_model}{Logical. Whether to perform the feature-level analysis using
+\item{bb_model}{Logical. Whether to perform the feature-level analysis using 
 the beta-binomial model.}
 
 \item{prop_mode}{Optimization method used to estimate proportions. Possible 
@@ -39,7 +40,7 @@ value \code{"constrOptim"}.}
 
 \item{prop_tol}{The desired accuracy when estimating proportions.}
 
-\item{coef_mode}{Optimization method used to estimate regression
+\item{coef_mode}{Optimization method used to estimate regression 
 coefficients. Possible values \code{"optim"} (the default), \code{"nlminb"}
 or \code{"Rcgmin"}.}
 
@@ -56,22 +57,116 @@ Returns a \code{\linkS4class{dmDSfit}} or
   \code{\linkS4class{dmSQTLfit}} object.
 }
 \description{
-Maximum likelihood estimates of genomic feature (for instance, transcript,
-exon, exonic bin) proportions in full Dirichlet-multinomial model used in
-differential splicing or sQTL analysis. Full model estimation means that
-proportions are estimated for every group/condition separately.
+Obtain the maximum likelihood estimates of Dirichlet-multinomial (gene-level)
+and/or beta-binomial (feature-level) regression coefficients, feature
+proportions in each sample and corresponding likelihoods. In the differential
+exon/transcript usage analysis, the regression model is defined by a design
+matrix. In the exon/transcript usage QTL analysis, regression models are
+defined by genotypes.
+}
+\details{
+In the regression framework here, we adapt the idea from 
+  \code{\link[edgeR]{glmFit}} in \code{\link{edgeR}} about using a shortcut
+  algorithm when the design is equivalent to simple group fitting. In such a
+  case, we estimate the DM proportions for each group of samples separately
+  and then recalculate the DM (and/or the BB) regression coefficients
+  corresponding to the design matrix. If the design matrix does not define a
+  simple group fitting, for example, when it contains a column with continous
+  values, then the regression framework is used to directly estimate the
+  regression coefficients.
+  
+  Arguments that are used for the proportion estimation in each group when 
+  the shortcut fitting can be used start with \code{prop_}, and those that 
+  are used in the regression framework start with \code{coef_}.
+  
+  In the differential transcript usage analysis, setting \code{one_way = 
+  TRUE} allows switching to the shortcut algorithm only if the design is 
+  equivalent to simple group fitting. \code{one_way = FALSE} forces usage of 
+  the regression framework.
+  
+  In the QTL analysis, currently, genotypes are defined as numeric values 0, 
+  1, and 2. When \code{one_way = TRUE}, simple multiple group fitting is 
+  performed. When \code{one_way = FALSE}, a regression framework is used with
+  the design matrix defined by a formula \code{~ group} where group is a 
+  continous (not categorical) varialbe with values 0, 1, and 2.
 }
 \examples{
-###################################
-### Differential splicing analysis
-###################################
+# --------------------------------------------------------------------------
+# Create dmDSdata object 
+# --------------------------------------------------------------------------
+## Get kallisto transcript counts from the 'PasillaTranscriptExpr' package
 
+library(PasillaTranscriptExpr)
+\donttest{
+data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
+
+## Load metadata
+metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
+  as.is = TRUE)
+
+## Load counts
+counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
+  as.is = TRUE)
+
+## Create a samples data frame
+samples <- data.frame(sample_id = metadata$SampleName, 
+  group = metadata$condition)
+levels(samples$group)
+
+## Create a dmDSdata object
+d <- dmDSdata(counts = counts, samples = samples)
+
+## Use a subset of genes, which is defined in the following file
+gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
+
+d <- d[names(d) \%in\% gene_id_subset, ]
+
+# --------------------------------------------------------------------------
+# Differential transcript usage analysis - simple two group comparison 
+# --------------------------------------------------------------------------
+
+## Filtering
+## Check what is the minimal number of replicates per condition 
+table(samples(d)$group)
+
+d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3,
+  min_gene_expr = 10, min_feature_expr = 10)
+
+plotData(d)
+
+## Create the design matrix
+design <- model.matrix(~ group, data = samples(d))
+
+## To make the analysis reproducible
+set.seed(123)
+## Calculate dispersion
+d <- dmDispersion(d, design = design)
+
+plotDispersion(d)
+
+head(mean_expression(d))
+common_dispersion(d)
+head(genewise_dispersion(d))
+
+## Fit full model proportions
+d <- dmFit(d, design = design)
+
+## Get fitted proportions
+head(proportions(d))
+## Get the DM regression coefficients (gene-level) 
+head(coefficients(d))
+## Get the BB regression coefficients (feature-level) 
+head(coefficients(d), level = "feature")
+}
+}
+\references{
+McCarthy, DJ, Chen, Y, Smyth, GK (2012). Differential expression
+analysis of multifactor RNA-Seq experiments with respect to biological
+variation. Nucleic Acids Research 40, 4288-4297.
+}
+\seealso{
+\code{\link{plotProportions}} \code{\link[edgeR]{glmFit}}
 }
 \author{
 Malgorzata Nowicka
 }
-\seealso{
-\code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}}, 
-  \code{\link{plotProportions}}, \code{\link{dmDispersion}}, \code{\link{dmTest}}
-}
-

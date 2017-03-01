@@ -8,14 +8,15 @@ NULL
 #' dmDSfit object
 #' 
 #' dmDSfit extends the \code{\linkS4class{dmDSdispersion}} class by adding the 
-#' full model Dirichlet-multinomial feature proportion estimates needed for the 
-#' differential splicing analysis. Feature ratios are estimated for each gene 
-#' and each condition. Result of \code{\link{dmFit}}.
+#' full model Dirichlet-multinomial (DM) and beta-binomial (BB) likelihoods,
+#' regression coefficients and feature proportion estimates. Result of calling
+#' the \code{\link{dmFit}} function.
 #' 
 #' @return
 #' 
-#' \itemize{ \item \code{proportions(x)}: Get a data frame with estimated 
-#' feature ratios for each sample. \item \code{coefficients(x)}:  }
+#' \itemize{ \item \code{proportions(x)}: get a data frame with estimated 
+#' feature ratios for each sample. \item \code{coefficients(x)}: get the DM or
+#' BB regression coefficients. }
 #' 
 #' @param x dmDSdispersion object.
 #' @param ... Other parameters that can be defined by methods using this 
@@ -28,18 +29,80 @@ NULL
 #' @slot lik_full Numeric vector of the per gene DM full model likelihoods.
 #' @slot coef_full \code{\linkS4class{MatrixList}} with the regression 
 #'   coefficients based on the DM model
-#' @slot fit_full_bb \code{\linkS4class{MatrixList}} containing estimated
+#' @slot fit_full_bb \code{\linkS4class{MatrixList}} containing estimated 
 #'   feature ratios in each sample based on the full beta-binomial (BB) model.
 #' @slot lik_full_bb Numeric vector of the per gene BB full model likelihoods.
 #' @slot coef_full_bb \code{\linkS4class{MatrixList}} with the regression 
 #'   coefficients based on the BB model
 #'   
 #' @examples 
+#' # --------------------------------------------------------------------------
+#' # Create dmDSdata object 
+#' # --------------------------------------------------------------------------
+#' ## Get kallisto transcript counts from the 'PasillaTranscriptExpr' package
 #' 
-#' ###################################
-#' ### Differential splicing analysis
-#' ###################################
+#' library(PasillaTranscriptExpr)
+#' \donttest{
+#' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 #' 
+#' ## Load metadata
+#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
+#'   as.is = TRUE)
+#' 
+#' ## Load counts
+#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
+#'   as.is = TRUE)
+#' 
+#' ## Create a samples data frame
+#' samples <- data.frame(sample_id = metadata$SampleName, 
+#'   group = metadata$condition)
+#' levels(samples$group)
+#' 
+#' ## Create a dmDSdata object
+#' d <- dmDSdata(counts = counts, samples = samples)
+#' 
+#' ## Use a subset of genes, which is defined in the following file
+#' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
+#' 
+#' d <- d[names(d) %in% gene_id_subset, ]
+#' 
+#' # --------------------------------------------------------------------------
+#' # Differential transcript usage analysis - simple two group comparison 
+#' # --------------------------------------------------------------------------
+#' 
+#' ## Filtering
+#' ## Check what is the minimal number of replicates per condition 
+#' table(samples(d)$group)
+#' 
+#' d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3,
+#'   min_gene_expr = 10, min_feature_expr = 10)
+#' 
+#' plotData(d)
+#' 
+#' ## Create the design matrix
+#' design <- model.matrix(~ group, data = samples(d))
+#' 
+#' ## To make the analysis reproducible
+#' set.seed(123)
+#' ## Calculate dispersion
+#' d <- dmDispersion(d, design = design)
+#' 
+#' plotDispersion(d)
+#' 
+#' head(mean_expression(d))
+#' common_dispersion(d)
+#' head(genewise_dispersion(d))
+#' 
+#' ## Fit full model proportions
+#' d <- dmFit(d, design = design)
+#' 
+#' ## Get fitted proportions
+#' head(proportions(d))
+#' ## Get the DM regression coefficients (gene-level) 
+#' head(coefficients(d))
+#' ## Get the BB regression coefficients (feature-level) 
+#' head(coefficients(d), level = "feature")
+#' }
 #' @author Malgorzata Nowicka
 #' @seealso \code{\link{data_dmDSdata}}, \code{\linkS4class{dmDSdata}}, 
 #'   \code{\linkS4class{dmDSdispersion}}, \code{\linkS4class{dmDStest}}
@@ -67,15 +130,15 @@ setValidity("dmDSfit", function(object){
   }
   
   if(!length(object@fit_full) == length(object@counts))
-    return("Different length of 'counts' and 'fit_full'")
+    return("Different number of genes in 'counts' and 'fit_full'")
   
   if(!length(object@lik_full) == length(object@counts))
-    return("Different length of 'counts' and 'lik_full'")
+    return("Different number of genes in 'counts' and 'lik_full'")
   
   if(!length(object@coef_full) == length(object@counts))
-    return("Different length of 'counts' and 'coef_full'")
+    return("Different number of genes in 'counts' and 'coef_full'")
   
-  # TODO: Add more checks
+  # TODO: Add more checks for BB
   
   return(TRUE)
   
@@ -150,16 +213,18 @@ setMethod("show", "dmDSfit", function(object){
 ### dmFit
 ################################################################################
 
-#' Estimate proportions in Dirichlet-multinomial model
+#' Fit the Dirichlet-multinomial and/or the beta-binomial full model regression
 #' 
-#' Maximum likelihood estimates of genomic feature (for instance, transcript,
-#' exon, exonic bin) proportions in full Dirichlet-multinomial model used in
-#' differential splicing or sQTL analysis. Full model estimation means that
-#' proportions are estimated for every group/condition separately.
+#' Obtain the maximum likelihood estimates of Dirichlet-multinomial (gene-level)
+#' and/or beta-binomial (feature-level) regression coefficients, feature
+#' proportions in each sample and corresponding likelihoods. In the differential
+#' exon/transcript usage analysis, the regression model is defined by a design
+#' matrix. In the exon/transcript usage QTL analysis, regression models are
+#' defined by genotypes.
 #' 
-#' @param x \code{\linkS4class{dmDSdispersion}} or
+#' @param x \code{\linkS4class{dmDSdispersion}} or 
 #'   \code{\linkS4class{dmSQTLdispersion}} object.
-#' @param ... Other parameters that can be defined by methods using this
+#' @param ... Other parameters that can be defined by methods using this 
 #'   generic.
 #' @export
 setGeneric("dmFit", function(x, ...) standardGeneric("dmFit"))
@@ -169,19 +234,110 @@ setGeneric("dmFit", function(x, ...) standardGeneric("dmFit"))
 
 
 #' @inheritParams dmDispersion
+#'   
+#' @details In the regression framework here, we adapt the idea from 
+#'   \code{\link[edgeR]{glmFit}} in \code{\link{edgeR}} about using a shortcut
+#'   algorithm when the design is equivalent to simple group fitting. In such a
+#'   case, we estimate the DM proportions for each group of samples separately
+#'   and then recalculate the DM (and/or the BB) regression coefficients
+#'   corresponding to the design matrix. If the design matrix does not define a
+#'   simple group fitting, for example, when it contains a column with continous
+#'   values, then the regression framework is used to directly estimate the
+#'   regression coefficients.
+#'   
+#'   Arguments that are used for the proportion estimation in each group when 
+#'   the shortcut fitting can be used start with \code{prop_}, and those that 
+#'   are used in the regression framework start with \code{coef_}.
+#'   
+#'   In the differential transcript usage analysis, setting \code{one_way = 
+#'   TRUE} allows switching to the shortcut algorithm only if the design is 
+#'   equivalent to simple group fitting. \code{one_way = FALSE} forces usage of 
+#'   the regression framework.
+#'   
+#'   In the QTL analysis, currently, genotypes are defined as numeric values 0, 
+#'   1, and 2. When \code{one_way = TRUE}, simple multiple group fitting is 
+#'   performed. When \code{one_way = FALSE}, a regression framework is used with
+#'   the design matrix defined by a formula \code{~ group} where group is a 
+#'   continous (not categorical) varialbe with values 0, 1, and 2.
+#'   
 #' @param design Numeric matrix definig the full model.
-#' @param bb_model Logical. Whether to perform the feature-level analysis using
+#' @param bb_model Logical. Whether to perform the feature-level analysis using 
 #'   the beta-binomial model.
 #' @return Returns a \code{\linkS4class{dmDSfit}} or 
 #'   \code{\linkS4class{dmSQTLfit}} object.
 #' @examples 
-#' ###################################
-#' ### Differential splicing analysis
-#' ###################################
+#' # --------------------------------------------------------------------------
+#' # Create dmDSdata object 
+#' # --------------------------------------------------------------------------
+#' ## Get kallisto transcript counts from the 'PasillaTranscriptExpr' package
 #' 
+#' library(PasillaTranscriptExpr)
+#' \donttest{
+#' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
+#' 
+#' ## Load metadata
+#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
+#'   as.is = TRUE)
+#' 
+#' ## Load counts
+#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
+#'   as.is = TRUE)
+#' 
+#' ## Create a samples data frame
+#' samples <- data.frame(sample_id = metadata$SampleName, 
+#'   group = metadata$condition)
+#' levels(samples$group)
+#' 
+#' ## Create a dmDSdata object
+#' d <- dmDSdata(counts = counts, samples = samples)
+#' 
+#' ## Use a subset of genes, which is defined in the following file
+#' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
+#' 
+#' d <- d[names(d) %in% gene_id_subset, ]
+#' 
+#' # --------------------------------------------------------------------------
+#' # Differential transcript usage analysis - simple two group comparison 
+#' # --------------------------------------------------------------------------
+#' 
+#' ## Filtering
+#' ## Check what is the minimal number of replicates per condition 
+#' table(samples(d)$group)
+#' 
+#' d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3,
+#'   min_gene_expr = 10, min_feature_expr = 10)
+#' 
+#' plotData(d)
+#' 
+#' ## Create the design matrix
+#' design <- model.matrix(~ group, data = samples(d))
+#' 
+#' ## To make the analysis reproducible
+#' set.seed(123)
+#' ## Calculate dispersion
+#' d <- dmDispersion(d, design = design)
+#' 
+#' plotDispersion(d)
+#' 
+#' head(mean_expression(d))
+#' common_dispersion(d)
+#' head(genewise_dispersion(d))
+#' 
+#' ## Fit full model proportions
+#' d <- dmFit(d, design = design)
+#' 
+#' ## Get fitted proportions
+#' head(proportions(d))
+#' ## Get the DM regression coefficients (gene-level) 
+#' head(coefficients(d))
+#' ## Get the BB regression coefficients (feature-level) 
+#' head(coefficients(d), level = "feature")
+#' }
 #' @author Malgorzata Nowicka
-#' @seealso \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}}, 
-#'   \code{\link{plotProportions}}, \code{\link{dmDispersion}}, \code{\link{dmTest}}
+#' @seealso \code{\link{plotProportions}} \code{\link[edgeR]{glmFit}}
+#' @references McCarthy, DJ, Chen, Y, Smyth, GK (2012). Differential expression
+#' analysis of multifactor RNA-Seq experiments with respect to biological
+#' variation. Nucleic Acids Research 40, 4288-4297.
 #' @rdname dmFit
 #' @export
 setMethod("dmFit", "dmDSdispersion", function(x, design, 
@@ -265,12 +421,12 @@ setMethod("dmFit", "dmDSdispersion", function(x, design,
 
 #' Plot feature proportions
 #' 
-#' This plot is available only for a group design, i.e., a comparison between 
-#' groups.
+#' This plot is available only for a group design, i.e., a design that is 
+#' equivalent to multiple group fitting.
 #' 
-#' @return Plot, per gene, the observed and estimated with Dirichlet-multinomial
-#'   model feature proportions. Estimated group proportions are marked with
-#'   diamond shapes.
+#' @return For a given gene, plot the observed and estimated with 
+#'   Dirichlet-multinomial model feature proportions in each group. Estimated
+#'   group proportions are marked with diamond shapes.
 #'   
 #' @param x \code{\linkS4class{dmDSfit}}, \code{\linkS4class{dmDStest}} or 
 #'   \code{\linkS4class{dmSQTLfit}}, \code{\linkS4class{dmSQTLtest}} object.
@@ -303,15 +459,98 @@ setGeneric("plotProportions", function(x, ...)
 #'   defined by \code{gene_id}.
 #'   
 #' @examples 
+#' # --------------------------------------------------------------------------
+#' # Create dmDSdata object 
+#' # --------------------------------------------------------------------------
+#' ## Get kallisto transcript counts from the 'PasillaTranscriptExpr' package
 #' 
-#' ###################################
-#' ### Differential splicing analysis
-#' ###################################
+#' library(PasillaTranscriptExpr)
+#' \donttest{
+#' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 #' 
+#' ## Load metadata
+#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
+#'   as.is = TRUE)
 #' 
+#' ## Load counts
+#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
+#'   as.is = TRUE)
+#' 
+#' ## Create a samples data frame
+#' samples <- data.frame(sample_id = metadata$SampleName, 
+#'   group = metadata$condition)
+#' levels(samples$group)
+#' 
+#' ## Create a dmDSdata object
+#' d <- dmDSdata(counts = counts, samples = samples)
+#' 
+#' ## Use a subset of genes, which is defined in the following file
+#' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
+#' 
+#' d <- d[names(d) %in% gene_id_subset, ]
+#' 
+#' # --------------------------------------------------------------------------
+#' # Differential transcript usage analysis - simple two group comparison 
+#' # --------------------------------------------------------------------------
+#' 
+#' ## Filtering
+#' ## Check what is the minimal number of replicates per condition 
+#' table(samples(d)$group)
+#' 
+#' d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3,
+#'   min_gene_expr = 10, min_feature_expr = 10)
+#' 
+#' plotData(d)
+#' 
+#' ## Create the design matrix
+#' design <- model.matrix(~ group, data = samples(d))
+#' 
+#' ## To make the analysis reproducible
+#' set.seed(123)
+#' ## Calculate dispersion
+#' d <- dmDispersion(d, design = design)
+#' 
+#' plotDispersion(d)
+#' 
+#' head(mean_expression(d))
+#' common_dispersion(d)
+#' head(genewise_dispersion(d))
+#' 
+#' ## Fit full model proportions
+#' d <- dmFit(d, design = design)
+#' 
+#' ## Get fitted proportions
+#' head(proportions(d))
+#' ## Get the DM regression coefficients (gene-level) 
+#' head(coefficients(d))
+#' ## Get the BB regression coefficients (feature-level) 
+#' head(coefficients(d), level = "feature")
+#' 
+#' ## Fit null model proportions and perform the LR test to detect DTU
+#' d <- dmTest(d, coef = "groupKD")
+#' 
+#' ## Plot the gene-level p-values
+#' plotPValues(d)
+#' 
+#' ## Get the gene-level results
+#' head(results(d))
+#' 
+#' ## Plot feature proportions for a top DTU gene
+#' res <- results(d)
+#' res <- res[order(res$pvalue, decreasing = FALSE), ]
+#' 
+#' top_gene_id <- res$gene_id[1]
+#' 
+#' plotProportions(d, gene_id = top_gene_id, group_variable = "group")
+#' 
+#' plotProportions(d, gene_id = top_gene_id, group_variable = "group", 
+#'   plot_type = "lineplot")
+#' 
+#' plotProportions(d, gene_id = top_gene_id, group_variable = "group", 
+#'   plot_type = "ribbonplot")
+#' }
 #' @author Malgorzata Nowicka
-#' @seealso \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}}, 
-#'   \code{\link{plotData}}, \code{\link{plotDispersion}}, 
+#' @seealso  \code{\link{plotData}}, \code{\link{plotDispersion}}, 
 #'   \code{\link{plotPValues}}
 #' @rdname plotProportions
 #' @export
@@ -360,7 +599,6 @@ setMethod("plotProportions", "dmDSfit", function(x, gene_id, group_variable,
     main <- paste0(main, ", Precision = ", round(dispersion_gene, 2))
     
   }
-  
   
   prop_full <- NULL
   

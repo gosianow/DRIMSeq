@@ -2,17 +2,17 @@
 % Please edit documentation in R/class_dmDSdispersion.R
 \docType{class}
 \name{dmDSdispersion-class}
+\alias{dmDSdispersion-class}
+\alias{mean_expression}
+\alias{mean_expression,dmDSdispersion-method}
 \alias{common_dispersion}
 \alias{common_dispersion,dmDSdispersion-method}
 \alias{common_dispersion<-}
 \alias{common_dispersion<-,dmDSdispersion-method}
-\alias{dmDSdispersion-class}
 \alias{genewise_dispersion}
 \alias{genewise_dispersion,dmDSdispersion-method}
 \alias{genewise_dispersion<-}
 \alias{genewise_dispersion<-,dmDSdispersion-method}
-\alias{mean_expression}
-\alias{mean_expression,dmDSdispersion-method}
 \title{dmDSdispersion object}
 \usage{
 mean_expression(x, ...)
@@ -38,28 +38,33 @@ genewise_dispersion(x) <- value
 \arguments{
 \item{x}{dmDSdispersion object.}
 
-\item{...}{Other parameters that can be defined by methods using this
+\item{...}{Other parameters that can be defined by methods using this 
 generic.}
 
 \item{value}{Values that replace current attributes.}
 }
 \value{
-\itemize{ 
-\item \code{mean_expression(x)}: Get a data frame with mean gene
-expression. 
-\item \code{common_dispersion(x), common_dispersion(x) <- value}:
-Get or set common dispersion. \code{value} must be numeric of length 1. 
-\item \code{genewise_dispersion(x), genewise_dispersion(x) <- value}: 
-Get a data frame with gene-wise dispersion or set new gene-wise dispersion. 
-\code{value} must be a data frame with "gene_id" and "genewise_dispersion"
-columns. 
-}
+\itemize{ \item \code{mean_expression(x)}: Get a data frame with mean gene
+expression. \item \code{common_dispersion(x), common_dispersion(x) <- value}:
+Get or set common dispersion. \code{value} must be numeric of length 1. \item
+\code{genewise_dispersion(x), genewise_dispersion(x) <- value}: Get a data
+frame with gene-wise dispersion or set new gene-wise dispersion. \code{value}
+must be a data frame with "gene_id" and "genewise_dispersion" columns. }
 }
 \description{
-dmDSdispersion extends the \code{\linkS4class{dmDSdata}} by adding the
-dispersion estimates of Dirichlet-multinomial distribution used to model the
-feature (e.g., transcript, exon, exonic bin) coiunts for each gene in the
-differential splicing analysis. Result of \code{\link{dmDispersion}}.
+dmDSdispersion extends the \code{\linkS4class{dmDSdata}} by adding the 
+precision estimates of the Dirichlet-multinomial distribution used to model 
+the feature (e.g., transcript, exon, exonic bin) counts for each gene in the 
+differential usage analysis. Result of calling the \code{\link{dmDispersion}}
+function.
+}
+\details{
+Normally, in the differential analysis based on RNA-seq data, such 
+  as, for example, differential gene expression, dispersion (of 
+  negative-binomial model) is estimated. Here, we estimate precision of the 
+  Dirichlet-multinomial model as it is more convenient computationally. To 
+  obtain dispersion estimates, one can use a formula: dispersion = 1 / (1 + 
+  precision).
 }
 \section{Slots}{
 
@@ -70,21 +75,73 @@ differential splicing analysis. Result of \code{\link{dmDispersion}}.
 
 \item{\code{genewise_dispersion}}{Numeric vector of estimated gene-wise dispersions.}
 
-\item{\code{design_dispersion}}{Numeric matrix of the desing 
-used to estimate dispersion.}
+\item{\code{design_dispersion}}{Numeric matrix of the desing used to estimate 
+dispersion.}
 }}
+
 \examples{
+# --------------------------------------------------------------------------
+# Create dmDSdata object 
+# --------------------------------------------------------------------------
+## Get kallisto transcript counts from the 'PasillaTranscriptExpr' package
 
-###################################
-### Differential splicing analysis
-###################################
+library(PasillaTranscriptExpr)
+\donttest{
+data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 
+## Load metadata
+metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
+  as.is = TRUE)
+
+## Load counts
+counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
+  as.is = TRUE)
+
+## Create a samples data frame
+samples <- data.frame(sample_id = metadata$SampleName, 
+  group = metadata$condition)
+levels(samples$group)
+
+## Create a dmDSdata object
+d <- dmDSdata(counts = counts, samples = samples)
+
+## Use a subset of genes, which is defined in the following file
+gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
+
+d <- d[names(d) \%in\% gene_id_subset, ]
+
+# --------------------------------------------------------------------------
+# Differential transcript usage analysis - simple two group comparison 
+# --------------------------------------------------------------------------
+
+## Filtering
+## Check what is the minimal number of replicates per condition 
+table(samples(d)$group)
+
+d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3,
+  min_gene_expr = 10, min_feature_expr = 10)
+
+plotData(d)
+
+## Create the design matrix
+design <- model.matrix(~ group, data = samples(d))
+
+## To make the analysis reproducible
+set.seed(123)
+## Calculate dispersion
+d <- dmDispersion(d, design = design)
+
+plotDispersion(d)
+
+head(mean_expression(d))
+common_dispersion(d)
+head(genewise_dispersion(d))
+}
+}
+\seealso{
+\code{\linkS4class{dmDSdata}}, \code{\linkS4class{dmDSfit}}, 
+  \code{\linkS4class{dmDStest}}
 }
 \author{
 Malgorzata Nowicka
 }
-\seealso{
-\code{\link{data_dmDSdata}}, \code{\linkS4class{dmDSdata}},
-  \code{\linkS4class{dmDSfit}}, \code{\linkS4class{dmDStest}}
-}
-

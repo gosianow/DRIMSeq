@@ -39,4 +39,3 @@ with diamond shapes.
 \description{
 Plot observed and/or estimated feature proportions.
 }
-

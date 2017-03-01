@@ -2,14 +2,15 @@
 % Please edit documentation in R/class_dmDSdata.R
 \docType{class}
 \name{dmDSdata-class}
-\alias{[,dmDSdata,ANY-method}
-\alias{[,dmDSdata-method}
-\alias{counts,dmDSdata-method}
 \alias{dmDSdata-class}
-\alias{length,dmDSdata-method}
-\alias{names,dmDSdata-method}
+\alias{counts,dmDSdata-method}
 \alias{samples}
 \alias{samples,dmDSdata-method}
+\alias{names,dmDSdata-method}
+\alias{length,dmDSdata-method}
+\alias{[,dmDSdata,ANY,ANY,ANY-method}
+\alias{[,dmDSdata-method}
+\alias{[,dmDSdata,ANY-method}
 \title{dmDSdata object}
 \usage{
 \S4method{counts}{dmDSdata}(object)
@@ -22,64 +23,78 @@ samples(x, ...)
 
 \S4method{length}{dmDSdata}(x)
 
-\S4method{[}{dmDSdata,ANY}(x, i, j)
+\S4method{[}{dmDSdata,ANY,ANY,ANY}(x, i, j)
 }
 \arguments{
 \item{object, x}{dmDSdata object.}
 
-\item{...}{Other parameters that can be defined by methods using 
-this generic.}
+\item{...}{Other parameters that can be defined by methods using this 
+generic.}
 
 \item{i, j}{Parameters used for subsetting.}
 }
 \value{
-\itemize{
- \item \code{counts(object)}: Get a data frame with counts.
- \item \code{samples(x)}: Get a data frame with the sample information.
-  \item \code{names(x)}: Get the gene names.
-  \item \code{length(x)}: Get the number of genes.
-  \item \code{x[i, j]}: Get a subset of dmDSdata object that consists of 
-  counts for genes i and samples j. 
-}
+\itemize{ \item \code{counts(object)}: Get a data frame with counts. \item 
+\code{samples(x)}: Get a data frame with the sample information. \item 
+\code{names(x)}: Get the gene names. \item \code{length(x)}: Get the number 
+of genes. \item \code{x[i, j]}: Get a subset of dmDSdata object that consists
+of counts for genes i and samples j. }
 }
 \description{
-dmDSdata contains expression, in counts, of genomic features such as exons or 
-transcripts and sample information needed for the differential splicing (DS) 
-analysis. It can be created with function \code{\link{dmDSdata}}.
+dmDSdata contains expression, in counts, of genomic features such as exons or
+transcripts and sample information needed for the differential 
+exon/transcript usage (DEU or DTU) analysis. It can be created with function 
+\code{\link{dmDSdata}}.
 }
 \section{Slots}{
 
 \describe{
-\item{\code{counts}}{\code{\linkS4class{MatrixList}} of expression, in counts, 
-of genomic features. Rows correspond to genomic features, such as exons 
-or transcripts. Columns correspond to samples. MatrixList is partitioned 
-in a way that each of the matrices in a list contains counts for a single 
-gene.}
+\item{\code{counts}}{\code{\linkS4class{MatrixList}} of expression, in counts, of 
+genomic features. Rows correspond to genomic features, such as exons or 
+transcripts. Columns correspond to samples. MatrixList is partitioned in a 
+way that each of the matrices in a list contains counts for a single gene.}
 
 \item{\code{samples}}{Data frame with information about samples. It must contain 
-variables: \code{sample_id} of unique sample names and \code{group} which 
-groups samples into conditions.}
+\code{sample_id} variable with unique sample names and other covariates 
+that desribe samples and are needed for the differential analysis.}
 }}
+
 \examples{
-###################################
-### Differential splicing analysis
-###################################
+# --------------------------------------------------------------------------
+# Create dmDSdata object 
+# --------------------------------------------------------------------------
+## Get kallisto transcript counts from the 'PasillaTranscriptExpr' package
 
-d <- data_dmDSdata
+library(PasillaTranscriptExpr)
+\donttest{
+data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 
-head(counts(d))
-samples(d)
-head(names(d))
-length(d)
-d[1:20, ]
-d[1:20, 1:3]
+## Load metadata
+metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
+  as.is = TRUE)
 
+## Load counts
+counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
+  as.is = TRUE)
+
+## Create a samples data frame
+samples <- data.frame(sample_id = metadata$SampleName, 
+  group = metadata$condition)
+levels(samples$group)
+
+## Create a dmDSdata object
+d <- dmDSdata(counts = counts, samples = samples)
+
+## Use a subset of genes, which is defined in the following file
+gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
+
+d <- d[names(d) \%in\% gene_id_subset, ]
+}
+}
+\seealso{
+\code{\linkS4class{dmDSdispersion}}, \code{\linkS4class{dmDSfit}},
+  \code{\linkS4class{dmDStest}}
 }
 \author{
 Malgorzata Nowicka
 }
-\seealso{
-\code{\link{data_dmDSdata}}, \code{\linkS4class{dmDSdispersion}}, 
-\code{\linkS4class{dmDSfit}}, \code{\linkS4class{dmDStest}}
-}
-

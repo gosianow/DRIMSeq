@@ -109,6 +109,8 @@ dmSQTL_fit <- function(counts, genotypes, dispersion,
     disp <- dispersion
   }
   
+  # Approach from edgeR glmFit.default:
+  # If oneway layout, use a shortcut algorithm 
   if(one_way){
     
     if(verbose) message("   Using the one way approach. \n")

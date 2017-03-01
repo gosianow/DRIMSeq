@@ -8,15 +8,14 @@ NULL
 #' dmDStest object
 #' 
 #' dmDStest extends the \code{\linkS4class{dmDSfit}} class by adding the null 
-#' model Dirichlet-multinomial feature proportion estimates and the results of 
-#' testing for differential splicing. Proportions are calculated for each gene 
-#' from pooled (no grouping into conditions) counts. Result of 
-#' \code{\link{dmTest}}.
+#' model Dirichlet-multinomial (DM) and beta-binomial (BB) likelihoods and the 
+#' gene-level and feature-level results of testing for differential 
+#' exon/transcript usage. Result of calling the \code{\link{dmTest}} function.
 #' 
 #' @return
 #' 
-#' \itemize{ \item \code{results(x)}: Get a data frame with gene-level or
-#' feature-level results. See Slots. }
+#' \itemize{ \item \code{results(x)}: get a data frame with gene-level or 
+#' feature-level results.}
 #' 
 #' @param x dmDStest object.
 #' @param ... Other parameters that can be defined by methods using this 
@@ -37,14 +36,99 @@ NULL
 #'   Hochberg adjusted p-values.
 #'   
 #' @examples 
+#' # --------------------------------------------------------------------------
+#' # Create dmDSdata object 
+#' # --------------------------------------------------------------------------
+#' ## Get kallisto transcript counts from the 'PasillaTranscriptExpr' package
 #' 
-#' ###################################
-#' ### Differential splicing analysis
-#' ###################################
+#' library(PasillaTranscriptExpr)
+#' 
+#' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
+#' 
+#' ## Load metadata
+#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
+#'   as.is = TRUE)
+#' 
+#' ## Load counts
+#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
+#'   as.is = TRUE)
+#' 
+#' ## Create a samples data frame
+#' samples <- data.frame(sample_id = metadata$SampleName, 
+#'   group = metadata$condition)
+#' levels(samples$group)
+#' 
+#' ## Create a dmDSdata object
+#' d <- dmDSdata(counts = counts, samples = samples)
+#' 
+#' ## Use a subset of genes, which is defined in the following file
+#' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
+#' 
+#' d <- d[names(d) %in% gene_id_subset, ]
+#' 
+#' # --------------------------------------------------------------------------
+#' # Differential transcript usage analysis - simple two group comparison 
+#' # --------------------------------------------------------------------------
+#' 
+#' ## Filtering
+#' ## Check what is the minimal number of replicates per condition 
+#' table(samples(d)$group)
+#' 
+#' d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3,
+#'   min_gene_expr = 10, min_feature_expr = 10)
+#' 
+#' plotData(d)
+#' 
+#' ## Create the design matrix
+#' design <- model.matrix(~ group, data = samples(d))
+#' 
+#' ## To make the analysis reproducible
+#' set.seed(123)
+#' ## Calculate dispersion
+#' d <- dmDispersion(d, design = design)
+#' 
+#' plotDispersion(d)
+#' 
+#' head(mean_expression(d))
+#' common_dispersion(d)
+#' head(genewise_dispersion(d))
+#' 
+#' ## Fit full model proportions
+#' d <- dmFit(d, design = design)
+#' 
+#' ## Get fitted proportions
+#' head(proportions(d))
+#' ## Get the DM regression coefficients (gene-level) 
+#' head(coefficients(d))
+#' ## Get the BB regression coefficients (feature-level) 
+#' head(coefficients(d), level = "feature")
+#' 
+#' ## Fit null model proportions and perform the LR test to detect DTU
+#' d <- dmTest(d, coef = "groupKD")
+#' 
+#' ## Plot the gene-level p-values
+#' plotPValues(d)
+#' 
+#' ## Get the gene-level results
+#' head(results(d))
+#' 
+#' ## Plot feature proportions for a top DTU gene
+#' res <- results(d)
+#' res <- res[order(res$pvalue, decreasing = FALSE), ]
+#' 
+#' top_gene_id <- res$gene_id[1]
+#' 
+#' plotProportions(d, gene_id = top_gene_id, group_variable = "group")
+#' 
+#' plotProportions(d, gene_id = top_gene_id, group_variable = "group", 
+#'   plot_type = "lineplot")
+#' 
+#' plotProportions(d, gene_id = top_gene_id, group_variable = "group", 
+#'   plot_type = "ribbonplot")
 #' 
 #' @author Malgorzata Nowicka
-#' @seealso \code{\link{data_dmDSdata}}, \code{\linkS4class{dmDSdata}}, 
-#'   \code{\linkS4class{dmDSdispersion}}, \code{\linkS4class{dmDSfit}}
+#' @seealso \code{\linkS4class{dmDSdata}}, \code{\linkS4class{dmDSdispersion}},
+#'   \code{\linkS4class{dmDSfit}}
 setClass("dmDStest", 
   contains = "dmDSfit",
   representation(design_fit_null = "matrix",
@@ -54,13 +138,20 @@ setClass("dmDStest",
     results_feature = "data.frame"))
 
 
-##################################
-
+# ------------------------------------------------------------------------------
 
 setValidity("dmDStest", function(object){
   # Has to return TRUE when valid object!
   
-  # TODO: Add more checks
+  if(!length(object@lik_null) == length(object@counts))
+    return("Different number of genes in 'counts' and 'lik_null'")
+  
+  if(length(object@lik_null_bb) > 0){
+    if(!length(object@lik_null_bb) == nrow(object@counts))
+      return("Different number of features in 'counts' and 'lik_null_bb'")
+  }
+  
+  # TODO: Add more checks for results
   
   return(TRUE)
   
@@ -99,11 +190,11 @@ setMethod("show", "dmDStest", function(object){
 ### dmTest
 ###############################################################################
 
-#' Likelihood ratio test
+#' Likelihood ratio test to detect differential transcript/exon usage
 #' 
-#' First, estimate the null Dirichlet-multinomial and beta-binomial model
-#' parameters and likelihoods. Second, perform the gene-level (DM model) and
-#' feature-level (BB model) likelihood ratio tests.
+#' First, estimate the null Dirichlet-multinomial and beta-binomial model 
+#' parameters and likelihoods using the null model design. Second, perform the
+#' gene-level (DM model) and feature-level (BB model) likelihood ratio tests.
 #' 
 #' @param x \code{\linkS4class{dmDSfit}} or \code{\linkS4class{dmSQTLfit}} 
 #'   object.
@@ -130,17 +221,108 @@ setGeneric("dmTest", function(x, ...) standardGeneric("dmTest"))
 #' @details One must specify one of the arguments: \code{coef}, \code{design} or
 #'   \code{contrast}.
 #'   
+#'   When \code{contrast} is used to define the null model, the null design
+#'   matrix is recalculated using the same approach as in
+#'   \code{\link[edgeR]{glmLRT}} function from \code{\link{edgeR}}.
+#'   
 #' @return Returns a \code{\linkS4class{dmDStest}} or 
 #'   \code{\linkS4class{dmSQTLtest}} object.
 #' @examples 
+#' # --------------------------------------------------------------------------
+#' # Create dmDSdata object 
+#' # --------------------------------------------------------------------------
+#' ## Get kallisto transcript counts from the 'PasillaTranscriptExpr' package
 #' 
-#' ###################################
-#' ### Differential splicing analysis
-#' ###################################
+#' library(PasillaTranscriptExpr)
+#' \donttest{
+#' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 #' 
+#' ## Load metadata
+#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
+#'   as.is = TRUE)
+#' 
+#' ## Load counts
+#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
+#'   as.is = TRUE)
+#' 
+#' ## Create a samples data frame
+#' samples <- data.frame(sample_id = metadata$SampleName, 
+#'   group = metadata$condition)
+#' levels(samples$group)
+#' 
+#' ## Create a dmDSdata object
+#' d <- dmDSdata(counts = counts, samples = samples)
+#' 
+#' ## Use a subset of genes, which is defined in the following file
+#' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
+#' 
+#' d <- d[names(d) %in% gene_id_subset, ]
+#' 
+#' # --------------------------------------------------------------------------
+#' # Differential transcript usage analysis - simple two group comparison 
+#' # --------------------------------------------------------------------------
+#' 
+#' ## Filtering
+#' ## Check what is the minimal number of replicates per condition 
+#' table(samples(d)$group)
+#' 
+#' d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3,
+#'   min_gene_expr = 10, min_feature_expr = 10)
+#' 
+#' plotData(d)
+#' 
+#' ## Create the design matrix
+#' design <- model.matrix(~ group, data = samples(d))
+#' 
+#' ## To make the analysis reproducible
+#' set.seed(123)
+#' ## Calculate dispersion
+#' d <- dmDispersion(d, design = design)
+#' 
+#' plotDispersion(d)
+#' 
+#' head(mean_expression(d))
+#' common_dispersion(d)
+#' head(genewise_dispersion(d))
+#' 
+#' ## Fit full model proportions
+#' d <- dmFit(d, design = design)
+#' 
+#' ## Get fitted proportions
+#' head(proportions(d))
+#' ## Get the DM regression coefficients (gene-level) 
+#' head(coefficients(d))
+#' ## Get the BB regression coefficients (feature-level) 
+#' head(coefficients(d), level = "feature")
+#' 
+#' ## Fit null model proportions and perform the LR test to detect DTU
+#' d <- dmTest(d, coef = "groupKD")
+#' 
+#' ## Plot the gene-level p-values
+#' plotPValues(d)
+#' 
+#' ## Get the gene-level results
+#' head(results(d))
+#' 
+#' ## Plot feature proportions for a top DTU gene
+#' res <- results(d)
+#' res <- res[order(res$pvalue, decreasing = FALSE), ]
+#' 
+#' top_gene_id <- res$gene_id[1]
+#' 
+#' plotProportions(d, gene_id = top_gene_id, group_variable = "group")
+#' 
+#' plotProportions(d, gene_id = top_gene_id, group_variable = "group", 
+#'   plot_type = "lineplot")
+#' 
+#' plotProportions(d, gene_id = top_gene_id, group_variable = "group", 
+#'   plot_type = "ribbonplot")
+#' }
 #' @author Malgorzata Nowicka
-#' @seealso \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}}, 
-#'   \code{\link{plotPValues}}, \code{\link{dmDispersion}}, \code{\link{dmFit}}
+#' @seealso \code{\link{plotPValues}} \code{\link[edgeR]{glmLRT}}
+#' @references McCarthy, DJ, Chen, Y, Smyth, GK (2012). Differential expression
+#' analysis of multifactor RNA-Seq experiments with respect to biological
+#' variation. Nucleic Acids Research 40, 4288-4297.
 #' @rdname dmTest
 #' @export
 setMethod("dmTest", "dmDSfit", function(x, 
@@ -184,7 +366,7 @@ setMethod("dmTest", "dmDSfit", function(x,
     if(is.numeric(coef)){
       stopifnot(max(coef) <= nbeta)
     }else if(is.character(coef)){
-      if(all(coef %in% colnames(x@design_fit_full))) 
+      if(!all(coef %in% colnames(x@design_fit_full))) 
         stop("'coef' does not match the columns of the design matrix!")
       coef <- match(coef, colnames(x@design_fit_full))
     }
@@ -319,7 +501,7 @@ setMethod("dmTest", "dmDSfit", function(x,
 ### plotPValues
 ###############################################################################
 
-#' Plot p-values distribution
+#' Plot p-value distribution
 #' 
 #' @return Plot a histogram of p-values.
 #' 
@@ -328,18 +510,108 @@ setMethod("dmTest", "dmDSfit", function(x,
 #' @export
 setGeneric("plotPValues", function(x, ...) standardGeneric("plotPValues"))
 
+
+
 # ----------------------------------------------------------------------------
+
+
+
 
 #' @inheritParams results
 #' @examples
+#' # --------------------------------------------------------------------------
+#' # Create dmDSdata object 
+#' # --------------------------------------------------------------------------
+#' ## Get kallisto transcript counts from the 'PasillaTranscriptExpr' package
 #' 
-#' ###################################
-#' ### Differential splicing analysis
-#' ###################################
+#' library(PasillaTranscriptExpr)
+#' \donttest{
+#' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 #' 
+#' ## Load metadata
+#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
+#'   as.is = TRUE)
+#' 
+#' ## Load counts
+#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
+#'   as.is = TRUE)
+#' 
+#' ## Create a samples data frame
+#' samples <- data.frame(sample_id = metadata$SampleName, 
+#'   group = metadata$condition)
+#' levels(samples$group)
+#' 
+#' ## Create a dmDSdata object
+#' d <- dmDSdata(counts = counts, samples = samples)
+#' 
+#' ## Use a subset of genes, which is defined in the following file
+#' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
+#' 
+#' d <- d[names(d) %in% gene_id_subset, ]
+#' 
+#' # --------------------------------------------------------------------------
+#' # Differential transcript usage analysis - simple two group comparison 
+#' # --------------------------------------------------------------------------
+#' 
+#' ## Filtering
+#' ## Check what is the minimal number of replicates per condition 
+#' table(samples(d)$group)
+#' 
+#' d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3,
+#'   min_gene_expr = 10, min_feature_expr = 10)
+#' 
+#' plotData(d)
+#' 
+#' ## Create the design matrix
+#' design <- model.matrix(~ group, data = samples(d))
+#' 
+#' ## To make the analysis reproducible
+#' set.seed(123)
+#' ## Calculate dispersion
+#' d <- dmDispersion(d, design = design)
+#' 
+#' plotDispersion(d)
+#' 
+#' head(mean_expression(d))
+#' common_dispersion(d)
+#' head(genewise_dispersion(d))
+#' 
+#' ## Fit full model proportions
+#' d <- dmFit(d, design = design)
+#' 
+#' ## Get fitted proportions
+#' head(proportions(d))
+#' ## Get the DM regression coefficients (gene-level) 
+#' head(coefficients(d))
+#' ## Get the BB regression coefficients (feature-level) 
+#' head(coefficients(d), level = "feature")
+#' 
+#' ## Fit null model proportions and perform the LR test to detect DTU
+#' d <- dmTest(d, coef = "groupKD")
+#' 
+#' ## Plot the gene-level p-values
+#' plotPValues(d)
+#' 
+#' ## Get the gene-level results
+#' head(results(d))
+#' 
+#' ## Plot feature proportions for a top DTU gene
+#' res <- results(d)
+#' res <- res[order(res$pvalue, decreasing = FALSE), ]
+#' 
+#' top_gene_id <- res$gene_id[1]
+#' 
+#' plotProportions(d, gene_id = top_gene_id, group_variable = "group")
+#' 
+#' plotProportions(d, gene_id = top_gene_id, group_variable = "group", 
+#'   plot_type = "lineplot")
+#' 
+#' plotProportions(d, gene_id = top_gene_id, group_variable = "group", 
+#'   plot_type = "ribbonplot")
+#' }
 #' @author Malgorzata Nowicka
-#' @seealso \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}},
-#'   \code{\link{plotData}}, \code{\link{plotDispersion}}, \code{\link{plotProportions}}
+#' @seealso \code{\link{plotData}}, \code{\link{plotDispersion}},
+#'   \code{\link{plotProportions}}
 #' @rdname plotPValues
 #' @export
 setMethod("plotPValues", "dmDStest", function(x, level = "gene"){
@@ -354,48 +626,11 @@ setMethod("plotPValues", "dmDStest", function(x, level = "gene"){
   else
     stop("Feature-level results are not available! Set bb_model=TRUE in 
       dmFit and dmTest")
-    
-    return(ggp)  
+  
+  return(ggp)  
   
 })
 
-
-###############################################################################
-### dmTwoStageTest
-###############################################################################
-
-#' Two-stage test
-#' 
-#' Two-stage test
-#' 
-#' @param x \code{\linkS4class{dmDStest}} or \code{\linkS4class{dmSQTLtest}}
-#'   object.
-#' @param ... Other parameters that can be defined by methods using this
-#'   generic.
-#' @export
-setGeneric("dmTwoStageTest", function(x, ...) standardGeneric("dmTwoStageTest"))
-
-
-#' @inheritParams dmTest
-#' @param FDR Numeric. Cutoff for the FDR.
-#' @return Returns a data frame with adjusted feature-level p-values.
-#' @rdname dmTwoStageTest
-#' @export
-setMethod("dmTwoStageTest", "dmDStest", function(x, FDR = 0.05, 
-  verbose = 0, BPPARAM = BiocParallel::SerialParam()){
-  
-  stopifnot(verbose %in% 0:2)
-  stopifnot(length(FDR) == 1)
-  stopifnot(class(FDR) == "numeric")
-  stopifnot(nrow(x@results_feature) > 0)
-  
-  table <- dm_twoStageTest(pvalue_gene = x@results_gene, 
-    pvalue_feature = x@results_feature, FDR = FDR, 
-    verbose = verbose, BPPARAM = BPPARAM)
-  
-  return(table)
-  
-})
 
 
 

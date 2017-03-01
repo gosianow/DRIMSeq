@@ -13,20 +13,15 @@ is defined by different SNPs/blocks. Result of \code{\link{dmFit}}.
 \section{Slots}{
 
 \describe{
-\item{\code{dispersion}}{Character specifying which type of dispersion was used for
-fitting: \code{"common_dispersion"} or \code{"genewise_dispersion"}.}
-
 \item{\code{fit_full}}{List of \code{\linkS4class{MatrixList}} objects. Each element
 of this list contains the full model proportion estimates for all the
-blocks associated with a given gene. Columns of MatrixLists correspond to 3
-genotypes (0,1,2). The full model likelihoods are stored in \code{metadata}
-slot.}
+blocks associated with a given gene.}
 }}
-\author{
-Malgorzata Nowicka
-}
+
 \seealso{
 \code{\link{data_dmSQTLdata}}, \code{\linkS4class{dmSQTLdata}},
   \code{\linkS4class{dmSQTLdispersion}}, \code{\linkS4class{dmSQTLtest}}
 }
-
+\author{
+Malgorzata Nowicka
+}

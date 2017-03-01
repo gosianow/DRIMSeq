@@ -46,7 +46,7 @@ dmDS_fit <- function(counts, design, dispersion,
     disp <- dispersion
   }
   
-  # Approach from edgeR:
+  # Approach from edgeR glmFit.default:
   # If the design is equivalent to a oneway layout, use a shortcut algorithm 
   groups <- edgeR::designAsFactor(design)
   

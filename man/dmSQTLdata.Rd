@@ -62,11 +62,10 @@ belongs to a given block.
 #############################
 
 }
-\author{
-Malgorzata Nowicka
-}
 \seealso{
 \code{\link{data_dmSQTLdata}}, \code{\link{dmFilter}}, 
   \code{\link{dmDispersion}}, \code{\link{dmFit}}, \code{\link{dmTest}}
 }
-
+\author{
+Malgorzata Nowicka
+}

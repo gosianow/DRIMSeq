@@ -5,7 +5,7 @@
 \alias{dmTest}
 \alias{dmTest,dmDSfit-method}
 \alias{dmTest,dmSQTLfit-method}
-\title{Likelihood ratio test}
+\title{Likelihood ratio test to detect differential transcript/exon usage}
 \usage{
 dmTest(x, ...)
 
@@ -14,9 +14,10 @@ dmTest(x, ...)
   prop_tol = 1e-12, coef_mode = "optim", coef_tol = 1e-12, verbose = 0,
   BPPARAM = BiocParallel::SerialParam())
 
-\S4method{dmTest}{dmSQTLfit}(x, permutations = "all_genes",
-  prop_mode = "constrOptim", prop_tol = 1e-12, verbose = 0,
-  BPPARAM = BiocParallel::MulticoreParam(workers = 1))
+\S4method{dmTest}{dmSQTLfit}(x, permutation_mode = "all_genes",
+  one_way = TRUE, prop_mode = "constrOptim", prop_tol = 1e-12,
+  coef_mode = "optim", coef_tol = 1e-12, verbose = 0,
+  BPPARAM = BiocParallel::SerialParam())
 }
 \arguments{
 \item{x}{\code{\linkS4class{dmDSfit}} or \code{\linkS4class{dmSQTLfit}} 
@@ -38,11 +39,12 @@ must equal to the number of columns of \code{design} used in
 \code{\linkS4class{dmFit}}.}
 
 \item{one_way}{Logical. Should the shortcut fitting be used when the design 
-corresponds to multiple group comparison. If \code{TRUE} (the default), 
-then proportions are fitted per group and regression coefficients are 
-recalculated from these fittings.}
+corresponds to multiple group comparison. This is a similar approach as in 
+\code{\link{edgeR}}. If \code{TRUE} (the default), then proportions are 
+fitted per group and regression coefficients are recalculated from those 
+fits.}
 
-\item{bb_model}{Logical. Whether to perform the feature-level analysis using
+\item{bb_model}{Logical. Whether to perform the feature-level analysis using 
 the beta-binomial model.}
 
 \item{prop_mode}{Optimization method used to estimate proportions. Possible 
@@ -50,7 +52,7 @@ value \code{"constrOptim"}.}
 
 \item{prop_tol}{The desired accuracy when estimating proportions.}
 
-\item{coef_mode}{Optimization method used to estimate regression
+\item{coef_mode}{Optimization method used to estimate regression 
 coefficients. Possible values \code{"optim"} (the default), \code{"nlminb"}
 or \code{"Rcgmin"}.}
 
@@ -62,33 +64,132 @@ no messages, 1 - main messages, 2 - message for every gene fitting.}
 \item{BPPARAM}{Parallelization method used by 
 \code{\link[BiocParallel]{bplapply}}.}
 
-\item{permutations}{Character specifying which permutation scheme to apply for p-value calculation. When equal to \code{"all_genes"}, null distribution of p-values is calculated from all genes and the maximum number of permutation cycles is 10. When  \code{permutations = "per_gene"}, null distribution of p-values is calculated for each gene separately based on permutations of this individual gene. The latter approach may take a lot of computational time. We suggest using the first option.}
+\item{permutation_mode}{Character specifying which permutation scheme to
+apply for p-value calculation. When equal to \code{"all_genes"}, null 
+distribution of p-values is calculated from all genes and the maximum 
+number of permutation cycles is 10. When  \code{permutation_mode =
+"per_gene"}, null distribution of p-values is calculated for each gene
+separately based on permutations of this individual gene. The latter
+approach may take a lot of computational time. We suggest using the first
+option.}
 }
 \value{
 Returns a \code{\linkS4class{dmDStest}} or 
   \code{\linkS4class{dmSQTLtest}} object.
 }
 \description{
-First, estimate the null Dirichlet-multinomial and beta-binomial model
-parameters and likelihoods. Second, perform the gene-level (DM model) and
-feature-level (BB model) likelihood ratio tests.
+First, estimate the null Dirichlet-multinomial and beta-binomial model 
+parameters and likelihoods using the null model design. Second, perform the
+gene-level (DM model) and feature-level (BB model) likelihood ratio tests.
 }
 \details{
 One must specify one of the arguments: \code{coef}, \code{design} or
   \code{contrast}.
+  
+  When \code{contrast} is used to define the null model, the null design
+  matrix is recalculated using the same approach as in
+  \code{\link[edgeR]{glmLRT}} function from \code{\link{edgeR}}.
 }
 \examples{
+# --------------------------------------------------------------------------
+# Create dmDSdata object 
+# --------------------------------------------------------------------------
+## Get kallisto transcript counts from the 'PasillaTranscriptExpr' package
 
-###################################
-### Differential splicing analysis
-###################################
+library(PasillaTranscriptExpr)
+\donttest{
+data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 
+## Load metadata
+metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
+  as.is = TRUE)
+
+## Load counts
+counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
+  as.is = TRUE)
+
+## Create a samples data frame
+samples <- data.frame(sample_id = metadata$SampleName, 
+  group = metadata$condition)
+levels(samples$group)
+
+## Create a dmDSdata object
+d <- dmDSdata(counts = counts, samples = samples)
+
+## Use a subset of genes, which is defined in the following file
+gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
+
+d <- d[names(d) \%in\% gene_id_subset, ]
+
+# --------------------------------------------------------------------------
+# Differential transcript usage analysis - simple two group comparison 
+# --------------------------------------------------------------------------
+
+## Filtering
+## Check what is the minimal number of replicates per condition 
+table(samples(d)$group)
+
+d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3,
+  min_gene_expr = 10, min_feature_expr = 10)
+
+plotData(d)
+
+## Create the design matrix
+design <- model.matrix(~ group, data = samples(d))
+
+## To make the analysis reproducible
+set.seed(123)
+## Calculate dispersion
+d <- dmDispersion(d, design = design)
+
+plotDispersion(d)
+
+head(mean_expression(d))
+common_dispersion(d)
+head(genewise_dispersion(d))
+
+## Fit full model proportions
+d <- dmFit(d, design = design)
+
+## Get fitted proportions
+head(proportions(d))
+## Get the DM regression coefficients (gene-level) 
+head(coefficients(d))
+## Get the BB regression coefficients (feature-level) 
+head(coefficients(d), level = "feature")
+
+## Fit null model proportions and perform the LR test to detect DTU
+d <- dmTest(d, coef = "groupKD")
+
+## Plot the gene-level p-values
+plotPValues(d)
+
+## Get the gene-level results
+head(results(d))
+
+## Plot feature proportions for a top DTU gene
+res <- results(d)
+res <- res[order(res$pvalue, decreasing = FALSE), ]
+
+top_gene_id <- res$gene_id[1]
+
+plotProportions(d, gene_id = top_gene_id, group_variable = "group")
+
+plotProportions(d, gene_id = top_gene_id, group_variable = "group", 
+  plot_type = "lineplot")
+
+plotProportions(d, gene_id = top_gene_id, group_variable = "group", 
+  plot_type = "ribbonplot")
+}
+}
+\references{
+McCarthy, DJ, Chen, Y, Smyth, GK (2012). Differential expression
+analysis of multifactor RNA-Seq experiments with respect to biological
+variation. Nucleic Acids Research 40, 4288-4297.
+}
+\seealso{
+\code{\link{plotPValues}} \code{\link[edgeR]{glmLRT}}
 }
 \author{
 Malgorzata Nowicka
 }
-\seealso{
-\code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}}, 
-  \code{\link{plotPValues}}, \code{\link{dmDispersion}}, \code{\link{dmFit}}
-}
-

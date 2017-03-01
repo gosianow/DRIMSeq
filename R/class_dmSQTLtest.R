@@ -78,7 +78,7 @@ setMethod("show", "dmSQTLtest", function(object){
   
   callNextMethod(object)
   
-  cat("* data accessors: results()\n")
+  cat("  results()\n")
   
 })
 

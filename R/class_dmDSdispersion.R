@@ -7,45 +7,100 @@ NULL
 
 #' dmDSdispersion object
 #' 
-#' dmDSdispersion extends the \code{\linkS4class{dmDSdata}} by adding the
-#' dispersion estimates of Dirichlet-multinomial distribution used to model the
-#' feature (e.g., transcript, exon, exonic bin) coiunts for each gene in the
-#' differential splicing analysis. Result of \code{\link{dmDispersion}}.
+#' dmDSdispersion extends the \code{\linkS4class{dmDSdata}} by adding the 
+#' precision estimates of the Dirichlet-multinomial distribution used to model 
+#' the feature (e.g., transcript, exon, exonic bin) counts for each gene in the 
+#' differential usage analysis. Result of calling the \code{\link{dmDispersion}}
+#' function.
 #' 
+#' @details Normally, in the differential analysis based on RNA-seq data, such 
+#'   as, for example, differential gene expression, dispersion (of 
+#'   negative-binomial model) is estimated. Here, we estimate precision of the 
+#'   Dirichlet-multinomial model as it is more convenient computationally. To 
+#'   obtain dispersion estimates, one can use a formula: dispersion = 1 / (1 + 
+#'   precision).
+#'   
 #' @return
 #' 
-#' \itemize{ 
-#' \item \code{mean_expression(x)}: Get a data frame with mean gene
-#' expression. 
-#' \item \code{common_dispersion(x), common_dispersion(x) <- value}:
-#' Get or set common dispersion. \code{value} must be numeric of length 1. 
-#' \item \code{genewise_dispersion(x), genewise_dispersion(x) <- value}: 
-#' Get a data frame with gene-wise dispersion or set new gene-wise dispersion. 
-#' \code{value} must be a data frame with "gene_id" and "genewise_dispersion"
-#' columns. 
-#' }
-#' 
+#' \itemize{ \item \code{mean_expression(x)}: Get a data frame with mean gene
+#' expression. \item \code{common_dispersion(x), common_dispersion(x) <- value}:
+#' Get or set common dispersion. \code{value} must be numeric of length 1. \item
+#' \code{genewise_dispersion(x), genewise_dispersion(x) <- value}: Get a data
+#' frame with gene-wise dispersion or set new gene-wise dispersion. \code{value}
+#' must be a data frame with "gene_id" and "genewise_dispersion" columns. }
 #' 
 #' @param x dmDSdispersion object.
-#' @param value Values that replace current attributes. 
-#' @param ... Other parameters that can be defined by methods using this
+#' @param value Values that replace current attributes.
+#' @param ... Other parameters that can be defined by methods using this 
 #'   generic.
 #'   
 #' @slot mean_expression Numeric vector of mean gene expression.
 #' @slot common_dispersion Numeric value of estimated common dispersion.
 #' @slot genewise_dispersion Numeric vector of estimated gene-wise dispersions.
-#' @slot design_dispersion Numeric matrix of the desing 
-#' used to estimate dispersion.
-#' 
+#' @slot design_dispersion Numeric matrix of the desing used to estimate 
+#'   dispersion.
+#'   
 #' @examples 
+#' # --------------------------------------------------------------------------
+#' # Create dmDSdata object 
+#' # --------------------------------------------------------------------------
+#' ## Get kallisto transcript counts from the 'PasillaTranscriptExpr' package
 #' 
-#' ###################################
-#' ### Differential splicing analysis
-#' ###################################
+#' library(PasillaTranscriptExpr)
+#' \donttest{
+#' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 #' 
+#' ## Load metadata
+#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
+#'   as.is = TRUE)
+#' 
+#' ## Load counts
+#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
+#'   as.is = TRUE)
+#' 
+#' ## Create a samples data frame
+#' samples <- data.frame(sample_id = metadata$SampleName, 
+#'   group = metadata$condition)
+#' levels(samples$group)
+#' 
+#' ## Create a dmDSdata object
+#' d <- dmDSdata(counts = counts, samples = samples)
+#' 
+#' ## Use a subset of genes, which is defined in the following file
+#' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
+#' 
+#' d <- d[names(d) %in% gene_id_subset, ]
+#' 
+#' # --------------------------------------------------------------------------
+#' # Differential transcript usage analysis - simple two group comparison 
+#' # --------------------------------------------------------------------------
+#' 
+#' ## Filtering
+#' ## Check what is the minimal number of replicates per condition 
+#' table(samples(d)$group)
+#' 
+#' d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3,
+#'   min_gene_expr = 10, min_feature_expr = 10)
+#' 
+#' plotData(d)
+#' 
+#' ## Create the design matrix
+#' design <- model.matrix(~ group, data = samples(d))
+#' 
+#' ## To make the analysis reproducible
+#' set.seed(123)
+#' ## Calculate dispersion
+#' d <- dmDispersion(d, design = design)
+#' 
+#' plotDispersion(d)
+#' 
+#' head(mean_expression(d))
+#' common_dispersion(d)
+#' head(genewise_dispersion(d))
+#' }
 #' @author Malgorzata Nowicka
-#' @seealso \code{\link{data_dmDSdata}}, \code{\linkS4class{dmDSdata}},
-#'   \code{\linkS4class{dmDSfit}}, \code{\linkS4class{dmDStest}}
+#' @seealso \code{\linkS4class{dmDSdata}}, \code{\linkS4class{dmDSfit}}, 
+#'   \code{\linkS4class{dmDStest}}
 setClass("dmDSdispersion", 
   contains = "dmDSdata",
   representation(mean_expression = "numeric", 
@@ -57,7 +112,7 @@ setClass("dmDSdispersion",
 # -----------------------------------------------------------------------------
 
 setValidity("dmDSdispersion", function(object){
-  # has to return TRUE when valid object!
+  ## Has to return TRUE when valid object!
   out <- TRUE
   
   if(length(object@mean_expression) > 0){
@@ -208,14 +263,22 @@ setMethod("show", "dmDSdispersion", function(object){
 ### dmDispersion
 ################################################################################
 
-#' Estimate dispersions in Dirichlet-multinomial model
+#' Estimate the precision parameter in the Dirichlet-multinomial model
 #' 
-#' Maximum likelihood estimates of dispersion parameters in the
-#' Dirichlet-multinomial model used in differential splicing or sQTL analysis.
+#' Maximum likelihood estimates of the precision parameter in the 
+#' Dirichlet-multinomial model used for the differential exon/transcript usage
+#' or QTL analysis.
 #' 
-#' @param x \code{\linkS4class{dmDSdata}} or \code{\linkS4class{dmSQTLdata}}
+#' @details Normally, in the differential analysis based on RNA-seq data, such 
+#'   as, for example, differential gene expression, dispersion (of 
+#'   negative-binomial model) is estimated. Here, we estimate precision of the 
+#'   Dirichlet-multinomial model as it is more convenient computationally. To 
+#'   obtain dispersion estimates, one can use a formula: dispersion = 1 / (1 + 
+#'   precision).
+#'   
+#' @param x \code{\linkS4class{dmDSdata}} or \code{\linkS4class{dmSQTLdata}} 
 #'   object.
-#' @param ... Other parameters that can be defined by methods using this
+#' @param ... Other parameters that can be defined by methods using this 
 #'   generic.
 #' @export
 setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
@@ -224,35 +287,29 @@ setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
 # -----------------------------------------------------------------------------
 
 
-#' @details Parameters that are used in the dispersion estimation start with 
-#'   prefix \code{disp_}, and those that are used for the proportion estimation 
-#'   start with \code{prop_}.
+#' @details Parameters that are used in the precision (dispersion = 1 / (1 + 
+#'   precision)) estimation start with prefix \code{disp_}. Those that are used 
+#'   for the proportion estimation in each group when the shortcut fitting 
+#'   \code{one_way = TRUE} can be used start with \code{prop_}, and those that 
+#'   are used in the regression framework start with \code{coef_}.
 #'   
-#'   There are 2 optimization methods implemented within dmDispersion 
+#'   There are two optimization methods implemented within dmDispersion: 
 #'   \code{"optimize"} for the common dispersion and \code{"grid"} for the 
 #'   gene-wise dispersion.
 #'   
-#'   Arguments that are used by all the methods are:
-#'   
-#'   \itemize{ \item \code{disp_adjust} \item \code{prop_mode}: 
-#'   \code{"constrOptim"} uses \code{\link{constrOptim}} function to maximize 
-#'   the likelihood of Dirichlet-multinomial proportions. \item \code{prop_tol}:
-#'   The accuracy for proportions estimation defined as \code{reltol} in 
-#'   \code{\link{constrOptim}}. }
-#'   
-#'   Only some of the rest of dispersion parameters in dmDispersion have an 
-#'   influence on a given optimization method. Here is a list of such active 
-#'   parameters:
+#'   Only part of the dispersion parameters in dmDispersion have an influence on
+#'   a given optimization method. Here is a list of such active parameters:
 #'   
 #'   \code{"optimize"}:
 #'   
-#'   \itemize{ \item \code{disp_interval}: Passed as \code{interval}. \item 
-#'   \code{disp_tol}: The accuracy defined as \code{tol}. }
+#'   \itemize{ \item \code{disp_interval}: passed as \code{interval}. \item 
+#'   \code{disp_tol}: the accuracy defined as \code{tol}. }
 #'   
-#'   \code{"grid"}, which uses the grid approach from \code{\link{edgeR}}:
+#'   \code{"grid"}, which uses the grid approach from 
+#'   \code{\link[edgeR]{estimateDisp}} in \code{\link{edgeR}}:
 #'   
 #'   \itemize{ \item \code{disp_init}, \code{disp_grid_length}, 
-#'   \code{disp_grid_range}: Parameters used to construct the search grid 
+#'   \code{disp_grid_range}: parameters used to construct the search grid 
 #'   \code{disp_init * 2^seq(from = disp_grid_range[1]}, \code{to = 
 #'   disp_grid_range[2]}, \code{length = disp_grid_length)}. \item 
 #'   \code{disp_moderation}: Dipsersion shrinkage is available only with 
@@ -263,7 +320,8 @@ setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
 #'   Used only when dispersion moderation toward trend is activated. }
 #'   
 #' @param design Numeric matrix definig the model that should be used when 
-#'   estimating dispersion. Normally this should be a full model design.
+#'   estimating dispersion. Normally this should be a full model design used 
+#'   also in \code{\link{dmFit}}.
 #' @param mean_expression Logical. Whether to estimate the mean expression of 
 #'   genes.
 #' @param common_dispersion Logical. Whether to estimate the common dispersion.
@@ -272,9 +330,10 @@ setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
 #' @param disp_adjust Logical. Whether to use the Cox-Reid adjusted or 
 #'   non-adjusted profile likelihood.
 #' @param one_way Logical. Should the shortcut fitting be used when the design 
-#'   corresponds to multiple group comparison. If \code{TRUE} (the default), 
-#'   then proportions are fitted per group and regression coefficients are 
-#'   recalculated from these fittings.
+#'   corresponds to multiple group comparison. This is a similar approach as in 
+#'   \code{\link{edgeR}}. If \code{TRUE} (the default), then proportions are 
+#'   fitted per group and regression coefficients are recalculated from those 
+#'   fits.
 #' @param disp_subset Value from 0 to 1 defining the percentage of genes used in
 #'   common dispersion estimation. The default is 0.1, which uses 10% of 
 #'   randomly selected genes to speed up the dispersion estimation process. Use 
@@ -299,7 +358,7 @@ setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
 #' @param prop_mode Optimization method used to estimate proportions. Possible 
 #'   value \code{"constrOptim"}.
 #' @param prop_tol The desired accuracy when estimating proportions.
-#' @param coef_mode Optimization method used to estimate regression
+#' @param coef_mode Optimization method used to estimate regression 
 #'   coefficients. Possible values \code{"optim"} (the default), \code{"nlminb"}
 #'   or \code{"Rcgmin"}.
 #' @param coef_tol The desired accuracy when estimating regression coefficients.
@@ -311,13 +370,68 @@ setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
 #' @return Returns a \code{\linkS4class{dmDSdispersion}} or 
 #'   \code{\linkS4class{dmSQTLdispersion}} object.
 #' @examples 
-#' ###################################
-#' ### Differential splicing analysis
-#' ###################################
+#' # --------------------------------------------------------------------------
+#' # Create dmDSdata object 
+#' # --------------------------------------------------------------------------
+#' ## Get kallisto transcript counts from the 'PasillaTranscriptExpr' package
 #' 
-#' @seealso \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}}, 
-#'   \code{\link{plotDispersion}}, \code{\link{dmFit}}, \code{\link{dmTest}}
+#' library(PasillaTranscriptExpr)
+#' \donttest{
+#' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
+#' 
+#' ## Load metadata
+#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
+#'   as.is = TRUE)
+#' 
+#' ## Load counts
+#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
+#'   as.is = TRUE)
+#' 
+#' ## Create a samples data frame
+#' samples <- data.frame(sample_id = metadata$SampleName, 
+#'   group = metadata$condition)
+#' levels(samples$group)
+#' 
+#' ## Create a dmDSdata object
+#' d <- dmDSdata(counts = counts, samples = samples)
+#' 
+#' ## Use a subset of genes, which is defined in the following file
+#' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
+#' 
+#' d <- d[names(d) %in% gene_id_subset, ]
+#' 
+#' # --------------------------------------------------------------------------
+#' # Differential transcript usage analysis - simple two group comparison 
+#' # --------------------------------------------------------------------------
+#' 
+#' ## Filtering
+#' ## Check what is the minimal number of replicates per condition 
+#' table(samples(d)$group)
+#' 
+#' d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3,
+#'   min_gene_expr = 10, min_feature_expr = 10)
+#' 
+#' plotData(d)
+#' 
+#' ## Create the design matrix
+#' design <- model.matrix(~ group, data = samples(d))
+#' 
+#' ## To make the analysis reproducible
+#' set.seed(123)
+#' ## Calculate dispersion
+#' d <- dmDispersion(d, design = design)
+#' 
+#' plotDispersion(d)
+#' 
+#' head(mean_expression(d))
+#' common_dispersion(d)
+#' head(genewise_dispersion(d))
+#' }
+#' @seealso \code{\link{plotDispersion}} \code{\link[edgeR]{estimateDisp}}
 #' @author Malgorzata Nowicka
+#' @references McCarthy, DJ, Chen, Y, Smyth, GK (2012). Differential expression
+#' analysis of multifactor RNA-Seq experiments with respect to biological
+#' variation. Nucleic Acids Research 40, 4288-4297.
 #' @rdname dmDispersion
 #' @export
 setMethod("dmDispersion", "dmDSdata", function(x, design, 
@@ -447,12 +561,12 @@ setMethod("dmDispersion", "dmDSdata", function(x, design,
 ### plotDispersion
 ################################################################################
 
-#' Dispersion versus mean expression plot
+#' Precision versus mean expression plot
 #' 
 #' @return Normally in the differential analysis based on RNA-seq data, such 
 #'   plot has dispersion parameter plotted on the y-axis. Here, the y-axis 
-#'   represents precision since in the Dirichlet-multinomial model this is a 
-#'   parameter that is  directly estimated. It is important to keep in mind that
+#'   represents precision since in the Dirichlet-multinomial model this is the 
+#'   parameter that is directly estimated. It is important to keep in mind that
 #'   the precision parameter (gamma0) is inverse proportional to dispersion 
 #'   (theta): theta = 1 / (1 + gamma0). In RNA-seq data, we can typically
 #'   observe a trend where the dispersion decreases (here, presicion increases)
@@ -471,10 +585,63 @@ setGeneric("plotDispersion", function(x, ...) standardGeneric("plotDispersion"))
 
 #' @inheritParams plotData
 #' @examples 
-#' ###################################
-#' ### Differential splicing analysis
-#' ###################################
+#' # --------------------------------------------------------------------------
+#' # Create dmDSdata object 
+#' # --------------------------------------------------------------------------
+#' ## Get kallisto transcript counts from the 'PasillaTranscriptExpr' package
 #' 
+#' library(PasillaTranscriptExpr)
+#' \donttest{
+#' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
+#' 
+#' ## Load metadata
+#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
+#'   as.is = TRUE)
+#' 
+#' ## Load counts
+#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
+#'   as.is = TRUE)
+#' 
+#' ## Create a samples data frame
+#' samples <- data.frame(sample_id = metadata$SampleName, 
+#'   group = metadata$condition)
+#' levels(samples$group)
+#' 
+#' ## Create a dmDSdata object
+#' d <- dmDSdata(counts = counts, samples = samples)
+#' 
+#' ## Use a subset of genes, which is defined in the following file
+#' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
+#' 
+#' d <- d[names(d) %in% gene_id_subset, ]
+#' 
+#' # --------------------------------------------------------------------------
+#' # Differential transcript usage analysis - simple two group comparison 
+#' # --------------------------------------------------------------------------
+#' 
+#' ## Filtering
+#' ## Check what is the minimal number of replicates per condition 
+#' table(samples(d)$group)
+#' 
+#' d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3,
+#'   min_gene_expr = 10, min_feature_expr = 10)
+#' 
+#' plotData(d)
+#' 
+#' ## Create the design matrix
+#' design <- model.matrix(~ group, data = samples(d))
+#' 
+#' ## To make the analysis reproducible
+#' set.seed(123)
+#' ## Calculate dispersion
+#' d <- dmDispersion(d, design = design)
+#' 
+#' plotDispersion(d)
+#' 
+#' head(mean_expression(d))
+#' common_dispersion(d)
+#' head(genewise_dispersion(d))
+#' }
 #' @author Malgorzata Nowicka
 #' @seealso \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}},
 #'   \code{\link{plotData}}, \code{\link{plotProportions}}, \code{\link{plotPValues}}

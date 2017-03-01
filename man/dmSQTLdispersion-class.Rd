@@ -3,7 +3,17 @@
 \docType{class}
 \name{dmSQTLdispersion-class}
 \alias{dmSQTLdispersion-class}
+\alias{mean_expression,dmSQTLdispersion-method}
+\alias{common_dispersion,dmSQTLdispersion-method}
+\alias{genewise_dispersion,dmSQTLdispersion-method}
 \title{dmSQTLdispersion object}
+\usage{
+\S4method{mean_expression}{dmSQTLdispersion}(x)
+
+\S4method{common_dispersion}{dmSQTLdispersion}(x)
+
+\S4method{genewise_dispersion}{dmSQTLdispersion}(x)
+}
 \description{
 dmSQTLdispersion extends the \code{\linkS4class{dmSQTLdata}} by adding the
 dispersion estimates of Dirichlet-multinomial distribution used to model the
@@ -21,11 +31,11 @@ the sQTL analysis. Result of \code{\link{dmDispersion}}.
 element of this list is a vector of dispersions estimated for all the
 genotype blocks assigned to a given gene.}
 }}
-\author{
-Malgorzata Nowicka
-}
+
 \seealso{
 \code{\link{data_dmSQTLdata}}, \code{\linkS4class{dmSQTLdata}},
   \code{\linkS4class{dmSQTLfit}}, \code{\linkS4class{dmSQTLtest}}
 }
-
+\author{
+Malgorzata Nowicka
+}

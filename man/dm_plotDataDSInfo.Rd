@@ -19,4 +19,3 @@ DS features}
 \description{
 Plot the frequency of present features
 }
-

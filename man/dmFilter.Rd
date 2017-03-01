@@ -26,7 +26,7 @@ object.}
 \item{...}{Other parameters that can be defined by methods using this
 generic.}
 
-\item{min_samps_gene_expr}{Minimal number of samples where genes should be
+\item{min_samps_gene_expr}{Minimal number of samples where genes should be 
 expressed. See Details.}
 
 \item{min_samps_feature_expr}{Minimal number of samples where features should
@@ -58,26 +58,28 @@ dmSQTLdata object, filtering of genotypes with low frequency.
 }
 \details{
 Filtering parameters should be adjusted according to the sample size
-of the experiment data and the number of replicates per condition.
-
-\code{min_samps_gene_expr} defines the minimal number of samples where genes 
-are required to be expressed at the minimal level of \code{min_gene_expr} in
-order to be included in the downstream analysis. Ideally, we would like that
-genes were expressed at some minimal level in all samples because this would
-lead to better estimates of feature ratios.
-
-Similarly, \code{min_samps_feature_expr} and \code{min_samps_feature_prop} 
-defines the minimal number of samples where features are required to be
-expressed at the minimal levels of counts \code{min_feature_expr} or
-proportions \code{min_feature_prop}. In differential splicing analysis, we
-suggest using \code{min_samps_feature_expr} and \code{min_samps_feature_prop}
-equal to the minimal number of replicates in any of the conditions. For
-example, in an assay with 3 versus 5 replicates, we would set these
-parameters to 3, which allows a situation where a feature is expressed in one
-condition but may not be expressed at all in another one, which is an example
-of differential splicing.
-
-By default, all the filtering parameters equal zero which means that features with zero expression in all samples are removed as well as genes with only one non-zero feature.
+  of the experiment data and the number of replicates per condition.
+  
+  \code{min_samps_gene_expr} defines the minimal number of samples where 
+  genes are required to be expressed at the minimal level of 
+  \code{min_gene_expr} in order to be included in the downstream analysis. 
+  Ideally, we would like that genes were expressed at some minimal level in 
+  all samples because this would lead to better estimates of feature ratios.
+  
+  Similarly, \code{min_samps_feature_expr} and \code{min_samps_feature_prop} 
+  defines the minimal number of samples where features are required to be 
+  expressed at the minimal levels of counts \code{min_feature_expr} or 
+  proportions \code{min_feature_prop}. In differential transcript/exon usage
+  analysis, we suggest using \code{min_samps_feature_expr} and 
+  \code{min_samps_feature_prop} equal to the minimal number of replicates in 
+  any of the conditions. For example, in an assay with 3 versus 5 replicates,
+  we would set these parameters to 3, which allows a situation where a 
+  feature is expressed in one condition but may not be expressed at all in 
+  another one, which is an example of differential transcript/exon usage.
+  
+  By default, all the filtering parameters equal zero which means that 
+  features with zero expression in all samples are removed as well as genes 
+  with only one non-zero feature.
 
 In sQTL analysis, usually, we deal with data that has many more replicates
 than data from a standard differential splicing assay. Our example data set
@@ -93,19 +95,56 @@ of samples for the minor allele presence. Usually, it is equal to 5\% of
 total samples.
 }
 \examples{
-###################################
-### Differential splicing analysis
-###################################
+# --------------------------------------------------------------------------
+# Create dmDSdata object 
+# --------------------------------------------------------------------------
+## Get kallisto transcript counts from the 'PasillaTranscriptExpr' package
+
+library(PasillaTranscriptExpr)
+\donttest{
+data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
+
+## Load metadata
+metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
+  as.is = TRUE)
+
+## Load counts
+counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
+  as.is = TRUE)
+
+## Create a samples data frame
+samples <- data.frame(sample_id = metadata$SampleName, 
+  group = metadata$condition)
+levels(samples$group)
+
+## Create a dmDSdata object
+d <- dmDSdata(counts = counts, samples = samples)
+
+## Use a subset of genes, which is defined in the following file
+gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
+
+d <- d[names(d) \%in\% gene_id_subset, ]
+
+# --------------------------------------------------------------------------
+# Differential transcript usage analysis - simple two group comparison 
+# --------------------------------------------------------------------------
+
+## Filtering
+## Check what is the minimal number of replicates per condition 
+table(samples(d)$group)
+
+d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3,
+  min_gene_expr = 10, min_feature_expr = 10)
+
+plotData(d)
+}
 #############################
 ### sQTL analysis
 #############################
 }
+\seealso{
+\code{\link{plotData}}
+}
 \author{
 Malgorzata Nowicka
 }
-\seealso{
-\code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}}, 
-  \code{\link{plotData}}, \code{\link{dmDispersion}}, \code{\link{dmFit}}, 
-  \code{\link{dmTest}}
-}
-

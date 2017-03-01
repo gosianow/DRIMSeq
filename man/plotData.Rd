@@ -34,22 +34,59 @@ Returns a \code{ggplot} object and can be further modified, for
 Plot data summary
 }
 \examples{
-###################################
-### Differential splicing analysis
-###################################
+# --------------------------------------------------------------------------
+# Create dmDSdata object 
+# --------------------------------------------------------------------------
+## Get kallisto transcript counts from the 'PasillaTranscriptExpr' package
 
+library(PasillaTranscriptExpr)
+\donttest{
+data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
+
+## Load metadata
+metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
+  as.is = TRUE)
+
+## Load counts
+counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
+  as.is = TRUE)
+
+## Create a samples data frame
+samples <- data.frame(sample_id = metadata$SampleName, 
+  group = metadata$condition)
+levels(samples$group)
+
+## Create a dmDSdata object
+d <- dmDSdata(counts = counts, samples = samples)
+
+## Use a subset of genes, which is defined in the following file
+gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
+
+d <- d[names(d) \%in\% gene_id_subset, ]
+
+# --------------------------------------------------------------------------
+# Differential transcript usage analysis - simple two group comparison 
+# --------------------------------------------------------------------------
+
+## Filtering
+## Check what is the minimal number of replicates per condition 
+table(samples(d)$group)
+
+d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3,
+  min_gene_expr = 10, min_feature_expr = 10)
+
+plotData(d)
+}
 
 #############################
 ### sQTL analysis
 #############################
 
 }
+\seealso{
+\code{\link{plotDispersion}}, \code{\link{plotProportions}},
+  \code{\link{plotPValues}}
+}
 \author{
 Malgorzata Nowicka
 }
-\seealso{
-\code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}}, 
-  \code{\link{plotDispersion}}, \code{\link{plotProportions}},
-  \code{\link{plotPValues}}
-}
-

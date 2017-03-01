@@ -8,13 +8,13 @@ NULL
 #' dmSQTLdata object
 #' 
 #' dmSQTLdata contains genomic feature expression (counts), genotypes and sample
-#' information needed for the sQTL analysis. It can be created with function
-#' \code{\link{dmSQTLdata}}.
+#' information needed for the transcript/exon usage QTL analysis. It can be
+#' created with function \code{\link{dmSQTLdata}}.
 #' 
 #' @return
 #' 
-#' \itemize{ \item \code{names(x)}: Get the gene names. \item \code{length(x)}:
-#' Get the number of genes. \item \code{x[i, j]}: Get a subset of dmDSdata
+#' \itemize{ \item \code{names(x)}: Get the gene names. \item \code{length(x)}: 
+#' Get the number of genes. \item \code{x[i, j]}: Get a subset of dmDSdata 
 #' object that consists of counts, genotypes and blocks corresponding to genes i
 #' and samples j. }
 #' 

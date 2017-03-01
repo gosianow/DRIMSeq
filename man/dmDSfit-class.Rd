@@ -2,10 +2,10 @@
 % Please edit documentation in R/class_dmDSfit.R
 \docType{class}
 \name{dmDSfit-class}
-\alias{coefficients,dmDSfit-method}
 \alias{dmDSfit-class}
 \alias{proportions}
 \alias{proportions,dmDSfit-method}
+\alias{coefficients,dmDSfit-method}
 \title{dmDSfit object}
 \usage{
 proportions(x, ...)
@@ -24,14 +24,15 @@ generic.}
 values \code{"gene"} or \code{"feature"}.}
 }
 \value{
-\itemize{ \item \code{proportions(x)}: Get a data frame with estimated 
-feature ratios for each sample. \item \code{coefficients(x)}:  }
+\itemize{ \item \code{proportions(x)}: get a data frame with estimated 
+feature ratios for each sample. \item \code{coefficients(x)}: get the DM or
+BB regression coefficients. }
 }
 \description{
 dmDSfit extends the \code{\linkS4class{dmDSdispersion}} class by adding the 
-full model Dirichlet-multinomial feature proportion estimates needed for the 
-differential splicing analysis. Feature ratios are estimated for each gene 
-and each condition. Result of \code{\link{dmFit}}.
+full model Dirichlet-multinomial (DM) and beta-binomial (BB) likelihoods,
+regression coefficients and feature proportion estimates. Result of calling
+the \code{\link{dmFit}} function.
 }
 \section{Slots}{
 
@@ -47,7 +48,7 @@ ratios in each sample based on the full Dirichlet-multinomial (DM) model.}
 \item{\code{coef_full}}{\code{\linkS4class{MatrixList}} with the regression 
 coefficients based on the DM model}
 
-\item{\code{fit_full_bb}}{\code{\linkS4class{MatrixList}} containing estimated
+\item{\code{fit_full_bb}}{\code{\linkS4class{MatrixList}} containing estimated 
 feature ratios in each sample based on the full beta-binomial (BB) model.}
 
 \item{\code{lik_full_bb}}{Numeric vector of the per gene BB full model likelihoods.}
@@ -55,18 +56,80 @@ feature ratios in each sample based on the full beta-binomial (BB) model.}
 \item{\code{coef_full_bb}}{\code{\linkS4class{MatrixList}} with the regression 
 coefficients based on the BB model}
 }}
+
 \examples{
+# --------------------------------------------------------------------------
+# Create dmDSdata object 
+# --------------------------------------------------------------------------
+## Get kallisto transcript counts from the 'PasillaTranscriptExpr' package
 
-###################################
-### Differential splicing analysis
-###################################
+library(PasillaTranscriptExpr)
+\donttest{
+data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
 
+## Load metadata
+metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
+  as.is = TRUE)
+
+## Load counts
+counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
+  as.is = TRUE)
+
+## Create a samples data frame
+samples <- data.frame(sample_id = metadata$SampleName, 
+  group = metadata$condition)
+levels(samples$group)
+
+## Create a dmDSdata object
+d <- dmDSdata(counts = counts, samples = samples)
+
+## Use a subset of genes, which is defined in the following file
+gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
+
+d <- d[names(d) \%in\% gene_id_subset, ]
+
+# --------------------------------------------------------------------------
+# Differential transcript usage analysis - simple two group comparison 
+# --------------------------------------------------------------------------
+
+## Filtering
+## Check what is the minimal number of replicates per condition 
+table(samples(d)$group)
+
+d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3,
+  min_gene_expr = 10, min_feature_expr = 10)
+
+plotData(d)
+
+## Create the design matrix
+design <- model.matrix(~ group, data = samples(d))
+
+## To make the analysis reproducible
+set.seed(123)
+## Calculate dispersion
+d <- dmDispersion(d, design = design)
+
+plotDispersion(d)
+
+head(mean_expression(d))
+common_dispersion(d)
+head(genewise_dispersion(d))
+
+## Fit full model proportions
+d <- dmFit(d, design = design)
+
+## Get fitted proportions
+head(proportions(d))
+## Get the DM regression coefficients (gene-level) 
+head(coefficients(d))
+## Get the BB regression coefficients (feature-level) 
+head(coefficients(d), level = "feature")
 }
-\author{
-Malgorzata Nowicka
 }
 \seealso{
 \code{\link{data_dmDSdata}}, \code{\linkS4class{dmDSdata}}, 
   \code{\linkS4class{dmDSdispersion}}, \code{\linkS4class{dmDStest}}
 }
-
+\author{
+Malgorzata Nowicka
+}

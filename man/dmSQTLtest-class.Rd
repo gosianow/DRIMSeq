@@ -28,49 +28,27 @@ from pooled (no grouping into conditions) counts. Result of
 \section{Slots}{
 
 \describe{
-\item{\code{fit_null}}{List of \code{\linkS4class{MatrixList}}. Each of them contains
-null proportions, likelihoods and degrees of freedom for all the blocks 
-(unique SNPs) assigned to a given gene.}
+\item{\code{lik_null}}{List of numeric vectors with the per gene-snp DM null model
+likelihoods.}
 
-\item{\code{results}}{Data frame with \code{gene_id} - gene IDs, \code{block_id} - 
-block IDs, \code{snp_id} - SNP IDs, \code{lr} - likelihood ratio 
-statistics, \code{df} - degrees of freedom, \code{pvalue} - p-values
-estimated based on permutations and \code{adj_pvalue} - Benjamini &
-Hochberg adjusted p-values.}
+\item{\code{results_gene}}{Data frame with the gene-level results including: 
+\code{gene_id} - gene IDs, \code{block_id} - block IDs, \code{snp_id} - SNP
+IDs, \code{lr} - likelihood ratio statistics based on the DM model, 
+\code{df} - degrees of freedom, \code{pvalue} - p-values estimated based on
+permutations and \code{adj_pvalue} - Benjamini & Hochberg adjusted 
+p-values.}
 }}
+
 \examples{
 
 #############################
 ### sQTL analysis
 #############################
-# If possible, use BPPARAM = BiocParallel::MulticoreParam() with more workers
-
-d <- data_dmSQTLdata
-\donttest{
-### Filtering
-d <- dmFilter(d, min_samps_gene_expr = 70, min_samps_feature_expr = 5, 
-   min_samps_feature_prop = 0, minor_allele_freq = 5, 
-   BPPARAM = BiocParallel::SerialParam())
-
-### Calculate dispersion
-d <- dmDispersion(d, BPPARAM = BiocParallel::SerialParam())
-
-### Fit full model proportions
-d <- dmFit(d, BPPARAM = BiocParallel::SerialParam())
-
-### Fit null model proportions and test for sQTLs
-d <- dmTest(d, BPPARAM = BiocParallel::SerialParam())
-plotPValues(d)
-
-head(results(d))
-
-}
-}
-\author{
-Malgorzata Nowicka
 }
 \seealso{
 \code{\link{data_dmSQTLdata}}, \code{\linkS4class{dmSQTLdata}}, 
   \code{\linkS4class{dmSQTLdispersion}}, \code{\linkS4class{dmSQTLfit}}
 }
-
+\author{
+Malgorzata Nowicka
+}

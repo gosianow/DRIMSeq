@@ -2,13 +2,14 @@
 % Please edit documentation in R/class_dmSQTLdata.R
 \docType{class}
 \name{dmSQTLdata-class}
-\alias{[,dmSQTLdata,ANY-method}
-\alias{[,dmSQTLdata-method}
-\alias{counts,dmSQTLdata-method}
 \alias{dmSQTLdata-class}
-\alias{length,dmSQTLdata-method}
-\alias{names,dmSQTLdata-method}
+\alias{counts,dmSQTLdata-method}
 \alias{samples,dmSQTLdata-method}
+\alias{names,dmSQTLdata-method}
+\alias{length,dmSQTLdata-method}
+\alias{[,dmSQTLdata,ANY,ANY,ANY-method}
+\alias{[,dmSQTLdata-method}
+\alias{[,dmSQTLdata,ANY-method}
 \title{dmSQTLdata object}
 \usage{
 \S4method{counts}{dmSQTLdata}(object)
@@ -19,7 +20,7 @@
 
 \S4method{length}{dmSQTLdata}(x)
 
-\S4method{[}{dmSQTLdata,ANY}(x, i, j)
+\S4method{[}{dmSQTLdata,ANY,ANY,ANY}(x, i, j)
 }
 \arguments{
 \item{x}{dmSQTLdata object.}
@@ -27,15 +28,15 @@
 \item{i, j}{Parameters used for subsetting.}
 }
 \value{
-\itemize{ \item \code{names(x)}: Get the gene names. \item \code{length(x)}:
-Get the number of genes. \item \code{x[i, j]}: Get a subset of dmDSdata
+\itemize{ \item \code{names(x)}: Get the gene names. \item \code{length(x)}: 
+Get the number of genes. \item \code{x[i, j]}: Get a subset of dmDSdata 
 object that consists of counts, genotypes and blocks corresponding to genes i
 and samples j. }
 }
 \description{
 dmSQTLdata contains genomic feature expression (counts), genotypes and sample
-information needed for the sQTL analysis. It can be created with function
-\code{\link{dmSQTLdata}}.
+information needed for the transcript/exon usage QTL analysis. It can be
+created with function \code{\link{dmSQTLdata}}.
 }
 \section{Slots}{
 
@@ -56,6 +57,7 @@ samples and assigns them to blocks.}
 \item{\code{samples}}{Data frame with information about samples. It contains unique 
 sample names \code{sample_id}.}
 }}
+
 \examples{
 #############################
 ### sQTL analysis
@@ -69,12 +71,11 @@ d[1:10, ]
 d[1:10, 1:10]
 
 }
-\author{
-Malgorzata Nowicka
-}
 \seealso{
 \code{\link{data_dmSQTLdata}}, 
   \code{\linkS4class{dmSQTLdispersion}}, \code{\linkS4class{dmSQTLfit}}, 
   \code{\linkS4class{dmSQTLtest}}
 }
-
+\author{
+Malgorzata Nowicka
+}
