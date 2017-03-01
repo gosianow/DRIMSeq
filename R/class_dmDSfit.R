@@ -7,26 +7,33 @@ NULL
 
 #' dmDSfit object
 #' 
-#' dmDSfit extends the \code{\linkS4class{dmDSdispersion}} class by adding the
-#' full model Dirichlet-multinomial feature proportion estimates needed for the
-#' differential splicing analysis. Feature ratios are estimated for each gene
+#' dmDSfit extends the \code{\linkS4class{dmDSdispersion}} class by adding the 
+#' full model Dirichlet-multinomial feature proportion estimates needed for the 
+#' differential splicing analysis. Feature ratios are estimated for each gene 
 #' and each condition. Result of \code{\link{dmFit}}.
 #' 
 #' @return
 #' 
-#' \itemize{ \item \code{proportions(x)}: Get a data frame with estimated
-#' feature ratios for each condition. \item \code{statistics(x)}: Get a data
+#' \itemize{ \item \code{proportions(x)}: Get a data frame with estimated 
+#' feature ratios for each condition. \item \code{statistics(x)}: Get a data 
 #' frame with maximum log-likelihoods for each condition. }
 #' 
 #' @param x dmDSdispersion object.
-#' @param ... Other parameters that can be defined by methods using this
+#' @param ... Other parameters that can be defined by methods using this 
 #'   generic.
 #'   
-#' @slot dispersion Character specifying which type of dispersion was used for
-#'   fitting: \code{"common_dispersion"} or \code{"genewise_dispersion"}.
-#' @slot fit_full \code{\linkS4class{MatrixList}} containing the per gene
-#'   feature ratios. Columns correspond to different conditions. Additionally,
-#'   the full model likelihoods are stored in \code{metadata} slot.
+#' @slot design_fit_full Numeric matrix of the desing used to fit the full 
+#'   model.
+#' @slot fit_full \code{\linkS4class{MatrixList}} containing estimated feature 
+#'   ratios in each sample based on the full Dirichlet-multinomial (DM) model.
+#' @slot lik_full Numeric vector of the per gene DM full model likelihoods.
+#' @slot coeffs_full \code{\linkS4class{MatrixList}} with the regression 
+#'   coefficients based on the DM model
+#' @slot fit_full_bb \code{\linkS4class{MatrixList}} containing estimated
+#'   feature ratios in each sample based on the full beta-binomial (BB) model.
+#' @slot lik_full_bb Numeric vector of the per gene BB full model likelihoods.
+#' @slot coeffs_full_bb \code{\linkS4class{MatrixList}} with the regression 
+#'   coefficients based on the BB model
 #'   
 #' @examples 
 #' ###################################
@@ -54,37 +61,41 @@ NULL
 #' }
 #' 
 #' @author Malgorzata Nowicka
-#' @seealso \code{\link{data_dmDSdata}}, \code{\linkS4class{dmDSdata}},
+#' @seealso \code{\link{data_dmDSdata}}, \code{\linkS4class{dmDSdata}}, 
 #'   \code{\linkS4class{dmDSdispersion}}, \code{\linkS4class{dmDStest}}
 setClass("dmDSfit", 
   contains = "dmDSdispersion",
-  representation(dispersion = "character",
+  representation(design_fit_full = "matrix",
     fit_full = "MatrixList",
-    lik_full = "matrix",
+    lik_full = "numeric",
+    coeffs_full = "MatrixList",
     fit_full_bb = "MatrixList",
-    lik_full_bb = "matrix"))
+    lik_full_bb = "numeric",
+    coeffs_full_bb = "MatrixList"))
 
 
-#####################################
+# ------------------------------------------------------------------------------
 
 setValidity("dmDSfit", function(object){
-  # has to return TRUE when valid object!
+  # Has to return TRUE for a valid object!
   
-  if(!length(object@dispersion) == 1)
-    return("'dispersion' must have length 1")
+  if(nrow(object@design_fit_full) == ncol(object@counts)){
+    out <- TRUE
+  }else{
+    return(paste0("Number of rows in the design matrix must be equal 
+      to the number of columns in counts"))
+  }
   
-  if(!object@dispersion %in% c("common_dispersion", "genewise_dispersion"))
-    return("'dispersion' can have values 'common_dispersion' 
-      or 'genewise_dispersion'")
-  
-  if(!length(object@counts) == length(object@fit_full))
+  if(!length(object@fit_full) == length(object@counts))
     return("Different length of 'counts' and 'fit_full'")
   
-  if(!ncol(object@fit_full) == nlevels(object@samples$group))
-    return("Wrong number of groups in 'fit_full'")
+  if(!length(object@lik_full) == length(object@counts))
+    return("Different length of 'counts' and 'lik_full'")
   
-  if(!ncol(object@lik_full) == nlevels(object@samples$group))
-    return("Wrong number of groups in 'lik_full'")
+  if(!length(object@coeffs_full) == length(object@counts))
+    return("Different length of 'counts' and 'coeffs_full'")
+  
+  # TODO: Add more checks
   
   return(TRUE)
   
@@ -96,6 +107,7 @@ setValidity("dmDSfit", function(object){
 ### accessing methods
 ################################################################################
 
+# TODO: Change the accessing methods to return coeffs, liks and fit
 
 #' @rdname dmDSfit-class
 #' @export
@@ -129,7 +141,7 @@ setMethod("statistics", "dmDSfit", function(x){
 
 
 
-#################################
+# ------------------------------------------------------------------------------
 
 setMethod("show", "dmDSfit", function(object){
   
@@ -159,13 +171,11 @@ setMethod("show", "dmDSfit", function(object){
 setGeneric("dmFit", function(x, ...) standardGeneric("dmFit"))
 
 
-####################################
+# ------------------------------------------------------------------------------
 
 
 #' @inheritParams dmDispersion
-#' @param dispersion Character defining which dispersion should be used for 
-#'   fitting. Possible values \code{"genewise_dispersion"} or 
-#'   \code{"common_dispersion"}.
+#' @param design Numeric matrix definig the full model.
 #' @return Returns a \code{\linkS4class{dmDSfit}} or 
 #'   \code{\linkS4class{dmSQTLfit}} object.
 #' @examples 
@@ -198,38 +208,46 @@ setGeneric("dmFit", function(x, ...) standardGeneric("dmFit"))
 #'   \code{\link{plotFit}}, \code{\link{dmDispersion}}, \code{\link{dmTest}}
 #' @rdname dmFit
 #' @export
-setMethod("dmFit", "dmDSdispersion", function(x, 
-  dispersion = "genewise_dispersion", 
+setMethod("dmFit", "dmDSdispersion", function(x, design,
   prop_mode = "constrOptimG", prop_tol = 1e-12, verbose = 0, 
-  BPPARAM = BiocParallel::MulticoreParam(workers = 1)){
+  BPPARAM = BiocParallel::SerialParam()){
   
-  stopifnot(length(dispersion) == 1)
-  stopifnot(dispersion %in% c("genewise_dispersion", "common_dispersion"))
+  # Check design as in edgeR
+  design <- as.matrix(design)
+  ne <- limma::nonEstimable(design)
+  if(!is.null(ne)) 
+    stop(paste("Design matrix not of full rank. 
+      The following coefficients not estimable:\n", paste(ne, collapse = " ")))
+  
+  if(!identical(x@design_dispersion, design))
+    message(paste0("! The 'design' here is not identical as the 
+      'design' used for dispersion estimation !\n"))
+  
+  # Check other parameters
   stopifnot(length(prop_mode) == 1)
   stopifnot(prop_mode %in% c("constrOptimG", "constrOptim"))
   stopifnot(length(prop_tol) == 1)
   stopifnot(is.numeric(prop_tol) && prop_tol > 0)
   stopifnot(verbose %in% 0:2)
   
-  ### Fit the DM model: proportions and likelihoods
-  fit <- dmDS_fitOneModel(counts = x@counts, samples = x@samples, 
-    dispersion = slot(x, dispersion), model = "full", prop_mode = prop_mode, 
-    prop_tol = prop_tol, verbose = verbose, BPPARAM = BPPARAM)
-  
-  
-  ### Calculate the Beta-Binomial likelihoods for each feature
-  fit_bb <- bbDS_fitOneModel(counts = x@counts, samples = x@samples, 
-    pi = fit[["fit"]], dispersion = slot(x, dispersion), model = "full", 
+  # Fit the DM model: proportions and likelihoods
+  fit <- dmDS_fit(counts = x@counts, design = design, 
+    dispersion = x@genewise_dispersion,
+    prop_mode = prop_mode, prop_tol = prop_tol, 
     verbose = verbose, BPPARAM = BPPARAM)
   
+  # Calculate the Beta-Binomial likelihoods for each feature
+  # TODO: fit_bb <- bbDS_fit()
   
-  return(new("dmDSfit", dispersion = dispersion, 
-    fit_full = fit[["fit"]], lik_full = fit[["lik"]], 
-    lik_full_bb = fit_bb[["lik"]],
+  return(new("dmDSfit", design_fit_full = design, 
+    fit_full = fit[["fit"]], 
+    lik_full = fit[["lik"]], 
+    coeffs_full = fit[["coeffs"]],
     mean_expression = x@mean_expression, 
     common_dispersion = x@common_dispersion, 
-    genewise_dispersion = x@genewise_dispersion, counts = x@counts, 
-    samples = x@samples))
+    genewise_dispersion = x@genewise_dispersion, 
+    design_dispersion = x@design_dispersion,
+    counts = x@counts, samples = x@samples))
   
 })
 
@@ -251,7 +269,7 @@ setMethod("dmFit", "dmDSdispersion", function(x,
 setGeneric("plotFit", function(x, ...) standardGeneric("plotFit"))
 
 
-#####################################
+# ------------------------------------------------------------------------------
 
 
 #' @inheritParams plotData

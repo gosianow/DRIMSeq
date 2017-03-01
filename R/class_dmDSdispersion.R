@@ -111,8 +111,8 @@ setValidity("dmDSdispersion", function(object){
   if(nrow(object@design_dispersion) == ncol(object@counts)){
     out <- TRUE
   }else{
-    return(paste0("Number of rows in design matrix must equal 
-      to the number of columns in counts"))
+    return(paste0("Number of rows in the design matrix must be equal 
+          to the number of columns in counts"))
   }
   
   return(out)
@@ -243,26 +243,26 @@ setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
 #'   start with \code{prop_}.
 #'   
 #'   There are 2 optimization methods implemented within dmDispersion 
-#'   \code{"optimize"} for the common dispersion and \code{"grid"}
-#'   for the gene-wise dispersion. 
+#'   \code{"optimize"} for the common dispersion and \code{"grid"} for the 
+#'   gene-wise dispersion.
 #'   
 #'   Arguments that are used by all the methods are:
 #'   
 #'   \itemize{ \item \code{disp_adjust} \item \code{prop_mode}: Both 
-#'   \code{"constrOptim"} and \code{"constrOptimG"} use
-#'   \code{\link{constrOptim}} function to maximize the likelihood of
-#'   Dirichlet-multinomial proportions. The difference lays in the way the
+#'   \code{"constrOptim"} and \code{"constrOptimG"} use 
+#'   \code{\link{constrOptim}} function to maximize the likelihood of 
+#'   Dirichlet-multinomial proportions. The difference lays in the way the 
 #'   likelihood and score are computed. \code{"constrOptim"} uses the likelihood
-#'   and score that are calculated based on the fact that x*Gamma(x) =
-#'   Gamma(x+1). In \code{"constrOptimG"}, we compute them using
-#'   \code{\link{lgamma}} function. We recommend using the second approach,
-#'   since it is much faster than the first one. \item \code{prop_tol}: The
-#'   accuracy for proportions estimation defined as \code{reltol} in
+#'   and score that are calculated based on the fact that x*Gamma(x) = 
+#'   Gamma(x+1). In \code{"constrOptimG"}, we compute them using 
+#'   \code{\link{lgamma}} function. We recommend using the second approach, 
+#'   since it is much faster than the first one. \item \code{prop_tol}: The 
+#'   accuracy for proportions estimation defined as \code{reltol} in 
 #'   \code{\link{constrOptim}}. }
 #'   
 #'   Only some of the rest of dispersion parameters in dmDispersion have an 
-#'   influence on a given optimization method. Here is a list of
-#'   such active parameters:
+#'   influence on a given optimization method. Here is a list of such active 
+#'   parameters:
 #'   
 #'   \code{"optimize"}:
 #'   
@@ -279,10 +279,11 @@ setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
 #'   \code{"grid"} method. \item \code{disp_prior_df}: Used only when dispersion
 #'   shrinkage is activated. Moderated likelihood is equal to \code{loglik + 
 #'   disp_prior_df * moderation}. Higher \code{disp_prior_df}, more shrinkage 
-#'   toward common or trended dispersion is applied. \item \code{disp_span}:
+#'   toward common or trended dispersion is applied. \item \code{disp_span}: 
 #'   Used only when dispersion moderation toward trend is activated. }
 #'   
-#'   
+#' @param design Numeric matrix definig the model that should be used when
+#'   estimating dispersion. Normally this should be a full model design.
 #' @param mean_expression Logical. Whether to estimate the mean expression of 
 #'   genes.
 #' @param common_dispersion Logical. Whether to estimate the common dispersion.
@@ -291,9 +292,9 @@ setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
 #' @param disp_adjust Logical. Whether to use the Cox-Reid adjusted or 
 #'   non-adjusted profile likelihood.
 #' @param disp_subset Value from 0 to 1 defining the percentage of genes used in
-#' common dispersion estimation. The default is 0.1, which uses 10% of randomly 
-#' selected genes to speed up the dispersion estimation process. 
-#' Use \code{set.seed} function to make the analysis reproducible. See Examples.
+#'   common dispersion estimation. The default is 0.1, which uses 10% of 
+#'   randomly selected genes to speed up the dispersion estimation process. Use 
+#'   \code{set.seed} function to make the analysis reproducible. See Examples.
 #' @param  disp_interval Numeric vector of length 2 defining the interval of 
 #'   possible values for the common dispersion.
 #' @param disp_tol The desired accuracy when estimating common dispersion.
@@ -306,7 +307,7 @@ setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
 #'   the dispersion estimates toward the common dispersion (\code{"common"}) or 
 #'   toward the (dispersion versus mean expression) trend (\code{"trended"})
 #' @param disp_prior_df Degree of moderation (shrinkage) in case when it can not
-#'   be calculated automaticaly (number of genes on the upper boundary of grid
+#'   be calculated automaticaly (number of genes on the upper boundary of grid 
 #'   is smaller than 10). By default it is equal to 0.
 #' @param disp_span Value from 0 to 1 defining the percentage of genes used in 
 #'   smoothing sliding window when calculating the dispersion versus mean 
@@ -359,7 +360,14 @@ setMethod("dmDispersion", "dmDSdata", function(x, design,
   prop_mode = "constrOptimG", prop_tol = 1e-12, 
   verbose = 0, BPPARAM = BiocParallel::MulticoreParam(workers = 1)){
   
-  ### Parameter checks:
+  # Check design as in edgeR
+  design <- as.matrix(design)
+  ne <- limma::nonEstimable(design)
+  if(!is.null(ne)) 
+    stop(paste("Design matrix not of full rank. 
+      The following coefficients not estimable:\n", paste(ne, collapse = " ")))
+  
+  # Check other parameters
   stopifnot(is.logical(mean_expression))
   stopifnot(is.logical(common_dispersion))
   stopifnot(is.logical(genewise_dispersion))
@@ -388,7 +396,7 @@ setMethod("dmDispersion", "dmDSdata", function(x, design,
   stopifnot(verbose %in% 0:2)
   
   if(mean_expression || (genewise_dispersion && 
-    disp_moderation == "trended")){
+      disp_moderation == "trended")){
     mean_expression <- dm_estimateMeanExpression(counts = x@counts, 
       verbose = verbose)
   }else{
@@ -396,7 +404,7 @@ setMethod("dmDispersion", "dmDSdata", function(x, design,
   }
   
   if(common_dispersion){
-
+    
     if(disp_subset < 1){
       
       message(paste0("! Using a subset of ", disp_subset, 

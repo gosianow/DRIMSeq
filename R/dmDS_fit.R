@@ -1,4 +1,4 @@
-
+# Fitting Dirichlet-multinomial model
 
 dmDS_fitGroups_gene <- function(g, counts, 
   ngroups, lgroups, igroups, 
@@ -35,7 +35,8 @@ dmDS_fit <- function(counts, design, dispersion,
     gamma0 <- dispersion
   }
   
-  # If the design is equivalent to a oneway layout, use a shortcut algorithm
+  # Approach from edgeR:
+  # If the design is equivalent to a oneway layout, use a shortcut algorithm 
   groups <- edgeR::designAsFactor(design)
   
   if(nlevels(groups) == ncol(design)){
@@ -91,6 +92,8 @@ dmDS_fit <- function(counts, design, dispersion,
 }
 
 
+# -----------------------------------------------------------------------------
+# Fitting Beta-binomial model
 
 
 bbDS_fitFull_gene <- function(g, counts, 

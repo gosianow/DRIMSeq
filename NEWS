@@ -9,4 +9,5 @@ v1.3.2: - Implementation of the two-stage test dmTwoStageTest()
 v1.3.3: - Implementation of the regression framework. Additionally:
 	i) removing max_features argument from dmFilter
 	ii) keeping only the grid approach for estimating tagwise dispersion 
-	iii) allow to use only a subset of genes (disp_subset parameter) in common dispersion estimation to speed up the calculations. 
+	iii) allow to use only a subset of genes (disp_subset parameter) in common dispersion estimation to speed up the calculations
+	iv) always use tagwise dispersion for fitting full and null models
