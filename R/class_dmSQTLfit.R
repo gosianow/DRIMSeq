@@ -96,15 +96,15 @@ setMethod("dmFit", "dmSQTLdispersion", function(x,
 
 
 ################################################################################
-### plotFit
+### plotProportions
 ################################################################################
 
 
 #' @param snp_id Character indicating a SNP ID to be plotted. \code{snp_id} must
 #'   match \code{gene_id}.
-#' @rdname plotFit
+#' @rdname plotProportions
 #' @export
-setMethod("plotFit", "dmSQTLfit", function(x, gene_id, snp_id, 
+setMethod("plotProportions", "dmSQTLfit", function(x, gene_id, snp_id, 
   plot_type = "boxplot1", order = TRUE, plot_full = TRUE, 
   plot_main = TRUE, out_dir = NULL){
   

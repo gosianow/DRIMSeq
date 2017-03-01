@@ -10,8 +10,8 @@
 dmTest(x, ...)
 
 \S4method{dmTest}{dmDSfit}(x, coef = NULL, design = NULL, contrast = NULL,
-  one_way = TRUE, prop_mode = "constrOptim", prop_tol = 1e-12,
-  coef_mode = "optim", coef_tol = 1e-12, verbose = 0,
+  one_way = TRUE, bb_model = TRUE, prop_mode = "constrOptim",
+  prop_tol = 1e-12, coef_mode = "optim", coef_tol = 1e-12, verbose = 0,
   BPPARAM = BiocParallel::SerialParam())
 
 \S4method{dmTest}{dmSQTLfit}(x, permutations = "all_genes",
@@ -41,6 +41,9 @@ must equal to the number of columns of \code{design} used in
 corresponds to multiple group comparison. If \code{TRUE} (the default), 
 then proportions are fitted per group and regression coefficients are 
 recalculated from these fittings.}
+
+\item{bb_model}{Logical. Whether to perform the feature-level analysis using
+the beta-binomial model.}
 
 \item{prop_mode}{Optimization method used to estimate proportions. Possible 
 value \code{"constrOptim"}.}

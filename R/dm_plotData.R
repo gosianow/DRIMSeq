@@ -1,8 +1,9 @@
-#' @importFrom ggplot2 ggplot aes_string theme_bw xlab ylab geom_histogram theme
-#'   element_text coord_cartesian geom_text geom_bar scale_fill_manual
+#' @importFrom ggplot2 ggplot aes_string theme_bw xlab ylab ggtitle 
+#' geom_histogram theme element_text coord_cartesian geom_text geom_bar 
+#' scale_fill_manual
 
 
-dm_plotDataFeatures <- function(tt){
+dm_plotDataFeatures <- function(tt, fill_color = "seagreen4"){
   
   df <- data.frame(tt = tt)
 
@@ -10,17 +11,13 @@ dm_plotDataFeatures <- function(tt){
     theme_bw() +
     xlab("Number of features per gene") +
     ylab("Frequency") +
-    geom_histogram(fill = "seagreen4", 
+    ggtitle(paste0(length(tt), " genes / ", sum(tt) , " features")) +
+    geom_histogram(fill = fill_color, 
       breaks = seq(min(df$tt), max(df$tt), by = 1)) +
     theme(axis.text = element_text(size=16), 
       axis.title = element_text(size=18, face="bold"), 
       plot.title = element_text(size=18, face="bold")) +
-    coord_cartesian(xlim = c(0, max(tt) + 2)) +
-    geom_text(data = data.frame(x = Inf, y = Inf, 
-      label = paste0(length(tt), " genes   \n ", sum(tt) , " features   ")), 
-      aes_string(x = "x", y = "y", label = "label"), hjust = 1, vjust = 2, 
-      size = 6)
-  
+    coord_cartesian(xlim = c(0, max(tt) + 2))
   
   return(ggp)
   
@@ -29,7 +26,7 @@ dm_plotDataFeatures <- function(tt){
 
 
 
-dm_plotDataBlocks <- function(tt){
+dm_plotDataBlocks <- function(tt, fill_color = "mediumpurple4"){
   
   
   df <- data.frame(tt = tt)
@@ -39,25 +36,21 @@ dm_plotDataBlocks <- function(tt){
     theme_bw() +
     xlab("Number of blocks per gene") +
     ylab("Frequency") +
-    geom_histogram(fill = "mediumpurple4", 
+    ggtitle(paste0(length(tt), " genes / ", sum(tt) , " blocks")) +
+    geom_histogram(fill = fill_color, 
       breaks = seq(min(df$tt), max(df$tt), by = binwidth)) +
     theme(axis.text = element_text(size=16), 
       axis.title = element_text(size=18, face="bold"), 
       plot.title = element_text(size=18, face="bold")) +
-    coord_cartesian(xlim = c(0, max(tt) + 2)) +
-    geom_text(data = data.frame(x = Inf, y = Inf, 
-      label = paste0(length(tt), " genes   \n", sum(tt) , " blocks   ")), 
-      aes_string(x = "x", y = "y", label = "label"), hjust = 1, vjust = 2, 
-      size = 6)
+    coord_cartesian(xlim = c(0, max(tt) + 2))
   
   return(ggp)
-  
   
 }
 
 
 
-dm_plotDataSnps <- function(tt){
+dm_plotDataSnps <- function(tt, fill_color = "royalblue4"){
   
   df <- data.frame(tt = tt)
   binwidth <- ceiling(max(df$tt)/100)
@@ -66,20 +59,15 @@ dm_plotDataSnps <- function(tt){
     theme_bw() +
     xlab("Number of SNPs per gene") +
     ylab("Frequency") +
-    geom_histogram(fill = "royalblue4", 
+    ggtitle(paste0(length(tt), " genes / ", sum(tt) , " SNPs")) +
+    geom_histogram(fill = fill_color, 
       breaks = seq(min(df$tt), max(df$tt), by = binwidth)) +
     theme(axis.text = element_text(size=16), 
       axis.title = element_text(size=18, face="bold"), 
       plot.title = element_text(size=18, face="bold")) +
-    coord_cartesian(xlim = c(0, max(tt) + 2)) +
-    geom_text(data = data.frame(x = Inf, y = Inf, 
-      label = paste0(length(tt), " genes   \n", sum(tt) , " SNPs   ")), 
-      aes_string(x = "x", y = "y", label = "label"), hjust = 1, vjust = 2, 
-      size = 6)
-  
+    coord_cartesian(xlim = c(0, max(tt) + 2))
   
   return(ggp)
-  
   
 }
 

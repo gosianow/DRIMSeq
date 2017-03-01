@@ -106,12 +106,30 @@ setMethod("proportions", "dmDSfit", function(x){
 # Generic for coefficients already exists in the stats package
 
 #' @rdname dmDSfit-class
+#' @param level Character specifying which type of results to return. Possible
+#'   values \code{"gene"} or \code{"feature"}.
 #' @export
-setMethod("coefficients", "dmDSfit", function(object){
+setMethod("coefficients", "dmDSfit", function(object, level = "gene"){
   
-  data.frame(gene_id = rep.int(names(x@coef_full), elementNROWS(x@coef_full)), 
-    feature_id = rownames(x@coef_full@unlistData), x@coef_full@unlistData, 
-    stringsAsFactors = FALSE, row.names = NULL)
+  stopifnot(length(level) == 1)
+  stopifnot(level %in% c("gene", "feature"))
+  
+  if(level == "gene"){
+    out <- data.frame(gene_id = rep.int(names(object@coef_full), 
+      elementNROWS(object@coef_full)), 
+      feature_id = rownames(object@coef_full@unlistData), 
+      object@coef_full@unlistData, 
+      stringsAsFactors = FALSE, row.names = NULL)
+  }
+  if(level == "feature"){
+    out <- data.frame(gene_id = rep.int(names(object@coef_full_bb), 
+      elementNROWS(object@coef_full_bb)), 
+      feature_id = rownames(object@coef_full_bb@unlistData), 
+      object@coef_full_bb@unlistData, 
+      stringsAsFactors = FALSE, row.names = NULL)
+  }
+  
+  return(out)
   
 })
 
@@ -152,6 +170,8 @@ setGeneric("dmFit", function(x, ...) standardGeneric("dmFit"))
 
 #' @inheritParams dmDispersion
 #' @param design Numeric matrix definig the full model.
+#' @param bb_model Logical. Whether to perform the feature-level analysis using
+#'   the beta-binomial model.
 #' @return Returns a \code{\linkS4class{dmDSfit}} or 
 #'   \code{\linkS4class{dmSQTLfit}} object.
 #' @examples 
@@ -161,7 +181,7 @@ setGeneric("dmFit", function(x, ...) standardGeneric("dmFit"))
 #' 
 #' @author Malgorzata Nowicka
 #' @seealso \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}}, 
-#'   \code{\link{plotFit}}, \code{\link{dmDispersion}}, \code{\link{dmTest}}
+#'   \code{\link{plotProportions}}, \code{\link{dmDispersion}}, \code{\link{dmTest}}
 #' @rdname dmFit
 #' @export
 setMethod("dmFit", "dmDSdispersion", function(x, design, 
@@ -223,37 +243,42 @@ setMethod("dmFit", "dmDSdispersion", function(x, design,
       design_dispersion = x@design_dispersion,
       counts = x@counts, samples = x@samples))
     
-    }else{
-      
-      return(new("dmDSfit", design_fit_full = design, 
-        fit_full = fit[["fit"]], lik_full = fit[["lik"]], coef_full = fit[["coef"]],
-        mean_expression = x@mean_expression, 
-        common_dispersion = x@common_dispersion, 
-        genewise_dispersion = x@genewise_dispersion, 
-        design_dispersion = x@design_dispersion,
-        counts = x@counts, samples = x@samples))
-      
-    }
-
+  }else{
+    
+    return(new("dmDSfit", design_fit_full = design, 
+      fit_full = fit[["fit"]], lik_full = fit[["lik"]], coef_full = fit[["coef"]],
+      mean_expression = x@mean_expression, 
+      common_dispersion = x@common_dispersion, 
+      genewise_dispersion = x@genewise_dispersion, 
+      design_dispersion = x@design_dispersion,
+      counts = x@counts, samples = x@samples))
+    
+  }
+  
   
 })
 
 
 ################################################################################
-### plotFit
+### plotProportions
 ################################################################################
 
 #' Plot feature proportions
 #' 
-#' @return Plot, per gene, the observed and estimated with Dirichlet-multinomial
-#' model feature ratios. Estimated proportions are marked with diamond shapes.
+#' This plot is available only for a group design, i.e., a comparison between 
+#' groups.
 #' 
-#' @param x \code{\linkS4class{dmDSfit}}, \code{\linkS4class{dmDStest}} or
+#' @return Plot, per gene, the observed and estimated with Dirichlet-multinomial
+#'   model feature proportions. Estimated group proportions are marked with
+#'   diamond shapes.
+#'   
+#' @param x \code{\linkS4class{dmDSfit}}, \code{\linkS4class{dmDStest}} or 
 #'   \code{\linkS4class{dmSQTLfit}}, \code{\linkS4class{dmSQTLtest}} object.
-#' @param ... Other parameters that can be defined by methods using this
+#' @param ... Other parameters that can be defined by methods using this 
 #'   generic.
 #' @export
-setGeneric("plotFit", function(x, ...) standardGeneric("plotFit"))
+setGeneric("plotProportions", function(x, ...) 
+  standardGeneric("plotProportions"))
 
 
 # ------------------------------------------------------------------------------
@@ -261,15 +286,21 @@ setGeneric("plotFit", function(x, ...) standardGeneric("plotFit"))
 
 #' @inheritParams plotData
 #' @param gene_id Character indicating a gene ID to be plotted.
-#' @param plot_type Character defining the type of the plot produced. Possible
-#'   values \code{"barplot"}, \code{"boxplot1"}, \code{"boxplot2"},
+#' @param group_variable Character indicating the grouping variable which is one
+#'   of the columns in the \code{samples} slot of \code{x}.
+#' @param plot_type Character defining the type of the plot produced. Possible 
+#'   values \code{"barplot"}, \code{"boxplot1"}, \code{"boxplot2"}, 
 #'   \code{"lineplot"}, \code{"ribbonplot"}.
-#' @param order Logical. Whether to plot the features ordered by their
+#' @param order Logical. Whether to plot the features ordered by their 
 #'   expression.
-#' @param plot_full Logical. Whether to plot the proportions estimated by the
+#' @param plot_full Logical. Whether to plot the proportions estimated by the 
 #'   full model.
-#' @param plot_main Logical. Whether to plot a title with the information about
+#' @param plot_main Logical. Whether to plot a title with the information about 
 #'   the Dirichlet-multinomial estimates.
+#' @param group_colors Character vector with colors for each group defined by 
+#'   \code{group_variable}.
+#' @param feature_colors Character vector with colors for each feature of gene
+#'   defined by \code{gene_id}.
 #'   
 #' @examples 
 #' 
@@ -279,29 +310,107 @@ setGeneric("plotFit", function(x, ...) standardGeneric("plotFit"))
 #' 
 #' 
 #' @author Malgorzata Nowicka
-#' @seealso \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}},
-#'   \code{\link{plotData}}, \code{\link{plotDispersion}},
-#'   \code{\link{plotTest}}
-#' @rdname plotFit
+#' @seealso \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}}, 
+#'   \code{\link{plotData}}, \code{\link{plotDispersion}}, 
+#'   \code{\link{plotPValues}}
+#' @rdname plotProportions
 #' @export
-setMethod("plotFit", "dmDSfit", function(x, gene_id, plot_type = "barplot", 
-  order = TRUE, plot_full = TRUE, plot_main = TRUE, out_dir = NULL){
+setMethod("plotProportions", "dmDSfit", function(x, gene_id, group_variable, 
+  plot_type = "barplot", order = TRUE, plot_fit = TRUE, plot_main = TRUE,
+  group_colors = NULL, feature_colors = NULL){
   
   stopifnot(gene_id %in% names(x@counts))
   stopifnot(plot_type %in% c("barplot", "boxplot1", "boxplot2", "lineplot", 
     "ribbonplot"))
   stopifnot(is.logical(order))
-  stopifnot(is.logical(plot_full))
+  stopifnot(is.logical(plot_fit))
   stopifnot(is.logical(plot_main))
+  stopifnot(length(group_variable) == 1)
+  stopifnot(group_variable %in% colnames(samples(x)))
+
+  group <- x@samples[, group_variable]
+  counts_gene <- x@counts[[gene_id]]
   
-  dmDS_plotFit(gene_id = gene_id, counts = x@counts, samples = x@samples, 
-    dispersion = slot(x, x@dispersion), proportions_full = x@fit_full, 
-    proportions_null = NULL, table = NULL, plot_type = plot_type, 
-    order = order, plot_full = plot_full, plot_null = FALSE, 
-    plot_main = plot_main, out_dir = out_dir)
+  if(!is.null(group_colors) && 
+      plot_type %in% c("barplot", "boxplot1", "lineplot"))
+    stopifnot(length(group_colors) == nlevels(group))
+  if(!is.null(feature_colors) && 
+      plot_type %in% c("boxplot2", "ribbonplot"))
+    stopifnot(length(feature_colors) == nrow(counts_gene))
   
+  if(nrow(counts_gene) <= 1)
+    stop("!Gene has to have at least 2 features! \n")
+  
+  # Order samples by group
+  o <- order(group) 
+  group <- group[o]
+  counts_gene <- counts_gene[, o, drop = FALSE]
+  
+  main <- NULL
+  
+  if(plot_main){
+    
+    mean_expression_gene <- mean(colSums(counts_gene), na.rm = TRUE)
+    
+    main <- paste0(gene_id, "\n Mean expression = ", 
+      round(mean_expression_gene))
+    
+    if(length(x@genewise_dispersion) > 0)
+      dispersion_gene <- x@genewise_dispersion[gene_id]
+    else
+      dispersion_gene <- x@common_dispersion
+    
+    main <- paste0(main, ", Dispersion = ", round(dispersion_gene, 2))
+    
+  }
+  
+  
+  prop_full <- NULL
+  
+  if(plot_fit){
+    # Check if the design is equivalent to a oneway layout
+    groups <- edgeR::designAsFactor(x@design_fit_full)
+    
+    if(nlevels(groups) == ncol(x@design_fit_full)){
+      
+      prop_full <- x@fit_full[[gene_id]][, !duplicated(group), drop = FALSE]
+      colnames(prop_full) <- levels(group)
+      
+    }else{
+      message("Fitted values are not plotted because the design does not 
+        correspond to a group comparison defined by 'group_var'!")
+    }
+    
+  }
+  
+  ggp <- dm_plotProportions(counts = counts_gene, group = group, 
+    prop_full = prop_full, main = main, plot_type = plot_type, 
+    order = order, group_colors = group_colors, feature_colors = feature_colors)
+  
+  return(ggp)  
   
 })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

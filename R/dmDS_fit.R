@@ -87,7 +87,7 @@ dmDS_fit <- function(counts, design, dispersion,
     
     coef <- new("MatrixList", unlistData = coef, 
       partitioning = prop@partitioning)
-    
+    colnames(coef) <- colnames(design)
     
   }else{
     

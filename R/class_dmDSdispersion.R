@@ -327,7 +327,7 @@ setMethod("dmDispersion", "dmDSdata", function(x, design,
   one_way = TRUE, 
   prop_mode = "constrOptim", prop_tol = 1e-12, 
   coef_mode = "optim", coef_tol = 1e-12,
-  verbose = 0, BPPARAM = BiocParallel::MulticoreParam(workers = 1)){
+  verbose = 0, BPPARAM = BiocParallel::SerialParam()){
   
   # Check design as in edgeR
   design <- as.matrix(design)
@@ -447,13 +447,18 @@ setMethod("dmDispersion", "dmDSdata", function(x, design,
 
 #' Dispersion versus mean expression plot
 #' 
-#' @return Scatterplot of Dirichlet-multinomial gene-wise dispersion versus mean
-#' gene expression. Both variables are scaled with log10. One dot in the plot
-#' corresponds to a gene.
-#' 
-#' @param x \code{\linkS4class{dmDSdispersion}} or
+#' @return Normally in the differential analysis based on RNA-seq data, such 
+#'   plot has dispersion parameter plotted on the y-axis. Here, the y-axis 
+#'   represents precision since in the Dirichlet-multinomial model this is a 
+#'   parameter that is  directly estimated. It is important to keep in mind that
+#'   the precision parameter (gamma0) is inverse proportional to dispersion 
+#'   (theta): theta = 1 / (1 + gamma0). In RNA-seq data, we can typically
+#'   observe a trend where the dispersion decreases (here, presicion increases)
+#'   for genes with higher mean expression.
+#'   
+#' @param x \code{\linkS4class{dmDSdispersion}} or 
 #'   \code{\linkS4class{dmSQTLdispersion}} object.
-#' @param ... Other parameters that can be defined by methods using this
+#' @param ... Other parameters that can be defined by methods using this 
 #'   generic.
 #' @export
 setGeneric("plotDispersion", function(x, ...) standardGeneric("plotDispersion"))
@@ -470,12 +475,11 @@ setGeneric("plotDispersion", function(x, ...) standardGeneric("plotDispersion"))
 #' 
 #' @author Malgorzata Nowicka
 #' @seealso \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}},
-#'   \code{\link{plotData}}, \code{\link{plotFit}}, \code{\link{plotTest}}
+#'   \code{\link{plotData}}, \code{\link{plotProportions}}, \code{\link{plotPValues}}
 #'   
 #' @rdname plotDispersion
 #' @export
-#' @importFrom grDevices pdf dev.off
-setMethod("plotDispersion", "dmDSdispersion", function(x, out_dir = NULL){
+setMethod("plotDispersion", "dmDSdispersion", function(x){
   
   if(!length(x@genewise_dispersion) == length(x@counts))
     stop("Genewise dispersion must be estimated for each gene!")
@@ -492,13 +496,7 @@ setMethod("plotDispersion", "dmDSdispersion", function(x, out_dir = NULL){
     mean_expression = x@mean_expression, nr_features = elementNROWS(x@counts), 
     common_dispersion = common_dispersion)
   
-  if(!is.null(out_dir)){
-    pdf(paste0(out_dir, "dispersion_vs_mean.pdf"))
-    print(ggp)
-    dev.off()
-  }else{
-    return(ggp)  
-  }
+  return(ggp)  
   
 })
 

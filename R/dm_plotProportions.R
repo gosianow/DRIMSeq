@@ -1,13 +1,7 @@
 
 
 dm_plotProportions_barplot <- function(counts, group, prop_full = NULL, 
-  prop_null = NULL, main = NULL, order = TRUE){
-  
-  stopropfnot(ncol(counts) == length(group))
-  ### Counts have to have rownames
-  stopropfnot(length(rownames(counts)) > 0)
-  ### group must be a factor
-  stopropfnot(is.factor(group))
+  main = NULL, order = TRUE, group_colors = NULL){
   
   labels <- labels_org <- factor(rownames(counts), levels = rownames(counts))
   group_counts <- table(group)
@@ -20,9 +14,6 @@ dm_plotProportions_barplot <- function(counts, group, prop_full = NULL,
   
   if(!is.null(prop_full))
     prop_est_full <- data.frame(feature_id = labels, prop_full, 
-      stringsAsFactors = FALSE)
-  if(!is.null(prop_null))
-    prop_est_null <- data.frame(feature_id = labels, prop_null, 
       stringsAsFactors = FALSE)
   
   #### order transcipts by decreasing proportion 
@@ -46,15 +37,12 @@ dm_plotProportions_barplot <- function(counts, group, prop_full = NULL,
       levels = levels(group))
   }
   
-  if(!is.null(prop_null)){
-    colnames(prop_est_null) <- c("feature_id", "proportion")
-    prop_est_null$feature_id <- factor(prop_est_null$feature_id, 
-      levels = labels)
-    prop_est_null$group <- factor("null")
-  }
+  if(is.null(group_colors))
+    values <- colorb(nlevels(group))
+  else
+    values <- group_colors
+  names(values) <- levels(group)
   
-  values <- c(colorb(nlevels(group)), "grey65")
-  names(values) <- c(levels(group), "null")
   order_prop_samp <- order(prop_samp$group, prop_samp$sample_id)
   prop_samp$sample_id <- factor(prop_samp$sample_id, 
     levels = unique(prop_samp$sample_id[order_prop_samp]))
@@ -72,7 +60,7 @@ dm_plotProportions_barplot <- function(counts, group, prop_full = NULL,
     prop_est_full$group_cumsum <- 
       as.numeric(as.character(prop_est_full$group_cumsum))
     prop_est_full$x <- prop_est_full$xid - width/2 + 
-      prop_est_full$group_cumsum * width -prop_est_full$group_prop/2
+      prop_est_full$group_cumsum * width - prop_est_full$group_prop/2
   }
   
   ggp <- ggplot() +
@@ -94,13 +82,6 @@ dm_plotProportions_barplot <- function(counts, group, prop_full = NULL,
     xlab("Features") +
     ylab("Proportions")
   
-  if(!is.null(prop_null)){
-    ggp <- ggp +
-      geom_point(data = prop_est_null, 
-        aes_string(x = "feature_id", y = "proportion", fill = "group"), 
-        size = 3.5, shape = 22) 
-  }
-  
   if(!is.null(prop_full)){
     ggp <- ggp + 
       geom_point(data = prop_est_full, 
@@ -113,9 +94,7 @@ dm_plotProportions_barplot <- function(counts, group, prop_full = NULL,
 
 
 dm_plotProportions_boxplot1 <- function(counts, group, prop_full = NULL, 
-  prop_null = NULL, main = NULL, order = TRUE){
-  
-  stopropfnot(ncol(counts) == length(group))
+  main = NULL, order = TRUE, group_colors = NULL){
   
   labels <- labels_org <- factor(rownames(counts), levels = rownames(counts))
   group_counts <- table(group)
@@ -128,9 +107,6 @@ dm_plotProportions_boxplot1 <- function(counts, group, prop_full = NULL,
   
   if(!is.null(prop_full))
     prop_est_full <- data.frame(feature_id = labels, prop_full, 
-      stringsAsFactors = FALSE)
-  if(!is.null(prop_null))
-    prop_est_null <- data.frame(feature_id = labels, prop_null, 
       stringsAsFactors = FALSE)
   
   #### order transcipts by decreasing proportion 
@@ -154,17 +130,12 @@ dm_plotProportions_boxplot1 <- function(counts, group, prop_full = NULL,
       levels = levels(group))
   }
   
-  if(!is.null(prop_null)){
-    colnames(prop_est_null) <- c("feature_id", "proportion")
-    prop_est_null$feature_id <- factor(prop_est_null$feature_id, 
-      levels = labels)
-    prop_est_null$group <- factor("null")
-  }
-  
   ### box plots with points
-  
-  values <- c(colorb(nlevels(group)), "grey65")
-  names(values) <- c(levels(group), "null")
+  if(is.null(group_colors))
+    values <- colorb(nlevels(group))
+  else
+    values <- group_colors
+  names(values) <- levels(group)
   
   ggp <- ggplot() +
     theme_bw() + 
@@ -192,14 +163,6 @@ dm_plotProportions_boxplot1 <- function(counts, group, prop_full = NULL,
     xlab("Features") +
     ylab("Proportions")
   
-  if(!is.null(prop_null)){
-    ggp <- ggp +
-      geom_point(data = prop_est_null, 
-        aes_string(x = "feature_id", y = "proportion", fill = "group"), 
-        size = 3.5, shape = 22) +
-      guides(colour=FALSE)
-  }
-  
   if(!is.null(prop_full)){
     ggp <- ggp + 
       geom_point(data = prop_est_full, 
@@ -216,10 +179,9 @@ dm_plotProportions_boxplot1 <- function(counts, group, prop_full = NULL,
 
 
 
-dm_plotProportions_boxplot2 <- function(counts, group, prop_full = NULL, 
-  prop_null = NULL, main = NULL, order = TRUE){
-  
-  stopropfnot(ncol(counts) == length(group))
+
+dm_plotProportions_lineplot <- function(counts, group, prop_full = NULL, 
+  main = NULL, order = TRUE, group_colors = NULL){
   
   labels <- labels_org <- factor(rownames(counts), levels = rownames(counts))
   group_counts <- table(group)
@@ -232,9 +194,6 @@ dm_plotProportions_boxplot2 <- function(counts, group, prop_full = NULL,
   
   if(!is.null(prop_full))
     prop_est_full <- data.frame(feature_id = labels, prop_full, 
-      stringsAsFactors = FALSE)
-  if(!is.null(prop_null))
-    prop_est_null <- data.frame(feature_id = labels, prop_null, 
       stringsAsFactors = FALSE)
   
   #### order transcipts by decreasing proportion 
@@ -258,15 +217,91 @@ dm_plotProportions_boxplot2 <- function(counts, group, prop_full = NULL,
       levels = levels(group))
   }
   
-  if(!is.null(prop_null)){
-    colnames(prop_est_null) <- c("feature_id", "proportion")
-    prop_est_null$feature_id <- factor(prop_est_null$feature_id, 
+  ### line plots
+  if(is.null(group_colors))
+    values <- colorb(nlevels(group))
+  else
+    values <- group_colors
+  names(values) <- levels(group)
+  
+  ggp <- ggplot() +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5), 
+      axis.text=element_text(size=16), 
+      axis.title = element_text(size=14, face="bold"), 
+      plot.title = element_text(size=16), 
+      legend.position = "right", 
+      legend.title = element_text(size = 14), 
+      legend.text = element_text(size = 14)) +
+    ggtitle(main) +
+    geom_line(data = prop_samp, 
+      aes_string(x = "feature_id", y = "proportion", group = "sample_id", 
+        colour = "group"), 
+      size = 1.1) +
+    scale_fill_manual(name = "Groups", values = values, 
+      breaks = names(values)) +
+    scale_colour_manual(name = "Groups", values = values, 
+      breaks = names(values)) +
+    xlab("Features") +
+    ylab("Proportions")
+  
+  if(!is.null(prop_full)){
+    ggp <- ggp + 
+      geom_point(data = prop_est_full, 
+        aes_string(x = "feature_id", y = "proportion", group = "group", 
+          fill = "group"), 
+        size = 3, shape = 23) +
+      guides(colour=FALSE)
+  }
+  
+  return(ggp)
+  
+}
+
+
+
+dm_plotProportions_boxplot2 <- function(counts, group, prop_full = NULL, 
+  main = NULL, order = TRUE, feature_colors = NULL){
+  
+  labels <- labels_org <- factor(rownames(counts), levels = rownames(counts))
+  group_counts <- table(group)
+  
+  proportions <- prop.table(counts, 2)
+  proportions[proportions == "NaN"] <- NA
+  
+  prop_samp <- data.frame(feature_id = labels, proportions, 
+    stringsAsFactors = FALSE) 
+  
+  if(!is.null(prop_full))
+    prop_est_full <- data.frame(feature_id = labels, prop_full, 
+      stringsAsFactors = FALSE)
+  
+  #### order transcipts by decreasing proportion 
+  if(order){
+    labels <- labels[order(apply(aggregate(t(prop_samp[, -1]), 
+      by = list(group = group), median)[, -1], 2, max), decreasing = TRUE)]  
+  }
+  
+  prop_samp <- melt(prop_samp, id.vars = "feature_id", 
+    variable.name = "sample_id", value.name = "proportion")  
+  prop_samp$feature_id <- factor(prop_samp$feature_id, levels = labels)
+  prop_samp$sample_id <- factor(prop_samp$sample_id)
+  prop_samp$group <- rep(group, each = length(labels))
+  
+  if(!is.null(prop_full)){
+    prop_est_full <- melt(prop_est_full, id.vars = "feature_id", 
+      variable.name = "group", value.name = "proportion")
+    prop_est_full$feature_id <- factor(prop_est_full$feature_id, 
       levels = labels)
-    prop_est_null$group <- factor("null")
+    prop_est_full$group <- factor(rep(levels(group), each = length(labels)), 
+      levels = levels(group))
   }
   
   ### box plots per group
-  values <- colorb(length(labels_org))
+  if(is.null(feature_colors))
+    values <- colorb(length(labels_org))
+  else
+    values <- feature_colors
   names(values) <- labels_org
   
   ggp <- ggplot() +
@@ -305,107 +340,8 @@ dm_plotProportions_boxplot2 <- function(counts, group, prop_full = NULL,
 }
 
 
-dm_plotProportions_lineplot <- function(counts, group, prop_full = NULL, 
-  prop_null = NULL, main = NULL, order = TRUE){
-  
-  stopropfnot(ncol(counts) == length(group))
-  
-  labels <- labels_org <- factor(rownames(counts), levels = rownames(counts))
-  group_counts <- table(group)
-  
-  proportions <- prop.table(counts, 2)
-  proportions[proportions == "NaN"] <- NA
-  
-  prop_samp <- data.frame(feature_id = labels, proportions, 
-    stringsAsFactors = FALSE) 
-  
-  if(!is.null(prop_full))
-    prop_est_full <- data.frame(feature_id = labels, prop_full, 
-      stringsAsFactors = FALSE)
-  if(!is.null(prop_null))
-    prop_est_null <- data.frame(feature_id = labels, prop_null, 
-      stringsAsFactors = FALSE)
-  
-  #### order transcipts by decreasing proportion 
-  if(order){
-    labels <- labels[order(apply(aggregate(t(prop_samp[, -1]), 
-      by = list(group = group), median)[, -1], 2, max), decreasing = TRUE)]  
-  }
-  
-  prop_samp <- melt(prop_samp, id.vars = "feature_id", 
-    variable.name = "sample_id", value.name = "proportion")  
-  prop_samp$feature_id <- factor(prop_samp$feature_id, levels = labels)
-  prop_samp$sample_id <- factor(prop_samp$sample_id)
-  prop_samp$group <- rep(group, each = length(labels))
-  
-  if(!is.null(prop_full)){
-    prop_est_full <- melt(prop_est_full, id.vars = "feature_id", 
-      variable.name = "group", value.name = "proportion")
-    prop_est_full$feature_id <- factor(prop_est_full$feature_id, 
-      levels = labels)
-    prop_est_full$group <- factor(rep(levels(group), each = length(labels)), 
-      levels = levels(group))
-  }
-  
-  if(!is.null(prop_null)){
-    colnames(prop_est_null) <- c("feature_id", "proportion")
-    prop_est_null$feature_id <- factor(prop_est_null$feature_id, 
-      levels = labels)
-    prop_est_null$group <- factor("null")
-  }
-  
-  ### line plots
-  values <- c(colorb(nlevels(group)), "grey65")
-  names(values) <- c(levels(group), "null")
-  
-  ggp <- ggplot() +
-    theme_bw() +
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5), 
-      axis.text=element_text(size=16), 
-      axis.title = element_text(size=14, face="bold"), 
-      plot.title = element_text(size=16), 
-      legend.position = "right", 
-      legend.title = element_text(size = 14), 
-      legend.text = element_text(size = 14)) +
-    ggtitle(main) +
-    geom_line(data = prop_samp, 
-      aes_string(x = "feature_id", y = "proportion", group = "sample_id", 
-        colour = "group"), 
-      size = 1.1) +
-    scale_fill_manual(name = "Groups", values = values, 
-      breaks = names(values)) +
-    scale_colour_manual(name = "Groups", values = values, 
-      breaks = names(values)) +
-    xlab("Features") +
-    ylab("Proportions")
-  
-  if(!is.null(prop_null)){
-    ggp <- ggp +
-      geom_point(data = prop_est_null, 
-        aes_string(x = "feature_id", y = "proportion", fill = "group"), 
-        size = 3.5, shape = 22, show.legend = FALSE) +
-      guides(colour=FALSE)
-  }
-  
-  if(!is.null(prop_full)){
-    ggp <- ggp + 
-      geom_point(data = prop_est_full, 
-        aes_string(x = "feature_id", y = "proportion", group = "group", 
-          fill = "group"), 
-        size = 3, shape = 23) +
-      guides(colour=FALSE)
-  }
-  
-  return(ggp)
-  
-}
-
-
-
 dm_plotProportions_ribbonplot <- function(counts, group, prop_full = NULL, 
-  prop_null = NULL, main = NULL, order = TRUE){
-  
-  stopropfnot(ncol(counts) == length(group))
+  main = NULL, order = TRUE, feature_colors = NULL){
   
   labels <- labels_org <- factor(rownames(counts), levels = rownames(counts))
   group_counts <- table(group)
@@ -418,9 +354,6 @@ dm_plotProportions_ribbonplot <- function(counts, group, prop_full = NULL,
   
   if(!is.null(prop_full))
     prop_est_full <- data.frame(feature_id = labels, prop_full, 
-      stringsAsFactors = FALSE)
-  if(!is.null(prop_null))
-    prop_est_null <- data.frame(feature_id = labels, prop_null, 
       stringsAsFactors = FALSE)
   
   #### order transcipts by decreasing proportion 
@@ -442,19 +375,16 @@ dm_plotProportions_ribbonplot <- function(counts, group, prop_full = NULL,
       levels = labels)
     prop_est_full$group <- factor(rep(levels(group), each = length(labels)), 
       levels = levels(group))
-  }
-  
-  if(!is.null(prop_null)){
-    colnames(prop_est_null) <- c("feature_id", "proportion")
-    prop_est_null$feature_id <- factor(prop_est_null$feature_id, 
-      levels = labels)
-    prop_est_null$group <- factor("null")
   }
   
   if(!is.null(prop_full)){
     
-    values <- colorb(length(labels_org))
+    if(is.null(feature_colors))
+      values <- colorb(length(labels_org))
+    else
+      values <- feature_colors
     names(values) <- labels_org
+    
     breaks <- labels
     width  <- 0.5
     prop_est_full_order <- prop_est_full[order(prop_est_full$group), ]
@@ -554,47 +484,48 @@ dm_plotProportions_ribbonplot <- function(counts, group, prop_full = NULL,
 #'   scale_x_discrete guide_legend geom_line geom_ribbon
 #' @importFrom stats aggregate median
 
-dm_plotProportions <- function(counts, group, prop_full = NULL, prop_null = NULL, 
-  main = NULL, plot_type = "boxplot1", order = TRUE){
-  
-  if(all(is.na(prop_full)))
-    prop_full <- NULL
-  if(all(is.na(prop_null)))
-    prop_null <- NULL
+dm_plotProportions <- function(counts, group, prop_full = NULL, 
+  main = NULL, plot_type = "boxplot1", order = TRUE,
+  group_colors = NULL, feature_colors = NULL){
   
   switch(plot_type, 
     
     barplot = {
       
       dm_plotProportions_barplot(counts = counts, group = group, 
-        prop_full = prop_full, prop_null = prop_null, main = main, order = order)
+        prop_full = prop_full, main = main, 
+        order = order, group_colors = group_colors)
     },
     
     boxplot1 = {
       
       dm_plotProportions_boxplot1(counts = counts, group = group, 
-        prop_full = prop_full, prop_null = prop_null, main = main, order = order)
+        prop_full = prop_full, main = main, 
+        order = order, group_colors = group_colors)
       
     },
     
     boxplot2 = {
       
       dm_plotProportions_boxplot2(counts = counts, group = group, 
-        prop_full = prop_full, prop_null = prop_null, main = main, order = order)
+        prop_full = prop_full, main = main, 
+        order = order, feature_colors = feature_colors)
       
     },
     
     lineplot = {
       
       dm_plotProportions_lineplot(counts = counts, group = group, 
-        prop_full = prop_full, prop_null = prop_null, main = main, order = order)
+        prop_full = prop_full, main = main, 
+        order = order, group_colors = group_colors)
       
     },
     
     ribbonplot = {
       
       dm_plotProportions_ribbonplot(counts = counts, group = group, 
-        prop_full = prop_full, prop_null = prop_null, main = main, order = order)
+        prop_full = prop_full, main = main, 
+        order = order, feature_colors = feature_colors)
     }
     
   )

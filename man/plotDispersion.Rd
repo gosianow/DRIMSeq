@@ -9,28 +9,26 @@
 \usage{
 plotDispersion(x, ...)
 
-\S4method{plotDispersion}{dmDSdispersion}(x, out_dir = NULL)
+\S4method{plotDispersion}{dmDSdispersion}(x)
 
 \S4method{plotDispersion}{dmSQTLdispersion}(x, out_dir = NULL)
 }
 \arguments{
-\item{x}{\code{\linkS4class{dmDSdispersion}} or
+\item{x}{\code{\linkS4class{dmDSdispersion}} or 
 \code{\linkS4class{dmSQTLdispersion}} object.}
 
-\item{...}{Other parameters that can be defined by methods using this
+\item{...}{Other parameters that can be defined by methods using this 
 generic.}
-
-\item{out_dir}{Character string that is used to save the plot 
-in \code{paste0(out_dir, plot_name, ".pdf")} file. \code{plot_name} depends 
-on type of a plot produced, for example, \code{plot_name = "hist_features"} 
-for histogram with number of features per gene. If \code{NULL}, 
-the plot is returned as \code{ggplot} object and can be further modified, 
-for example, using \code{theme()}.}
 }
 \value{
-Scatterplot of Dirichlet-multinomial gene-wise dispersion versus mean
-gene expression. Both variables are scaled with log10. One dot in the plot
-corresponds to a gene.
+Normally in the differential analysis based on RNA-seq data, such 
+  plot has dispersion parameter plotted on the y-axis. Here, the y-axis 
+  represents precision since in the Dirichlet-multinomial model this is a 
+  parameter that is  directly estimated. It is important to keep in mind that
+  the precision parameter (gamma0) is inverse proportional to dispersion 
+  (theta): theta = 1 / (1 + gamma0). In RNA-seq data, we can typically
+  observe a trend where the dispersion decreases (here, presicion increases)
+  for genes with higher mean expression.
 }
 \description{
 Dispersion versus mean expression plot
@@ -46,6 +44,6 @@ Malgorzata Nowicka
 }
 \seealso{
 \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}},
-  \code{\link{plotData}}, \code{\link{plotFit}}, \code{\link{plotTest}}
+  \code{\link{plotData}}, \code{\link{plotProportions}}, \code{\link{plotPValues}}
 }
 

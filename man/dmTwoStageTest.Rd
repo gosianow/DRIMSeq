@@ -8,7 +8,8 @@
 \usage{
 dmTwoStageTest(x, ...)
 
-\S4method{dmTwoStageTest}{dmDStest}(x, FDR = 0.05, verbose = 0)
+\S4method{dmTwoStageTest}{dmDStest}(x, FDR = 0.05, verbose = 0,
+  BPPARAM = BiocParallel::SerialParam())
 }
 \arguments{
 \item{x}{\code{\linkS4class{dmDStest}} or \code{\linkS4class{dmSQTLtest}}
@@ -21,6 +22,9 @@ generic.}
 
 \item{verbose}{Numeric. Definie the level of progress messages displayed. 0 -
 no messages, 1 - main messages, 2 - message for every gene fitting.}
+
+\item{BPPARAM}{Parallelization method used by 
+\code{\link[BiocParallel]{bplapply}}.}
 }
 \value{
 Returns a data frame with adjusted feature-level p-values.

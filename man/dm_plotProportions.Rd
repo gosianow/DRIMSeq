@@ -4,8 +4,9 @@
 \alias{dm_plotProportions}
 \title{Plot feature proportions}
 \usage{
-dm_plotProportions(counts, group, prop_full = NULL, prop_null = NULL,
-  main = NULL, plot_type = "boxplot1", order = TRUE)
+dm_plotProportions(counts, group, prop_full = NULL, main = NULL,
+  plot_type = "boxplot1", order = TRUE, group_colors = NULL,
+  feature_colors = NULL)
 }
 \arguments{
 \item{counts}{Matrix with rows corresponding to features and columns
@@ -17,9 +18,6 @@ corresponding to samples. Row names are used as labels on the plot.}
 features and columns corresponding to conditions defined by factor
 \code{group}. If \code{NULL}, nothing is plotted.}
 
-\item{prop_null}{Matrix of estimated proportions with rows corresponding to
-features and one column. If \code{NULL}, nothing is plotted.}
-
 \item{main}{Character vector with main title for the plot. If \code{NULL},
 nothing is plotted.}
 
@@ -29,6 +27,9 @@ values \code{"barplot"}, \code{"boxplot1"}, \code{"boxplot2"},
 
 \item{order}{Logical. Whether to plot the features ordered by their
 expression.}
+
+\item{prop_null}{Matrix of estimated proportions with rows corresponding to
+features and one column. If \code{NULL}, nothing is plotted.}
 }
 \value{
 \code{ggplot} object with the observed and/or estimated with

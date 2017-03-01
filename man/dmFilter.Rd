@@ -77,7 +77,7 @@ condition but may not be expressed at all in another one, which is an example
 of differential splicing.
 
 By default, we do not use filtering based on feature proportions. Therefore,
-\code{min_samps_feature_prop} and \code{min_feature_prop} equals 0.
+\code{min_samps_feature_prop} and \code{min_feature_prop} equal 0.
 
 In sQTL analysis, usually, we deal with data that has many more replicates
 than data from a standard differential splicing assay. Our example data set
@@ -96,16 +96,6 @@ total samples.
 ###################################
 ### Differential splicing analysis
 ###################################
-
-d <- data_dmDSdata
-\donttest{
-### Filtering
-# Check what is the minimal number of replicates per condition 
-table(samples(d)$group)
-d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3, 
- min_samps_feature_prop = 0)
-plotData(d)
-}
 #############################
 ### sQTL analysis
 #############################

@@ -9,7 +9,7 @@
 \usage{
 dmFit(x, ...)
 
-\S4method{dmFit}{dmDSdispersion}(x, design, one_way = TRUE,
+\S4method{dmFit}{dmDSdispersion}(x, design, one_way = TRUE, bb_model = TRUE,
   prop_mode = "constrOptim", prop_tol = 1e-12, coef_mode = "optim",
   coef_tol = 1e-12, verbose = 0, BPPARAM = BiocParallel::SerialParam())
 
@@ -30,6 +30,9 @@ generic.}
 corresponds to multiple group comparison. If \code{TRUE} (the default), 
 then proportions are fitted per group and regression coefficients are 
 recalculated from these fittings.}
+
+\item{bb_model}{Logical. Whether to perform the feature-level analysis using
+the beta-binomial model.}
 
 \item{prop_mode}{Optimization method used to estimate proportions. Possible 
 value \code{"constrOptim"}.}
@@ -69,6 +72,6 @@ Malgorzata Nowicka
 }
 \seealso{
 \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}}, 
-  \code{\link{plotFit}}, \code{\link{dmDispersion}}, \code{\link{dmTest}}
+  \code{\link{plotProportions}}, \code{\link{dmDispersion}}, \code{\link{dmTest}}
 }
 

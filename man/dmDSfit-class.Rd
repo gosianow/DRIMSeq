@@ -12,13 +12,16 @@ proportions(x, ...)
 
 \S4method{proportions}{dmDSfit}(x)
 
-\S4method{coefficients}{dmDSfit}(object)
+\S4method{coefficients}{dmDSfit}(object, level = "gene")
 }
 \arguments{
 \item{x}{dmDSdispersion object.}
 
 \item{...}{Other parameters that can be defined by methods using this 
 generic.}
+
+\item{level}{Character specifying which type of results to return. Possible
+values \code{"gene"} or \code{"feature"}.}
 }
 \value{
 \itemize{ \item \code{proportions(x)}: Get a data frame with estimated 

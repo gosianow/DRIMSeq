@@ -16,8 +16,7 @@ dmDispersion(x, ...)
   disp_grid_range = c(-10, 10), disp_moderation = "trended",
   disp_prior_df = 0, disp_span = 0.1, one_way = TRUE,
   prop_mode = "constrOptim", prop_tol = 1e-12, coef_mode = "optim",
-  coef_tol = 1e-12, verbose = 0,
-  BPPARAM = BiocParallel::MulticoreParam(workers = 1))
+  coef_tol = 1e-12, verbose = 0, BPPARAM = BiocParallel::SerialParam())
 
 \S4method{dmDispersion}{dmSQTLdata}(x, mean_expression = TRUE,
   common_dispersion = TRUE, genewise_dispersion = TRUE,

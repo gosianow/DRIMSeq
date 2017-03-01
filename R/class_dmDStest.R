@@ -76,8 +76,7 @@ setValidity("dmDStest", function(object){
 setGeneric("results", function(x, ...) standardGeneric("results"))
 
 #' @rdname dmDStest-class
-#' @param level Character specifying which type of results to return. Possible
-#'   values \code{"gene"} or \code{"feature"}.
+#' @inheritParams dmDSfit-class
 #' @export
 setMethod("results", "dmDStest", function(x, level = "gene"){
   stopifnot(length(level) == 1)
@@ -114,7 +113,7 @@ setMethod("show", "dmDStest", function(object){
 setGeneric("dmTest", function(x, ...) standardGeneric("dmTest"))
 
 
-##################################
+# -----------------------------------------------------------------------------
 
 
 #' @inheritParams dmFit
@@ -311,7 +310,7 @@ setMethod("dmTest", "dmDSfit", function(x,
       counts = x@counts, samples = x@samples))
     
   }
-
+  
   
 })
 
@@ -329,11 +328,9 @@ setMethod("dmTest", "dmDSfit", function(x,
 #' @export
 setGeneric("plotPValues", function(x, ...) standardGeneric("plotPValues"))
 
+# ----------------------------------------------------------------------------
 
-
-####################################
-
-#' @inheritParams plotData
+#' @inheritParams results
 #' @examples
 #' 
 #' ###################################
@@ -342,21 +339,24 @@ setGeneric("plotPValues", function(x, ...) standardGeneric("plotPValues"))
 #' 
 #' @author Malgorzata Nowicka
 #' @seealso \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}},
-#'   \code{\link{plotData}}, \code{\link{plotDispersion}}, \code{\link{plotFit}}
+#'   \code{\link{plotData}}, \code{\link{plotDispersion}}, \code{\link{plotProportions}}
 #' @rdname plotPValues
 #' @export
 #' @importFrom grDevices pdf dev.off
-setMethod("plotPValues", "dmDStest", function(x, out_dir = NULL){
+setMethod("plotPValues", "dmDStest", function(x, level = "gene"){
   
-  ggp <- dm_plotPValues(pvalues = x@results[, "pvalue"])
+  stopifnot(length(level) == 1)
+  stopifnot(level %in% c("gene", "feature"))
   
-  if(!is.null(out_dir)){
-    pdf(paste0(out_dir, "hist_pvalues.pdf"))
-    print(ggp)
-    dev.off()
-  }else{
+  res <- slot(x, paste0("results_", level))
+  
+  if(nrow(res) > 0)
+    ggp <- dm_plotPValues(pvalues = res[, "pvalue"])
+  else
+    stop("Feature-level results are not available! Set bb_model=TRUE in 
+      dmFit and dmTest")
+    
     return(ggp)  
-  }
   
 })
 

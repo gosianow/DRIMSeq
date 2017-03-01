@@ -9,7 +9,7 @@
 \usage{
 plotPValues(x, ...)
 
-\S4method{plotPValues}{dmDStest}(x, out_dir = NULL)
+\S4method{plotPValues}{dmDStest}(x, level = "gene")
 
 \S4method{plotPValues}{dmSQTLtest}(x, out_dir = NULL)
 }
@@ -17,15 +17,11 @@ plotPValues(x, ...)
 \item{x}{\code{\linkS4class{dmDStest}} or \code{\linkS4class{dmSQTLtest}}
 object.}
 
-\item{...}{Other parameters that can be defined by methods using this
+\item{...}{Other parameters that can be defined by methods using this 
 generic.}
 
-\item{out_dir}{Character string that is used to save the plot 
-in \code{paste0(out_dir, plot_name, ".pdf")} file. \code{plot_name} depends 
-on type of a plot produced, for example, \code{plot_name = "hist_features"} 
-for histogram with number of features per gene. If \code{NULL}, 
-the plot is returned as \code{ggplot} object and can be further modified, 
-for example, using \code{theme()}.}
+\item{level}{Character specifying which type of results to return. Possible
+values \code{"gene"} or \code{"feature"}.}
 }
 \value{
 Plot a histogram of p-values.
@@ -45,6 +41,6 @@ Malgorzata Nowicka
 }
 \seealso{
 \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}},
-  \code{\link{plotData}}, \code{\link{plotDispersion}}, \code{\link{plotFit}}
+  \code{\link{plotData}}, \code{\link{plotDispersion}}, \code{\link{plotProportions}}
 }
 

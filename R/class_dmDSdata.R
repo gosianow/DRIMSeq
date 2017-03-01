@@ -72,7 +72,7 @@ setValidity("dmDSdata", function(object){
   
   if(!length(unique(object@samples$sample_id)) == nrow(object@samples))
     return("There must be a unique 'sample_id' for each sample!")
-    
+  
   if(!all(colnames(object@counts) == object@samples$sample_id))
     return("Column names of 'counts' must be the same as 'sample_id' 
       in 'samples'!")
@@ -159,7 +159,7 @@ setMethod("[", "dmDSdata", function(x, i, j){
       if(class(samples[, i]) == "factor")
         samples[, i] <- factor(samples[, i])
     }
-
+    
     rownames(samples) <- NULL
     
   }
@@ -187,40 +187,9 @@ setMethod("[", "dmDSdata", function(x, i, j){
 #'   grouping variable \code{group}.
 #' @return Returns a \linkS4class{dmDSdata} object.
 #' @examples
-#' 
-#' #############################
-#' ### Create dmDSdata object 
-#' #############################
-#' ### Get kallisto transcript counts from 'PasillaTranscriptExpr' package
-#' 
-#' library(PasillaTranscriptExpr)
-#' 
-#' data_dir  <- system.file("extdata", package = "PasillaTranscriptExpr")
-#' 
-#' # Load metadata
-#' metadata <- read.table(file.path(data_dir, "metadata.txt"), header = TRUE, 
-#' as.is = TRUE)
-#'
-#' # Load counts
-#' counts <- read.table(file.path(data_dir, "counts.txt"), header = TRUE, 
-#' as.is = TRUE)
-#'
-#' # Create a samples data frame
-#' samples <- data.frame(sample_id = metadata$SampleName, 
-#' group = metadata$condition)
-#'
-#' # Create a dmDSdata object
-#' d <- dmDSdata(counts = counts, samples = samples)
-#' 
-#' plotData(d)
-#' 
-#' # Use a subset of genes, which is defined in the following file
-#' gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
-#' d <- d[names(d) %in% gene_id_subset, ]
-#' 
-#' plotData(d)
-#' 
-#' 
+#' ###################################
+#' ### Differential splicing analysis
+#' ###################################
 #' @seealso \code{\link{plotData}}, \code{\link{dmFilter}}, 
 #'   \code{\link{dmDispersion}}, \code{\link{dmFit}}, \code{\link{dmTest}}
 #' @author Malgorzata Nowicka
@@ -253,7 +222,7 @@ dmDSdata <- function(counts, samples){
   
   counts <- as.matrix(counts)
   stopifnot(mode(counts) %in% "numeric")
-
+  
   if(class(gene_id) == "character")
     gene_id <- factor(gene_id, levels = unique(gene_id))
   else 
@@ -270,7 +239,7 @@ dmDSdata <- function(counts, samples){
   
   # Ordering
   or <- order(gene_id)
-
+  
   counts <- counts[or, , drop = FALSE]
   gene_id <- gene_id[or]
   feature_id <- feature_id[or]
@@ -333,7 +302,7 @@ setGeneric("dmFilter", function(x, ...) standardGeneric("dmFilter"))
 #' of differential splicing.
 #' 
 #' By default, we do not use filtering based on feature proportions. Therefore,
-#' \code{min_samps_feature_prop} and \code{min_feature_prop} equals 0.
+#' \code{min_samps_feature_prop} and \code{min_feature_prop} equal 0.
 #' 
 #' @param min_samps_gene_expr Minimal number of samples where genes should be
 #'   expressed. See Details.
@@ -351,16 +320,6 @@ setGeneric("dmFilter", function(x, ...) standardGeneric("dmFilter"))
 #' ###################################
 #' ### Differential splicing analysis
 #' ###################################
-#' 
-#' d <- data_dmDSdata
-#' \donttest{
-#' ### Filtering
-#' # Check what is the minimal number of replicates per condition 
-#' table(samples(d)$group)
-#' d <- dmFilter(d, min_samps_gene_expr = 7, min_samps_feature_expr = 3, 
-#'  min_samps_feature_prop = 0)
-#' plotData(d)
-#' }
 #' @seealso \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}}, 
 #'   \code{\link{plotData}}, \code{\link{dmDispersion}}, \code{\link{dmFit}}, 
 #'   \code{\link{dmTest}}
@@ -401,26 +360,23 @@ setMethod("dmFilter", "dmDSdata", function(x, min_samps_gene_expr,
 
 #' Plot data summary
 #' 
-#' @return Plot a histogram of the number of features per gene. Additionally, 
-#' for \code{\linkS4class{dmSQTLdata}} object, plot a histogram of the number of
-#' SNPs per gene and a histogram of the number of unique SNPs (blocks) per gene.
-#' 
-#' @param x \code{\linkS4class{dmDSdata}} or \code{\linkS4class{dmSQTLdata}}
+#' @return Returns a \code{ggplot} object and can be further modified, for
+#'   example, using \code{theme()}. Plots a histogram of the number of features
+#'   per gene. Additionally, for \code{\linkS4class{dmSQTLdata}} object, plots a
+#'   histogram of the number of SNPs per gene and a histogram of the number of
+#'   unique SNPs (blocks) per gene.
+#'   
+#' @param x \code{\linkS4class{dmDSdata}} or \code{\linkS4class{dmSQTLdata}} 
 #'   object.
-#' @param ... Other parameters that can be defined by methods using this
+#' @param ... Other parameters that can be defined by methods using this 
 #'   generic.
 #' @export
 setGeneric("plotData", function(x, ...) standardGeneric("plotData"))
 
 
-#################################
+# -----------------------------------------------------------------------------
 
-#' @param out_dir Character string that is used to save the plot 
-#' in \code{paste0(out_dir, plot_name, ".pdf")} file. \code{plot_name} depends 
-#' on type of a plot produced, for example, \code{plot_name = "hist_features"} 
-#' for histogram with number of features per gene. If \code{NULL}, 
-#' the plot is returned as \code{ggplot} object and can be further modified, 
-#' for example, using \code{theme()}.
+
 #' @examples 
 #' ###################################
 #' ### Differential splicing analysis
@@ -428,27 +384,21 @@ setGeneric("plotData", function(x, ...) standardGeneric("plotData"))
 #' 
 #' d <- data_dmDSdata
 #' plotData(d)
-#'
-#'
+#' 
+#' 
 #' @author Malgorzata Nowicka
 #' @seealso \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}}, 
-#' \code{\link{plotDispersion}}, \code{\link{plotFit}}, \code{\link{plotTest}}
+#'   \code{\link{plotDispersion}}, \code{\link{plotProportions}},
+#'   \code{\link{plotPValues}}
 #' @rdname plotData
 #' @export
-#' @importFrom grDevices pdf dev.off
-setMethod("plotData", "dmDSdata", function(x, out_dir = NULL){
+setMethod("plotData", "dmDSdata", function(x){
   
   tt <- elementNROWS(x@counts)
   
   ggp <- dm_plotDataFeatures(tt = tt)
   
-  if(!is.null(out_dir)){
-    pdf(paste0(out_dir, "hist_features.pdf"))
-    print(ggp)
-    dev.off()
-  }else{
-    return(ggp)
-  }
+  return(ggp)
   
 })
 

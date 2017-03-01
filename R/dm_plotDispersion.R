@@ -4,7 +4,8 @@
 
 
 dm_plotDispersion <- function(genewise_dispersion, mean_expression, 
-  nr_features = NULL, common_dispersion = NULL){
+  nr_features = NULL, common_dispersion = NULL, low_color = "royalblue2", 
+  high_color = "red2", na_value_color = "red2"){
   
   if(!is.null(nr_features)){
     
@@ -19,8 +20,8 @@ dm_plotDispersion <- function(genewise_dispersion, mean_expression,
       colour = "nr_features" )) +
       theme_bw() +
       xlab("Log10 of mean expression") +
-      ylab("Log10 of gamma_+") +
-      geom_point(size = 1, alpha = 0.7, na.rm = TRUE) +
+      ylab("Log10 of gamma0") +
+      geom_point(alpha = 0.7, na.rm = TRUE) +
       theme(axis.text = element_text(size=16), 
         axis.title = element_text(size=18, face="bold"), 
         legend.title = element_text(size=16, face="bold"), 
@@ -28,8 +29,8 @@ dm_plotDispersion <- function(genewise_dispersion, mean_expression,
         legend.position = "top") +
       guides(colour = guide_colorbar(barwidth = 20, barheight = 0.5)) +
       scale_colour_gradient(limits = c(2, max(breaks)), 
-        breaks = breaks, low = "royalblue2", high="red2", 
-        name = "Number of features", na.value = "red2")
+        breaks = breaks, low = low_color, high = high_color, 
+        name = "Number of features", na.value = na_value_color)
     
     
   }else{
@@ -40,7 +41,7 @@ dm_plotDispersion <- function(genewise_dispersion, mean_expression,
     ggp <- ggplot(df, aes_string(x = "mean_expression", y = "dispersion")) +
       theme_bw() +
       xlab("Log10 of mean expression") +
-      ylab("Log10 of gamma_+") +
+      ylab("Log10 of gamma0") +
       geom_point(size = 1, alpha = 0.4, na.rm = TRUE) +
       theme(axis.text = element_text(size=16), 
         axis.title = element_text(size=18, face="bold"), 
@@ -53,7 +54,7 @@ dm_plotDispersion <- function(genewise_dispersion, mean_expression,
   
   if(!is.null(common_dispersion)){
     ggp <- ggp + geom_hline(yintercept = log10(common_dispersion), 
-      colour = "black", linetype = "dashed", size =  0.5)
+      colour = "black", linetype = "dashed")
   }
   
   

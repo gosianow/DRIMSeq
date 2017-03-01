@@ -145,7 +145,7 @@ bb_fitRegression <- function(y, design, disp, fit){
 
   b <- t(MASS::ginv(design) %*% logit_prop)
 
-  rownames(b) <- rownames(y)
+  rownames(b) <- colnames(y)
   
   # b matrix q x p
   # lik vector of length q
