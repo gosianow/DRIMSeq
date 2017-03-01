@@ -12,6 +12,8 @@ dm_CRadjustmentRegression <- function(y, x, disp, prop){
   prop <- t(prop) # n x q
   y <- t(y) # n x q
   
+  n <- nrow(y)
+  
   adj <- log(det(n * (- dm_Hessian_regG_prop(y = y, disp = disp, 
     prop = prop, x = x)))) / 2 
   

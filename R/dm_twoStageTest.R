@@ -6,7 +6,7 @@
 #' @importFrom stats pchisq p.adjust
 
 dm_twoStageTest <- function(pvalue_gene, pvalue_feature, FDR = 0.05, 
-  verbose = FALSE){
+  verbose = FALSE, BPPARAM = BiocParallel::SerialParam()){
   # pvalue_gene data frame with pvalue and gene_id
   # pvalue_feature data frame with pvalue, gene_id and feature_id
   
@@ -24,7 +24,7 @@ dm_twoStageTest <- function(pvalue_gene, pvalue_feature, FDR = 0.05,
     factor(pvalue_feature[, "gene_id"], 
     levels = pvalue_gene[, "gene_id"]))
   
-  pvalue_two_stages <- lapply(names(pvalue_feature_split), function(i){
+  pvalue_two_stages <- bplapply(names(pvalue_feature_split), function(i){
     
     x <- pvalue_feature_split[[i]]
     
@@ -35,7 +35,7 @@ dm_twoStageTest <- function(pvalue_gene, pvalue_feature, FDR = 0.05,
     }
     
     return(out)
-  })
+  }, BPPARAM = BPPARAM)
   
   pvalue_feature[, "adj_pvalue"] <- unlist(pvalue_two_stages)
   

@@ -146,7 +146,7 @@ setGeneric("dmTest", function(x, ...) standardGeneric("dmTest"))
 #' @export
 setMethod("dmTest", "dmDSfit", function(x, 
   coef = NULL, design = NULL, contrast = NULL, 
-  one_way = TRUE,
+  one_way = TRUE, bb_model = TRUE,
   prop_mode = "constrOptim", prop_tol = 1e-12, 
   coef_mode = "optim", coef_tol = 1e-12,
   verbose = 0, BPPARAM = BiocParallel::SerialParam()){
@@ -259,37 +259,63 @@ setMethod("dmTest", "dmDSfit", function(x,
   
   
   # Calculate the Beta-Binomial null likelihoods for each feature
-  fit0_bb <- bbDS_fit(counts = x@counts, fit = fit0[["fit"]], design = design0, 
-    dispersion = x@genewise_dispersion,
-    one_way = one_way,
-    prop_mode = prop_mode, prop_tol = prop_tol, 
-    coef_mode = coef_mode, coef_tol = coef_tol,
-    verbose = verbose, BPPARAM = BPPARAM)
-  
-  # Calculate the BB degrees of freedom for the LR test
-  df <- rep.int(ncol(x@design_fit_full) - ncol(design0), length(x@lik_full_bb))
-  
-  results_feature <- dm_LRT(lik_full = x@lik_full_bb, 
-    lik_null = fit0_bb[["lik"]], df = df, verbose = verbose)
-  
-  results_feature <- data.frame(
-    gene_id = rep.int(names(x@counts), elementNROWS(x@counts)), 
-    feature_id = rownames(results_feature), 
-    results_feature, stringsAsFactors = FALSE, row.names = NULL)
-  
-  return(new("dmDStest", 
-    results_gene = results_gene, results_feature = results_feature,
-    design_fit_null = design0, 
-    lik_null = fit0[["lik"]],
-    lik_null_bb = fit0_bb[["lik"]],
-    design_fit_full = x@design_fit_full, 
-    fit_full = x@fit_full, lik_full = x@lik_full, coef_full = x@coef_full,
-    lik_full_bb = x@lik_full_bb,  coef_full_bb = x@coef_full_bb,
-    mean_expression = x@mean_expression, 
-    common_dispersion = x@common_dispersion, 
-    genewise_dispersion = x@genewise_dispersion, 
-    design_dispersion = x@design_dispersion,
-    counts = x@counts, samples = x@samples))
+  if(bb_model && length(x@lik_full_bb) > 0){
+    
+    if(bb_model && length(x@lik_full_bb) == 0)
+      message("Beta-Binomial model is not fitted 
+        because bb_model=FALSE in dmFit!")
+    
+    fit0_bb <- bbDS_fit(counts = x@counts, fit = fit0[["fit"]], 
+      design = design0, 
+      dispersion = x@genewise_dispersion,
+      one_way = one_way,
+      prop_mode = prop_mode, prop_tol = prop_tol, 
+      coef_mode = coef_mode, coef_tol = coef_tol,
+      verbose = verbose, BPPARAM = BPPARAM)
+    
+    # Calculate the BB degrees of freedom for the LR test
+    df <- rep.int(ncol(x@design_fit_full) - ncol(design0), 
+      length(x@lik_full_bb))
+    
+    results_feature <- dm_LRT(lik_full = x@lik_full_bb, 
+      lik_null = fit0_bb[["lik"]], df = df, verbose = verbose)
+    
+    results_feature <- data.frame(
+      gene_id = rep.int(names(x@counts), elementNROWS(x@counts)), 
+      feature_id = rownames(results_feature), 
+      results_feature, stringsAsFactors = FALSE, row.names = NULL)
+    
+    return(new("dmDStest", 
+      results_gene = results_gene, results_feature = results_feature,
+      design_fit_null = design0, 
+      lik_null = fit0[["lik"]],
+      lik_null_bb = fit0_bb[["lik"]],
+      design_fit_full = x@design_fit_full, 
+      fit_full = x@fit_full, lik_full = x@lik_full, coef_full = x@coef_full,
+      lik_full_bb = x@lik_full_bb,  coef_full_bb = x@coef_full_bb,
+      mean_expression = x@mean_expression, 
+      common_dispersion = x@common_dispersion, 
+      genewise_dispersion = x@genewise_dispersion, 
+      design_dispersion = x@design_dispersion,
+      counts = x@counts, samples = x@samples))
+    
+  }else{
+    
+    return(new("dmDStest", 
+      results_gene = results_gene,
+      design_fit_null = design0, 
+      lik_null = fit0[["lik"]],
+      design_fit_full = x@design_fit_full, 
+      fit_full = x@fit_full, lik_full = x@lik_full, coef_full = x@coef_full,
+      lik_full_bb = x@lik_full_bb,  coef_full_bb = x@coef_full_bb,
+      mean_expression = x@mean_expression, 
+      common_dispersion = x@common_dispersion, 
+      genewise_dispersion = x@genewise_dispersion, 
+      design_dispersion = x@design_dispersion,
+      counts = x@counts, samples = x@samples))
+    
+  }
+
   
 })
 
@@ -360,14 +386,17 @@ setGeneric("dmTwoStageTest", function(x, ...) standardGeneric("dmTwoStageTest"))
 #' @return Returns a data frame with adjusted feature-level p-values.
 #' @rdname dmTwoStageTest
 #' @export
-setMethod("dmTwoStageTest", "dmDStest", function(x, FDR = 0.05, verbose = 0){
+setMethod("dmTwoStageTest", "dmDStest", function(x, FDR = 0.05, 
+  verbose = 0, BPPARAM = BiocParallel::SerialParam()){
   
   stopifnot(verbose %in% 0:2)
   stopifnot(length(FDR) == 1)
   stopifnot(class(FDR) == "numeric")
+  stopifnot(nrow(x@results_feature) > 0)
   
   table <- dm_twoStageTest(pvalue_gene = x@results_gene, 
-    pvalue_feature = x@results_feature, FDR = FDR, verbose = verbose)
+    pvalue_feature = x@results_feature, FDR = FDR, 
+    verbose = verbose, BPPARAM = BPPARAM)
   
   return(table)
   

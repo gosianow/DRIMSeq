@@ -5,7 +5,7 @@
 #' @importFrom stats loess predict loess.control
 
 dm_profileLikModeration <- function(loglik, mean_expression, 
-  disp_moderation = c("common", "trended")[1], disp_prior_df, disp_span){
+  disp_moderation = "trended", disp_prior_df, disp_span){
   
   disp_grid_length <- ncol(loglik)
   
@@ -103,7 +103,7 @@ dm_profileLikModeration <- function(loglik, mean_expression,
       }
       
       if(length(priorN) == 1){
-        message(paste0("! Using ", round(priorN, 4), 
+        message(paste0("! Using ", round(priorN, 6), 
           " as a shrinkage factor !\n"))
       }else{
         message(paste0("! Using loess fit as a shrinkage factor !\n"))

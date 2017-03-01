@@ -164,7 +164,8 @@ setGeneric("dmFit", function(x, ...) standardGeneric("dmFit"))
 #'   \code{\link{plotFit}}, \code{\link{dmDispersion}}, \code{\link{dmTest}}
 #' @rdname dmFit
 #' @export
-setMethod("dmFit", "dmDSdispersion", function(x, design, one_way = TRUE,
+setMethod("dmFit", "dmDSdispersion", function(x, design, 
+  one_way = TRUE, bb_model = TRUE,
   prop_mode = "constrOptim", prop_tol = 1e-12, 
   coef_mode = "optim", coef_tol = 1e-12,
   verbose = 0, BPPARAM = BiocParallel::SerialParam()){
@@ -206,21 +207,36 @@ setMethod("dmFit", "dmDSdispersion", function(x, design, one_way = TRUE,
     verbose = verbose, BPPARAM = BPPARAM)
   
   # Calculate the Beta-Binomial likelihoods for each feature
-  fit_bb <- bbDS_fit(counts = x@counts, fit = fit[["fit"]], design = design, 
-    dispersion = x@genewise_dispersion,
-    one_way = one_way,
-    prop_mode = prop_mode, prop_tol = prop_tol, 
-    coef_mode = coef_mode, coef_tol = coef_tol,
-    verbose = verbose, BPPARAM = BPPARAM)
-  
-  return(new("dmDSfit", design_fit_full = design, 
-    fit_full = fit[["fit"]], lik_full = fit[["lik"]], coef_full = fit[["coef"]],
-    lik_full_bb = fit_bb[["lik"]], coef_full_bb = fit_bb[["coef"]],
-    mean_expression = x@mean_expression, 
-    common_dispersion = x@common_dispersion, 
-    genewise_dispersion = x@genewise_dispersion, 
-    design_dispersion = x@design_dispersion,
-    counts = x@counts, samples = x@samples))
+  if(bb_model){
+    
+    fit_bb <- bbDS_fit(counts = x@counts, fit = fit[["fit"]], design = design, 
+      dispersion = x@genewise_dispersion,
+      one_way = one_way,
+      prop_mode = prop_mode, prop_tol = prop_tol, 
+      coef_mode = coef_mode, coef_tol = coef_tol,
+      verbose = verbose, BPPARAM = BPPARAM)
+    
+    return(new("dmDSfit", design_fit_full = design, 
+      fit_full = fit[["fit"]], lik_full = fit[["lik"]], coef_full = fit[["coef"]],
+      lik_full_bb = fit_bb[["lik"]], coef_full_bb = fit_bb[["coef"]],
+      mean_expression = x@mean_expression, 
+      common_dispersion = x@common_dispersion, 
+      genewise_dispersion = x@genewise_dispersion, 
+      design_dispersion = x@design_dispersion,
+      counts = x@counts, samples = x@samples))
+    
+    }else{
+      
+      return(new("dmDSfit", design_fit_full = design, 
+        fit_full = fit[["fit"]], lik_full = fit[["lik"]], coef_full = fit[["coef"]],
+        mean_expression = x@mean_expression, 
+        common_dispersion = x@common_dispersion, 
+        genewise_dispersion = x@genewise_dispersion, 
+        design_dispersion = x@design_dispersion,
+        counts = x@counts, samples = x@samples))
+      
+    }
+
   
 })
 

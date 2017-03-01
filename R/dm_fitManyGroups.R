@@ -51,8 +51,8 @@ bb_fitManyGroups <- function(y, prop, ngroups, lgroups, igroups,
   
   q <- nrow(y)
   
-  lik <- rep(NA, ngroups)
-  names(lik) <- lgroups
+  lik <- matrix(NA, nrow = q, ncol = ngroups)
+  colnames(lik) <- lgroups
   
   if(is.na(disp)) 
     return(list(prop = prop, lik = lik))
@@ -71,7 +71,7 @@ bb_fitManyGroups <- function(y, prop, ngroups, lgroups, igroups,
   
   # prop and lik can have NAs
   # prop matrix q x ngroups
-  # lik vector of length ngroups
+  # lik matrix q x ngroups
   return(list(prop = prop, lik = lik)) 
   
 }

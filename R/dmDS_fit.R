@@ -180,11 +180,10 @@ bbDS_fit <- function(counts, fit, design, dispersion,
       disp = disp,
       verbose = verbose, BPPARAM = BPPARAM)
     
-    names(ff) <- names(counts)
-    
     lik <- lapply(ff, function(f){rowSums(f[["lik"]])})
     names(lik) <- NULL
     lik <- unlist(lik)
+    names(lik) <- rownames(counts)
     
     # Get the coefficients like in edgeR::mglmOneWay
     design_unique <- unique(design)
