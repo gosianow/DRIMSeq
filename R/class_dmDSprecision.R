@@ -2,15 +2,15 @@
 NULL
 
 ################################################################################
-### dmDSdispersion class
+### dmDSprecision class
 ################################################################################
 
-#' dmDSdispersion object
+#' dmDSprecision object
 #' 
-#' dmDSdispersion extends the \code{\linkS4class{dmDSdata}} by adding the 
+#' dmDSprecision extends the \code{\linkS4class{dmDSdata}} by adding the 
 #' precision estimates of the Dirichlet-multinomial distribution used to model 
 #' the feature (e.g., transcript, exon, exonic bin) counts for each gene in the 
-#' differential usage analysis. Result of calling the \code{\link{dmDispersion}}
+#' differential usage analysis. Result of calling the \code{\link{dmPrecision}}
 #' function.
 #' 
 #' @details Normally, in the differential analysis based on RNA-seq data, such 
@@ -23,22 +23,22 @@ NULL
 #' @return
 #' 
 #' \itemize{ \item \code{mean_expression(x)}: Get a data frame with mean gene
-#' expression. \item \code{common_dispersion(x), common_dispersion(x) <- value}:
-#' Get or set common dispersion. \code{value} must be numeric of length 1. \item
-#' \code{genewise_dispersion(x), genewise_dispersion(x) <- value}: Get a data
-#' frame with gene-wise dispersion or set new gene-wise dispersion. \code{value}
-#' must be a data frame with "gene_id" and "genewise_dispersion" columns. }
+#' expression. \item \code{common_precision(x), common_precision(x) <- value}:
+#' Get or set common precision. \code{value} must be numeric of length 1. \item
+#' \code{genewise_precision(x), genewise_precision(x) <- value}: Get a data
+#' frame with gene-wise precision or set new gene-wise precision. \code{value}
+#' must be a data frame with "gene_id" and "genewise_precision" columns. }
 #' 
-#' @param x dmDSdispersion object.
+#' @param x dmDSprecision object.
 #' @param value Values that replace current attributes.
 #' @param ... Other parameters that can be defined by methods using this 
 #'   generic.
 #'   
 #' @slot mean_expression Numeric vector of mean gene expression.
-#' @slot common_dispersion Numeric value of estimated common dispersion.
-#' @slot genewise_dispersion Numeric vector of estimated gene-wise dispersions.
-#' @slot design_dispersion Numeric matrix of the desing used to estimate 
-#'   dispersion.
+#' @slot common_precision Numeric value of estimated common precision.
+#' @slot genewise_precision Numeric vector of estimated gene-wise precisions.
+#' @slot design_precision Numeric matrix of the desing used to estimate 
+#'   precision.
 #'   
 #' @examples 
 #' # --------------------------------------------------------------------------
@@ -89,29 +89,29 @@ NULL
 #' 
 #' ## To make the analysis reproducible
 #' set.seed(123)
-#' ## Calculate dispersion
-#' d <- dmDispersion(d, design = design)
+#' ## Calculate precision
+#' d <- dmPrecision(d, design = design)
 #' 
-#' plotDispersion(d)
+#' plotPrecision(d)
 #' 
 #' head(mean_expression(d))
-#' common_dispersion(d)
-#' head(genewise_dispersion(d))
+#' common_precision(d)
+#' head(genewise_precision(d))
 #' }
 #' @author Malgorzata Nowicka
 #' @seealso \code{\linkS4class{dmDSdata}}, \code{\linkS4class{dmDSfit}}, 
 #'   \code{\linkS4class{dmDStest}}
-setClass("dmDSdispersion", 
+setClass("dmDSprecision", 
   contains = "dmDSdata",
   representation(mean_expression = "numeric", 
-    common_dispersion = "numeric",
-    genewise_dispersion = "numeric",
-    design_dispersion = "matrix"))
+    common_precision = "numeric",
+    genewise_precision = "numeric",
+    design_precision = "matrix"))
 
 
 # -----------------------------------------------------------------------------
 
-setValidity("dmDSdispersion", function(object){
+setValidity("dmDSprecision", function(object){
   ## Has to return TRUE when valid object!
   out <- TRUE
   
@@ -126,25 +126,25 @@ setValidity("dmDSdispersion", function(object){
       return(paste0("Unequal length of 'counts' and 'mean_expression'"))
   }
   
-  if(length(object@genewise_dispersion) > 0){
-    if(length(object@genewise_dispersion) == length(object@counts)){
-      if(all(names(object@genewise_dispersion) == names(object@counts)))
+  if(length(object@genewise_precision) > 0){
+    if(length(object@genewise_precision) == length(object@counts)){
+      if(all(names(object@genewise_precision) == names(object@counts)))
         out <- TRUE
       else
-        return(paste0("Different names of 'counts' and 'genewise_dispersion'"))
+        return(paste0("Different names of 'counts' and 'genewise_precision'"))
     }
     else 
-      return(paste0("Unequal length of 'counts' and 'genewise_dispersion'"))
+      return(paste0("Unequal length of 'counts' and 'genewise_precision'"))
   }
   
-  if(length(object@common_dispersion) > 0){
-    if(length(object@common_dispersion) == 1)
+  if(length(object@common_precision) > 0){
+    if(length(object@common_precision) == 1)
       out <- TRUE
     else
-      return(paste0("'common_dispersion' must be a vector of length 1'"))
+      return(paste0("'common_precision' must be a vector of length 1'"))
   }
   
-  if(nrow(object@design_dispersion) == ncol(object@counts)){
+  if(nrow(object@design_precision) == ncol(object@counts)){
     out <- TRUE
   }else{
     return(paste0("Number of rows in the design matrix must be equal 
@@ -160,14 +160,14 @@ setValidity("dmDSdispersion", function(object){
 ################################################################################
 
 
-#' @rdname dmDSdispersion-class
+#' @rdname dmDSprecision-class
 #' @export
 setGeneric("mean_expression", function(x, ...) 
   standardGeneric("mean_expression"))
 
-#' @rdname dmDSdispersion-class
+#' @rdname dmDSprecision-class
 #' @export
-setMethod("mean_expression", "dmDSdispersion", function(x){
+setMethod("mean_expression", "dmDSprecision", function(x){
   
   data.frame(gene_id = names(x@mean_expression), 
     mean_expression = x@mean_expression, 
@@ -176,71 +176,71 @@ setMethod("mean_expression", "dmDSdispersion", function(x){
 })
 
 
-#' @rdname dmDSdispersion-class
+#' @rdname dmDSprecision-class
 #' @export
-setGeneric("common_dispersion", function(x, ...) 
-  standardGeneric("common_dispersion"))
+setGeneric("common_precision", function(x, ...) 
+  standardGeneric("common_precision"))
 
-#' @rdname dmDSdispersion-class
+#' @rdname dmDSprecision-class
 #' @export
-setMethod("common_dispersion", "dmDSdispersion", function(x) 
-  x@common_dispersion )
+setMethod("common_precision", "dmDSprecision", function(x) 
+  x@common_precision )
 
 
-#' @rdname dmDSdispersion-class
+#' @rdname dmDSprecision-class
 #' @export
-setGeneric("common_dispersion<-", function(x, value) 
-  standardGeneric("common_dispersion<-"))
+setGeneric("common_precision<-", function(x, value) 
+  standardGeneric("common_precision<-"))
 
-#' @rdname dmDSdispersion-class
+#' @rdname dmDSprecision-class
 #' @export
-setMethod("common_dispersion<-", "dmDSdispersion", function(x, value){
+setMethod("common_precision<-", "dmDSprecision", function(x, value){
   ### value must be a numeric of length 1
 
   names(value) <- NULL
   
-  return(new("dmDSdispersion", mean_expression = x@mean_expression, 
-    common_dispersion = value, genewise_dispersion = x@genewise_dispersion, 
-    design_dispersion = x@design_dispersion,
+  return(new("dmDSprecision", mean_expression = x@mean_expression, 
+    common_precision = value, genewise_precision = x@genewise_precision, 
+    design_precision = x@design_precision,
     counts = x@counts, samples = x@samples))
   
 })
 
-#' @rdname dmDSdispersion-class
+#' @rdname dmDSprecision-class
 #' @export
-setGeneric("genewise_dispersion", function(x, ...) 
-  standardGeneric("genewise_dispersion"))
+setGeneric("genewise_precision", function(x, ...) 
+  standardGeneric("genewise_precision"))
 
-#' @rdname dmDSdispersion-class
+#' @rdname dmDSprecision-class
 #' @export
-setMethod("genewise_dispersion", "dmDSdispersion", function(x){
+setMethod("genewise_precision", "dmDSprecision", function(x){
   
-  data.frame(gene_id = names(x@genewise_dispersion), 
-    genewise_dispersion = x@genewise_dispersion, stringsAsFactors = FALSE, 
+  data.frame(gene_id = names(x@genewise_precision), 
+    genewise_precision = x@genewise_precision, stringsAsFactors = FALSE, 
     row.names = NULL)
   
 })
 
 
-#' @rdname dmDSdispersion-class
+#' @rdname dmDSprecision-class
 #' @export
-setGeneric("genewise_dispersion<-", function(x, value) 
-  standardGeneric("genewise_dispersion<-"))
+setGeneric("genewise_precision<-", function(x, value) 
+  standardGeneric("genewise_precision<-"))
 
 
-#' @rdname dmDSdispersion-class
+#' @rdname dmDSprecision-class
 #' @export
-setMethod("genewise_dispersion<-", "dmDSdispersion", function(x, value){
-  # value must be a data frame with gene_id and genewise_dispersion
+setMethod("genewise_precision<-", "dmDSprecision", function(x, value){
+  # value must be a data frame with gene_id and genewise_precision
   
-  stopifnot(all(c("gene_id", "genewise_dispersion") %in% colnames(value)))
+  stopifnot(all(c("gene_id", "genewise_precision") %in% colnames(value)))
   stopifnot(all(names(x@counts) %in% value[,"gene_id"]))
   order <- match(names(x@counts), value[,"gene_id"])
   
-  return(new("dmDSdispersion", mean_expression = x@mean_expression, 
-    common_dispersion = x@common_dispersion, 
-    genewise_dispersion = value[order, "genewise_dispersion"],
-    design_dispersion = x@design_dispersion,  
+  return(new("dmDSprecision", mean_expression = x@mean_expression, 
+    common_precision = x@common_precision, 
+    genewise_precision = value[order, "genewise_precision"],
+    design_precision = x@design_precision,  
     counts = x@counts, samples = x@samples))
   
 })
@@ -250,17 +250,17 @@ setMethod("genewise_dispersion<-", "dmDSdispersion", function(x, value){
 # -----------------------------------------------------------------------------
 
 
-setMethod("show", "dmDSdispersion", function(object){
+setMethod("show", "dmDSprecision", function(object){
   
   callNextMethod(object)
   
-  cat("  mean_expression(), common_dispersion(), genewise_dispersion()\n")
+  cat("  mean_expression(), common_precision(), genewise_precision()\n")
   
 })
 
 
 ################################################################################
-### dmDispersion
+### dmPrecision
 ################################################################################
 
 #' Estimate the precision parameter in the Dirichlet-multinomial model
@@ -281,79 +281,79 @@ setMethod("show", "dmDSdispersion", function(object){
 #' @param ... Other parameters that can be defined by methods using this 
 #'   generic.
 #' @export
-setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
+setGeneric("dmPrecision", function(x, ...) standardGeneric("dmPrecision"))
 
 
 # -----------------------------------------------------------------------------
 
 
 #' @details Parameters that are used in the precision (dispersion = 1 / (1 + 
-#'   precision)) estimation start with prefix \code{disp_}. Those that are used 
+#'   precision)) estimation start with prefix \code{prec_}. Those that are used 
 #'   for the proportion estimation in each group when the shortcut fitting 
 #'   \code{one_way = TRUE} can be used start with \code{prop_}, and those that 
 #'   are used in the regression framework start with \code{coef_}.
 #'   
-#'   There are two optimization methods implemented within dmDispersion: 
-#'   \code{"optimize"} for the common dispersion and \code{"grid"} for the 
-#'   gene-wise dispersion.
+#'   There are two optimization methods implemented within dmPrecision: 
+#'   \code{"optimize"} for the common precision and \code{"grid"} for the 
+#'   gene-wise precision.
 #'   
-#'   Only part of the dispersion parameters in dmDispersion have an influence on
+#'   Only part of the precision parameters in dmPrecision have an influence on
 #'   a given optimization method. Here is a list of such active parameters:
 #'   
 #'   \code{"optimize"}:
 #'   
-#'   \itemize{ \item \code{disp_interval}: Passed as \code{interval}. \item 
-#'   \code{disp_tol}: The accuracy defined as \code{tol}. }
+#'   \itemize{ \item \code{prec_interval}: Passed as \code{interval}. \item 
+#'   \code{prec_tol}: The accuracy defined as \code{tol}. }
 #'   
 #'   \code{"grid"}, which uses the grid approach from 
 #'   \code{\link[edgeR]{estimateDisp}} in \code{\link{edgeR}}:
 #'   
-#'   \itemize{ \item \code{disp_init}, \code{disp_grid_length}, 
-#'   \code{disp_grid_range}: Parameters used to construct the search grid 
-#'   \code{disp_init * 2^seq(from = disp_grid_range[1]}, \code{to = 
-#'   disp_grid_range[2]}, \code{length = disp_grid_length)}. \item 
-#'   \code{disp_moderation}: Dipsersion shrinkage is available only with 
-#'   \code{"grid"} method. \item \code{disp_prior_df}: Used only when dispersion
+#'   \itemize{ \item \code{prec_init}, \code{prec_grid_length}, 
+#'   \code{prec_grid_range}: Parameters used to construct the search grid 
+#'   \code{prec_init * 2^seq(from = prec_grid_range[1]}, \code{to = 
+#'   prec_grid_range[2]}, \code{length = prec_grid_length)}. \item 
+#'   \code{prec_moderation}: Dipsersion shrinkage is available only with 
+#'   \code{"grid"} method. \item \code{prec_prior_df}: Used only when precision
 #'   shrinkage is activated. Moderated likelihood is equal to \code{loglik + 
-#'   disp_prior_df * moderation}. Higher \code{disp_prior_df}, more shrinkage 
-#'   toward common or trended dispersion is applied. \item \code{disp_span}: 
-#'   Used only when dispersion moderation toward trend is activated. }
+#'   prec_prior_df * moderation}. Higher \code{prec_prior_df}, more shrinkage 
+#'   toward common or trended precision is applied. \item \code{prec_span}: 
+#'   Used only when precision moderation toward trend is activated. }
 #'   
 #' @param design Numeric matrix definig the model that should be used when 
-#'   estimating dispersion. Normally this should be a full model design used 
+#'   estimating precision. Normally this should be a full model design used 
 #'   also in \code{\link{dmFit}}.
 #' @param mean_expression Logical. Whether to estimate the mean expression of 
 #'   genes.
-#' @param common_dispersion Logical. Whether to estimate the common dispersion.
-#' @param genewise_dispersion Logical. Whether to estimate the gene-wise 
-#'   dispersion.
-#' @param disp_adjust Logical. Whether to use the Cox-Reid adjusted or 
+#' @param common_precision Logical. Whether to estimate the common precision.
+#' @param genewise_precision Logical. Whether to estimate the gene-wise 
+#'   precision.
+#' @param prec_adjust Logical. Whether to use the Cox-Reid adjusted or 
 #'   non-adjusted profile likelihood.
 #' @param one_way Logical. Should the shortcut fitting be used when the design 
 #'   corresponds to multiple group comparison. This is a similar approach as in 
 #'   \code{\link{edgeR}}. If \code{TRUE} (the default), then proportions are 
 #'   fitted per group and regression coefficients are recalculated from those 
 #'   fits.
-#' @param disp_subset Value from 0 to 1 defining the percentage of genes used in
-#'   common dispersion estimation. The default is 0.1, which uses 10% of 
-#'   randomly selected genes to speed up the dispersion estimation process. Use 
+#' @param prec_subset Value from 0 to 1 defining the percentage of genes used in
+#'   common precision estimation. The default is 0.1, which uses 10% of 
+#'   randomly selected genes to speed up the precision estimation process. Use 
 #'   \code{set.seed} function to make the analysis reproducible. See Examples.
-#' @param disp_interval Numeric vector of length 2 defining the interval of 
-#'   possible values for the common dispersion.
-#' @param disp_tol The desired accuracy when estimating common dispersion.
-#' @param disp_init Initial dispersion. If \code{common_dispersion} is 
-#'   \code{TRUE}, then \code{disp_init} is overwritten by common dispersion 
+#' @param prec_interval Numeric vector of length 2 defining the interval of 
+#'   possible values for the common precision.
+#' @param prec_tol The desired accuracy when estimating common precision.
+#' @param prec_init Initial precision. If \code{common_precision} is 
+#'   \code{TRUE}, then \code{prec_init} is overwritten by common precision 
 #'   estimate.
-#' @param disp_grid_length Length of the search grid.
-#' @param disp_grid_range Vector giving the limits of grid interval.
-#' @param disp_moderation Dispersion moderation method. One can choose to shrink
-#'   the dispersion estimates toward the common dispersion (\code{"common"}) or 
-#'   toward the (dispersion versus mean expression) trend (\code{"trended"})
-#' @param disp_prior_df Degree of moderation (shrinkage) in case when it can not
+#' @param prec_grid_length Length of the search grid.
+#' @param prec_grid_range Vector giving the limits of grid interval.
+#' @param prec_moderation Precision moderation method. One can choose to shrink
+#'   the precision estimates toward the common precision (\code{"common"}) or 
+#'   toward the (precision versus mean expression) trend (\code{"trended"})
+#' @param prec_prior_df Degree of moderation (shrinkage) in case when it can not
 #'   be calculated automaticaly (number of genes on the upper boundary of grid 
 #'   is smaller than 10). By default it is equal to 0.
-#' @param disp_span Value from 0 to 1 defining the percentage of genes used in 
-#'   smoothing sliding window when calculating the dispersion versus mean 
+#' @param prec_span Value from 0 to 1 defining the percentage of genes used in 
+#'   smoothing sliding window when calculating the precision versus mean 
 #'   expression trend.
 #' @param prop_mode Optimization method used to estimate proportions. Possible 
 #'   value \code{"constrOptim"}.
@@ -367,8 +367,8 @@ setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
 #' @param BPPARAM Parallelization method used by 
 #'   \code{\link[BiocParallel]{bplapply}}.
 #'   
-#' @return Returns a \code{\linkS4class{dmDSdispersion}} or 
-#'   \code{\linkS4class{dmSQTLdispersion}} object.
+#' @return Returns a \code{\linkS4class{dmDSprecision}} or 
+#'   \code{\linkS4class{dmSQTLprecision}} object.
 #' @examples 
 #' # --------------------------------------------------------------------------
 #' # Create dmDSdata object 
@@ -418,28 +418,28 @@ setGeneric("dmDispersion", function(x, ...) standardGeneric("dmDispersion"))
 #' 
 #' ## To make the analysis reproducible
 #' set.seed(123)
-#' ## Calculate dispersion
-#' d <- dmDispersion(d, design = design)
+#' ## Calculate precision
+#' d <- dmPrecision(d, design = design)
 #' 
-#' plotDispersion(d)
+#' plotPrecision(d)
 #' 
 #' head(mean_expression(d))
-#' common_dispersion(d)
-#' head(genewise_dispersion(d))
+#' common_precision(d)
+#' head(genewise_precision(d))
 #' }
-#' @seealso \code{\link{plotDispersion}} \code{\link[edgeR]{estimateDisp}}
+#' @seealso \code{\link{plotPrecision}} \code{\link[edgeR]{estimateDisp}}
 #' @author Malgorzata Nowicka
 #' @references McCarthy, DJ, Chen, Y, Smyth, GK (2012). Differential expression
 #' analysis of multifactor RNA-Seq experiments with respect to biological
 #' variation. Nucleic Acids Research 40, 4288-4297.
-#' @rdname dmDispersion
+#' @rdname dmPrecision
 #' @export
-setMethod("dmDispersion", "dmDSdata", function(x, design, 
-  mean_expression = TRUE, common_dispersion = TRUE, genewise_dispersion = TRUE,
-  disp_adjust = TRUE, disp_subset = 0.1, 
-  disp_interval = c(0, 1e+5), disp_tol = 1e+01, 
-  disp_init = 100, disp_grid_length = 21, disp_grid_range = c(-10, 10), 
-  disp_moderation = "trended", disp_prior_df = 0, disp_span = 0.1, 
+setMethod("dmPrecision", "dmDSdata", function(x, design, 
+  mean_expression = TRUE, common_precision = TRUE, genewise_precision = TRUE,
+  prec_adjust = TRUE, prec_subset = 0.1, 
+  prec_interval = c(0, 1e+5), prec_tol = 1e+01, 
+  prec_init = 100, prec_grid_length = 21, prec_grid_range = c(-10, 10), 
+  prec_moderation = "trended", prec_prior_df = 0, prec_span = 0.1, 
   one_way = TRUE, 
   prop_mode = "constrOptim", prop_tol = 1e-12, 
   coef_mode = "optim", coef_tol = 1e-12,
@@ -456,26 +456,26 @@ setMethod("dmDispersion", "dmDSdata", function(x, design,
   
   # Check other parameters
   stopifnot(is.logical(mean_expression))
-  stopifnot(is.logical(common_dispersion))
-  stopifnot(is.logical(genewise_dispersion))
-  stopifnot(is.logical(disp_adjust))
-  stopifnot(length(disp_subset) == 1)
-  stopifnot(is.numeric(disp_subset) && disp_subset > 0 && disp_subset <= 1)
-  stopifnot(length(disp_interval) == 2)
-  stopifnot(disp_interval[1] < disp_interval[2])
-  stopifnot(length(disp_tol) == 1)
-  stopifnot(is.numeric(disp_tol) && disp_tol > 0)
-  stopifnot(length(disp_init) == 1)
-  stopifnot(is.numeric(disp_init))
-  stopifnot(disp_grid_length > 2)
-  stopifnot(length(disp_grid_range) == 2)
-  stopifnot(disp_grid_range[1] < disp_grid_range[2])
-  stopifnot(length(disp_moderation) == 1)
-  stopifnot(disp_moderation %in% c("none", "common", "trended"))
-  stopifnot(length(disp_prior_df) == 1)
-  stopifnot(is.numeric(disp_prior_df) && disp_prior_df >= 0)
-  stopifnot(length(disp_span) == 1)
-  stopifnot(is.numeric(disp_span) && disp_span > 0 && disp_span < 1)
+  stopifnot(is.logical(common_precision))
+  stopifnot(is.logical(genewise_precision))
+  stopifnot(is.logical(prec_adjust))
+  stopifnot(length(prec_subset) == 1)
+  stopifnot(is.numeric(prec_subset) && prec_subset > 0 && prec_subset <= 1)
+  stopifnot(length(prec_interval) == 2)
+  stopifnot(prec_interval[1] < prec_interval[2])
+  stopifnot(length(prec_tol) == 1)
+  stopifnot(is.numeric(prec_tol) && prec_tol > 0)
+  stopifnot(length(prec_init) == 1)
+  stopifnot(is.numeric(prec_init))
+  stopifnot(prec_grid_length > 2)
+  stopifnot(length(prec_grid_range) == 2)
+  stopifnot(prec_grid_range[1] < prec_grid_range[2])
+  stopifnot(length(prec_moderation) == 1)
+  stopifnot(prec_moderation %in% c("none", "common", "trended"))
+  stopifnot(length(prec_prior_df) == 1)
+  stopifnot(is.numeric(prec_prior_df) && prec_prior_df >= 0)
+  stopifnot(length(prec_span) == 1)
+  stopifnot(is.numeric(prec_span) && prec_span > 0 && prec_span < 1)
   
   stopifnot(is.logical(one_way))
   stopifnot(length(prop_mode) == 1)
@@ -490,75 +490,75 @@ setMethod("dmDispersion", "dmDSdata", function(x, design,
   
   stopifnot(verbose %in% 0:2)
   
-  if(mean_expression || (genewise_dispersion && 
-      disp_moderation == "trended")){
+  if(mean_expression || (genewise_precision && 
+      prec_moderation == "trended")){
     mean_expression <- dm_estimateMeanExpression(counts = x@counts, 
       verbose = verbose)
   }else{
     mean_expression <- numeric()
   }
   
-  if(common_dispersion){
+  if(common_precision){
     
-    if(disp_subset < 1){
+    if(prec_subset < 1){
       
-      message(paste0("! Using a subset of ", disp_subset, 
-        " genes to estimate common dispersion !\n"))
+      message(paste0("! Using a subset of ", prec_subset, 
+        " genes to estimate common precision !\n"))
       
       genes2keep <- sample(1:length(x@counts), 
-        max(round(disp_subset * length(x@counts)), 1), replace = FALSE)
+        max(round(prec_subset * length(x@counts)), 1), replace = FALSE)
       
     }else{
       genes2keep <- 1:length(x@counts)
     }
     
-    common_dispersion <- dmDS_estimateCommonDispersion(
+    common_precision <- dmDS_estimateCommonPrecision(
       counts = x@counts[genes2keep, ], 
-      design = design, disp_adjust = disp_adjust, 
-      disp_interval = disp_interval, disp_tol = disp_tol,
+      design = design, prec_adjust = prec_adjust, 
+      prec_interval = prec_interval, prec_tol = prec_tol,
       one_way = one_way,
       prop_mode = prop_mode, prop_tol = prop_tol, 
       coef_mode = coef_mode, coef_tol = coef_tol,
       verbose = verbose, BPPARAM = BPPARAM)
     
   }else{
-    common_dispersion <- numeric()
+    common_precision <- numeric()
   }
   
-  if(genewise_dispersion){
+  if(genewise_precision){
     
-    if(length(common_dispersion) == 1){
-      message("! Using common_dispersion = ", round(common_dispersion, 4), 
-        " as disp_init !\n")
-      disp_init <- common_dispersion
+    if(length(common_precision) == 1){
+      message("! Using common_precision = ", round(common_precision, 4), 
+        " as prec_init !\n")
+      prec_init <- common_precision
     }
     
-    genewise_dispersion <- dmDS_estimateTagwiseDispersion(counts = x@counts, 
+    genewise_precision <- dmDS_estimateTagwisePrecision(counts = x@counts, 
       design = design, mean_expression = mean_expression, 
-      disp_adjust = disp_adjust, disp_init = disp_init, 
-      disp_grid_length = disp_grid_length, disp_grid_range = disp_grid_range, 
-      disp_moderation = disp_moderation, 
-      disp_prior_df = disp_prior_df, disp_span = disp_span, 
+      prec_adjust = prec_adjust, prec_init = prec_init, 
+      prec_grid_length = prec_grid_length, prec_grid_range = prec_grid_range, 
+      prec_moderation = prec_moderation, 
+      prec_prior_df = prec_prior_df, prec_span = prec_span, 
       one_way = one_way,
       prop_mode = prop_mode, prop_tol = prop_tol, 
       coef_mode = coef_mode, coef_tol = coef_tol,
       verbose = verbose, BPPARAM = BPPARAM)
     
   }else{
-    genewise_dispersion <- numeric()
+    genewise_precision <- numeric()
   }
   
-  return(new("dmDSdispersion", mean_expression = mean_expression, 
-    common_dispersion = common_dispersion, 
-    genewise_dispersion = genewise_dispersion, 
-    design_dispersion = design,
+  return(new("dmDSprecision", mean_expression = mean_expression, 
+    common_precision = common_precision, 
+    genewise_precision = genewise_precision, 
+    design_precision = design,
     counts = x@counts, samples = x@samples))
   
 })
 
 
 ################################################################################
-### plotDispersion
+### plotPrecision
 ################################################################################
 
 #' Precision versus mean expression plot
@@ -572,12 +572,12 @@ setMethod("dmDispersion", "dmDSdata", function(x, design,
 #'   observe a trend where the dispersion decreases (here, presicion increases)
 #'   for genes with higher mean expression.
 #'   
-#' @param x \code{\linkS4class{dmDSdispersion}} or 
-#'   \code{\linkS4class{dmSQTLdispersion}} object.
+#' @param x \code{\linkS4class{dmDSprecision}} or 
+#'   \code{\linkS4class{dmSQTLprecision}} object.
 #' @param ... Other parameters that can be defined by methods using this 
 #'   generic.
 #' @export
-setGeneric("plotDispersion", function(x, ...) standardGeneric("plotDispersion"))
+setGeneric("plotPrecision", function(x, ...) standardGeneric("plotPrecision"))
 
 
 # -----------------------------------------------------------------------------
@@ -633,37 +633,37 @@ setGeneric("plotDispersion", function(x, ...) standardGeneric("plotDispersion"))
 #' 
 #' ## To make the analysis reproducible
 #' set.seed(123)
-#' ## Calculate dispersion
-#' d <- dmDispersion(d, design = design)
+#' ## Calculate precision
+#' d <- dmPrecision(d, design = design)
 #' 
-#' plotDispersion(d)
+#' plotPrecision(d)
 #' 
 #' head(mean_expression(d))
-#' common_dispersion(d)
-#' head(genewise_dispersion(d))
+#' common_precision(d)
+#' head(genewise_precision(d))
 #' }
 #' @author Malgorzata Nowicka
 #' @seealso \code{\link{data_dmDSdata}}, \code{\link{data_dmSQTLdata}},
 #'   \code{\link{plotData}}, \code{\link{plotProportions}}, \code{\link{plotPValues}}
 #'   
-#' @rdname plotDispersion
+#' @rdname plotPrecision
 #' @export
-setMethod("plotDispersion", "dmDSdispersion", function(x){
+setMethod("plotPrecision", "dmDSprecision", function(x){
   
-  if(!length(x@genewise_dispersion) == length(x@counts))
-    stop("Genewise dispersion must be estimated for each gene!")
-  if(!length(x@genewise_dispersion) == length(x@mean_expression))
+  if(!length(x@genewise_precision) == length(x@counts))
+    stop("Genewise precision must be estimated for each gene!")
+  if(!length(x@genewise_precision) == length(x@mean_expression))
     stop("Mean expression must be estimated for each gene!")
   
-  if(length(x@common_dispersion) == 0){
-    common_dispersion <- NULL
+  if(length(x@common_precision) == 0){
+    common_precision <- NULL
   }else{
-    common_dispersion <- x@common_dispersion
+    common_precision <- x@common_precision
   }
   
-  ggp <- dm_plotDispersion(genewise_dispersion = x@genewise_dispersion, 
+  ggp <- dm_plotPrecision(genewise_precision = x@genewise_precision, 
     mean_expression = x@mean_expression, nr_features = elementNROWS(x@counts), 
-    common_dispersion = common_dispersion)
+    common_precision = common_precision)
   
   return(ggp)  
   

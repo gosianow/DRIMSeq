@@ -65,7 +65,7 @@ NULL
 #' d <- d[names(d) %in% gene_id_subset, ]
 #' }
 #' @author Malgorzata Nowicka
-#' @seealso \code{\linkS4class{dmDSdispersion}}, \code{\linkS4class{dmDSfit}},
+#' @seealso \code{\linkS4class{dmDSprecision}}, \code{\linkS4class{dmDSfit}},
 #'   \code{\linkS4class{dmDStest}}
 setClass("dmDSdata", 
   representation(counts = "MatrixList", samples = "data.frame"))
@@ -499,7 +499,7 @@ setGeneric("plotData", function(x, ...) standardGeneric("plotData"))
 #' plotData(d)
 #' }
 #' @author Malgorzata Nowicka
-#' @seealso \code{\link{plotDispersion}}, \code{\link{plotProportions}},
+#' @seealso \code{\link{plotPrecision}}, \code{\link{plotProportions}},
 #'   \code{\link{plotPValues}}
 #' @rdname plotData
 #' @export

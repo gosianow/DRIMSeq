@@ -1,6 +1,6 @@
 
 
-dm_CRadjustmentRegression <- function(y, x, disp, prop){  
+dm_CRadjustmentRegression <- function(y, x, prec, prop){  
   # prop q x n matrix of fitted proportions
   # y q x n matrix
   # x n x p matrix with the design
@@ -14,7 +14,7 @@ dm_CRadjustmentRegression <- function(y, x, disp, prop){
   
   n <- nrow(y)
   
-  adj <- log(det(n * (- dm_Hessian_regG_prop(y = y, disp = disp, 
+  adj <- log(det(n * (- dm_Hessian_regG_prop(y = y, prec = prec, 
     prop = prop, x = x)))) / 2 
   
   if(abs(adj) == Inf)

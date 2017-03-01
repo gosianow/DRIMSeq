@@ -5,7 +5,7 @@
 \alias{dmSQTLfit-class}
 \title{dmSQTLfit object}
 \description{
-dmSQTLfit extends the \code{\linkS4class{dmSQTLdispersion}} class by adding 
+dmSQTLfit extends the \code{\linkS4class{dmSQTLprecision}} class by adding 
 the full model Dirichlet-multinomial (DM) likelihoods,
 regression coefficients and feature proportion estimates needed for the 
 transcript/exon usage QTL analysis. Full model is defined by the genotype of
@@ -59,10 +59,10 @@ plotData(d)
 
 ## To make the analysis reproducible
 set.seed(123)
-## Calculate dispersion
-d <- dmDispersion(d)
+## Calculate precision
+d <- dmPrecision(d)
 
-plotDispersion(d)
+plotPrecision(d)
 
 ## Fit full model proportions
 d <- dmFit(d)
@@ -70,7 +70,7 @@ d <- dmFit(d)
 }
 \seealso{
 \code{\linkS4class{dmSQTLdata}}, 
-  \code{\linkS4class{dmSQTLdispersion}}, \code{\linkS4class{dmSQTLtest}}
+  \code{\linkS4class{dmSQTLprecision}}, \code{\linkS4class{dmSQTLtest}}
 }
 \author{
 Malgorzata Nowicka

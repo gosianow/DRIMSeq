@@ -32,7 +32,7 @@ dmSQTL_permutations_all_genes <- function(x, pvalues,
     
     # Fit the DM full model
     fit_full_perm <- dmSQTL_fit(counts = counts_perm, genotypes = x@genotypes, 
-    dispersion = x@genewise_dispersion,
+    precision = x@genewise_precision,
     one_way = one_way, group_formula = ~ group,
     prop_mode = prop_mode, prop_tol = prop_tol, 
     coef_mode = coef_mode, coef_tol = coef_tol,
@@ -45,7 +45,7 @@ dmSQTL_permutations_all_genes <- function(x, pvalues,
     
     # Fit the DM null model
     fit_null_perm <- dmSQTL_fit(counts = counts_perm, genotypes = genotypes_null, 
-      dispersion = x@genewise_dispersion,
+      precision = x@genewise_precision,
       one_way = one_way, group_formula = ~ 1,
       prop_mode = prop_mode, prop_tol = prop_tol, 
       coef_mode = coef_mode, coef_tol = coef_tol,
@@ -139,11 +139,11 @@ dmSQTL_permutations_per_gene <- function(x, pvalues,
     permutation <- sample(n, n)
     counts_perm <- x@counts[genes2permute, permutation]
     genotypes <- x@genotypes[genes2permute, ]
-    dispersion <- x@genewise_dispersion[genes2permute]
+    precision <- x@genewise_precision[genes2permute]
     
     # Fit the DM full model
     fit_full_perm <- dmSQTL_fit(counts = counts_perm, genotypes = genotypes, 
-    dispersion = dispersion,
+    precision = precision,
     one_way = one_way, group_formula = ~ group,
     prop_mode = prop_mode, prop_tol = prop_tol, 
     coef_mode = coef_mode, coef_tol = coef_tol,
@@ -156,7 +156,7 @@ dmSQTL_permutations_per_gene <- function(x, pvalues,
     
     # Fit the DM null model
     fit_null_perm <- dmSQTL_fit(counts = counts_perm, genotypes = genotypes_null, 
-      dispersion = dispersion,
+      precision = precision,
       one_way = one_way, group_formula = ~ 1,
       prop_mode = prop_mode, prop_tol = prop_tol, 
       coef_mode = coef_mode, coef_tol = coef_tol,

@@ -3,23 +3,23 @@
 \docType{methods}
 \name{dmFit}
 \alias{dmFit}
-\alias{dmFit,dmDSdispersion-method}
-\alias{dmFit,dmSQTLdispersion-method}
+\alias{dmFit,dmDSprecision-method}
+\alias{dmFit,dmSQTLprecision-method}
 \title{Fit the Dirichlet-multinomial and/or the beta-binomial full model regression}
 \usage{
 dmFit(x, ...)
 
-\S4method{dmFit}{dmDSdispersion}(x, design, one_way = TRUE, bb_model = TRUE,
+\S4method{dmFit}{dmDSprecision}(x, design, one_way = TRUE, bb_model = TRUE,
   prop_mode = "constrOptim", prop_tol = 1e-12, coef_mode = "optim",
   coef_tol = 1e-12, verbose = 0, BPPARAM = BiocParallel::SerialParam())
 
-\S4method{dmFit}{dmSQTLdispersion}(x, one_way = TRUE,
+\S4method{dmFit}{dmSQTLprecision}(x, one_way = TRUE,
   prop_mode = "constrOptim", prop_tol = 1e-12, coef_mode = "optim",
   coef_tol = 1e-12, verbose = 0, BPPARAM = BiocParallel::SerialParam())
 }
 \arguments{
-\item{x}{\code{\linkS4class{dmDSdispersion}} or 
-\code{\linkS4class{dmSQTLdispersion}} object.}
+\item{x}{\code{\linkS4class{dmDSprecision}} or 
+\code{\linkS4class{dmSQTLprecision}} object.}
 
 \item{...}{Other parameters that can be defined by methods using this 
 generic.}
@@ -140,14 +140,14 @@ design <- model.matrix(~ group, data = samples(d))
 
 ## To make the analysis reproducible
 set.seed(123)
-## Calculate dispersion
-d <- dmDispersion(d, design = design)
+## Calculate precision
+d <- dmPrecision(d, design = design)
 
-plotDispersion(d)
+plotPrecision(d)
 
 head(mean_expression(d))
-common_dispersion(d)
-head(genewise_dispersion(d))
+common_precision(d)
+head(genewise_precision(d))
 
 ## Fit full model proportions
 d <- dmFit(d, design = design)

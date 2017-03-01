@@ -2,7 +2,7 @@
 #' @importFrom stats optim nlminb
 
 dm_fitRegression <- function(y, design, 
-  disp, coef_mode = "optim", coef_tol = 1e-12){
+  prec, coef_mode = "optim", coef_tol = 1e-12){
   # y can not have any rowSums(y) == 0 - assured during dmFilter
   
   q <- nrow(y)
@@ -10,7 +10,7 @@ dm_fitRegression <- function(y, design,
   n <- ncol(y)
   
   # NAs for genes with one feature
-  if(q < 2 || is.na(disp)){
+  if(q < 2 || is.na(prec)){
     b <- matrix(NA, nrow = q, ncol = p)
     prop <- matrix(NA, nrow = q, ncol = n)
     rownames(prop) <- rownames(y)
@@ -34,7 +34,7 @@ dm_fitRegression <- function(y, design,
       
       # Minimization
       co <- optim(par = b_init, fn = dm_lik_regG_neg, gr = dm_score_regG_neg,
-        design = design, disp = disp, y = y,
+        design = design, prec = prec, y = y,
         method = "BFGS",
         control = list(reltol = coef_tol))
       
@@ -53,7 +53,7 @@ dm_fitRegression <- function(y, design,
       # Minimization
       co <- nlminb(start = b_init, objective = dm_lik_regG_neg, 
         gradient = dm_score_regG_neg, hessian = NULL,
-        design = design, disp = disp, y = y,
+        design = design, prec = prec, y = y,
         control = list(rel.tol = coef_tol))
       
       if(co$convergence == 0){
@@ -72,7 +72,7 @@ dm_fitRegression <- function(y, design,
       # Can not use x as an argument because grad() uses x
       co <- Rcgmin::Rcgmin(par = b_init, fn = dm_lik_regG_neg, 
         gr = dm_score_regG_neg, 
-        design = design, disp = disp, y = y) 
+        design = design, prec = prec, y = y) 
       
       if(co$convergence == 0){
         b <- rbind(t(matrix(co$par, p, q-1)), rep(0, p))
@@ -110,7 +110,7 @@ dm_fitRegression <- function(y, design,
 # DM fittings/proportions
 
 
-bb_fitRegression <- function(y, design, disp, fit){
+bb_fitRegression <- function(y, design, prec, fit){
   # y can not have any rowSums(y) == 0 - assured during dmFilter
   
   q <- nrow(y)
@@ -118,7 +118,7 @@ bb_fitRegression <- function(y, design, disp, fit){
   n <- ncol(y)
   
   # NAs for genes with one feature
-  if(q < 2 || is.na(disp)){
+  if(q < 2 || is.na(prec)){
     b <- matrix(NA, nrow = q, ncol = p)
     prop <- matrix(NA, nrow = q, ncol = n)
     rownames(prop) <- rownames(y)
@@ -129,7 +129,7 @@ bb_fitRegression <- function(y, design, disp, fit){
   y <- t(y) # n x q
   prop <- t(fit) # n x q
   
-  lik <- bb_lik_regG_prop(y = y, disp = disp, prop = prop)
+  lik <- bb_lik_regG_prop(y = y, prec = prec, prop = prop)
 
   # Get the coefficients like in edgeR::mglmOneWay
   # But use MASS::ginv instead of solve since the design does not have to be 

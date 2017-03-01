@@ -1,4 +1,4 @@
-#' @include class_dmDSdispersion.R
+#' @include class_dmDSprecision.R
 NULL
 
 ################################################################################
@@ -7,7 +7,7 @@ NULL
 
 #' dmDSfit object
 #' 
-#' dmDSfit extends the \code{\linkS4class{dmDSdispersion}} class by adding the 
+#' dmDSfit extends the \code{\linkS4class{dmDSprecision}} class by adding the 
 #' full model Dirichlet-multinomial (DM) and beta-binomial (BB) likelihoods,
 #' regression coefficients and feature proportion estimates. Result of calling
 #' the \code{\link{dmFit}} function.
@@ -18,7 +18,7 @@ NULL
 #' feature ratios for each sample. \item \code{coefficients(x)}: get the DM or
 #' BB regression coefficients. }
 #' 
-#' @param x dmDSdispersion object.
+#' @param x dmDSprecision object.
 #' @param ... Other parameters that can be defined by methods using this 
 #'   generic.
 #'   
@@ -84,14 +84,14 @@ NULL
 #' 
 #' ## To make the analysis reproducible
 #' set.seed(123)
-#' ## Calculate dispersion
-#' d <- dmDispersion(d, design = design)
+#' ## Calculate precision
+#' d <- dmPrecision(d, design = design)
 #' 
-#' plotDispersion(d)
+#' plotPrecision(d)
 #' 
 #' head(mean_expression(d))
-#' common_dispersion(d)
-#' head(genewise_dispersion(d))
+#' common_precision(d)
+#' head(genewise_precision(d))
 #' 
 #' ## Fit full model proportions
 #' d <- dmFit(d, design = design)
@@ -105,9 +105,9 @@ NULL
 #' }
 #' @author Malgorzata Nowicka
 #' @seealso \code{\link{data_dmDSdata}}, \code{\linkS4class{dmDSdata}}, 
-#'   \code{\linkS4class{dmDSdispersion}}, \code{\linkS4class{dmDStest}}
+#'   \code{\linkS4class{dmDSprecision}}, \code{\linkS4class{dmDStest}}
 setClass("dmDSfit", 
-  contains = "dmDSdispersion",
+  contains = "dmDSprecision",
   representation(design_fit_full = "matrix",
     fit_full = "MatrixList",
     lik_full = "numeric",
@@ -223,8 +223,8 @@ setMethod("show", "dmDSfit", function(object){
 #' defined by genotypes. Currently, beta-binomial model is implemented only in
 #' the differential usage analysis.
 #' 
-#' @param x \code{\linkS4class{dmDSdispersion}} or 
-#'   \code{\linkS4class{dmSQTLdispersion}} object.
+#' @param x \code{\linkS4class{dmDSprecision}} or 
+#'   \code{\linkS4class{dmSQTLprecision}} object.
 #' @param ... Other parameters that can be defined by methods using this 
 #'   generic.
 #' @export
@@ -234,7 +234,7 @@ setGeneric("dmFit", function(x, ...) standardGeneric("dmFit"))
 # -----------------------------------------------------------------------------
 
 
-#' @inheritParams dmDispersion
+#' @inheritParams dmPrecision
 #'   
 #' @details In the regression framework here, we adapt the idea from 
 #'   \code{\link[edgeR]{glmFit}} in \code{\link{edgeR}} about using a shortcut
@@ -310,14 +310,14 @@ setGeneric("dmFit", function(x, ...) standardGeneric("dmFit"))
 #' 
 #' ## To make the analysis reproducible
 #' set.seed(123)
-#' ## Calculate dispersion
-#' d <- dmDispersion(d, design = design)
+#' ## Calculate precision
+#' d <- dmPrecision(d, design = design)
 #' 
-#' plotDispersion(d)
+#' plotPrecision(d)
 #' 
 #' head(mean_expression(d))
-#' common_dispersion(d)
-#' head(genewise_dispersion(d))
+#' common_precision(d)
+#' head(genewise_precision(d))
 #' 
 #' ## Fit full model proportions
 #' d <- dmFit(d, design = design)
@@ -336,7 +336,7 @@ setGeneric("dmFit", function(x, ...) standardGeneric("dmFit"))
 #' variation. Nucleic Acids Research 40, 4288-4297.
 #' @rdname dmFit
 #' @export
-setMethod("dmFit", "dmDSdispersion", function(x, design, 
+setMethod("dmFit", "dmDSprecision", function(x, design, 
   one_way = TRUE, bb_model = TRUE,
   prop_mode = "constrOptim", prop_tol = 1e-12, 
   coef_mode = "optim", coef_tol = 1e-12,
@@ -351,9 +351,9 @@ setMethod("dmFit", "dmDSdispersion", function(x, design,
     stop(paste("Design matrix not of full rank. 
       The following coefficients not estimable:\n", paste(ne, collapse = " ")))
   
-  if(!identical(x@design_dispersion, design))
+  if(!identical(x@design_precision, design))
     message(paste0("! The 'design' here is not identical as the 
-      'design' used for dispersion estimation !\n"))
+      'design' used for precision estimation !\n"))
   
   # Check other parameters
   stopifnot(is.logical(one_way))
@@ -372,7 +372,7 @@ setMethod("dmFit", "dmDSdispersion", function(x, design,
   
   # Fit the DM model: proportions and likelihoods
   fit <- dmDS_fit(counts = x@counts, design = design, 
-    dispersion = x@genewise_dispersion,
+    precision = x@genewise_precision,
     one_way = one_way,
     prop_mode = prop_mode, prop_tol = prop_tol, 
     coef_mode = coef_mode, coef_tol = coef_tol,
@@ -382,7 +382,7 @@ setMethod("dmFit", "dmDSdispersion", function(x, design,
   if(bb_model){
     
     fit_bb <- bbDS_fit(counts = x@counts, fit = fit[["fit"]], design = design, 
-      dispersion = x@genewise_dispersion,
+      precision = x@genewise_precision,
       one_way = one_way,
       verbose = verbose, BPPARAM = BPPARAM)
     
@@ -390,9 +390,9 @@ setMethod("dmFit", "dmDSdispersion", function(x, design,
       fit_full = fit[["fit"]], lik_full = fit[["lik"]], coef_full = fit[["coef"]],
       lik_full_bb = fit_bb[["lik"]], coef_full_bb = fit_bb[["coef"]],
       mean_expression = x@mean_expression, 
-      common_dispersion = x@common_dispersion, 
-      genewise_dispersion = x@genewise_dispersion, 
-      design_dispersion = x@design_dispersion,
+      common_precision = x@common_precision, 
+      genewise_precision = x@genewise_precision, 
+      design_precision = x@design_precision,
       counts = x@counts, samples = x@samples))
     
   }else{
@@ -400,9 +400,9 @@ setMethod("dmFit", "dmDSdispersion", function(x, design,
     return(new("dmDSfit", design_fit_full = design, 
       fit_full = fit[["fit"]], lik_full = fit[["lik"]], coef_full = fit[["coef"]],
       mean_expression = x@mean_expression, 
-      common_dispersion = x@common_dispersion, 
-      genewise_dispersion = x@genewise_dispersion, 
-      design_dispersion = x@design_dispersion,
+      common_precision = x@common_precision, 
+      genewise_precision = x@genewise_precision, 
+      design_precision = x@design_precision,
       counts = x@counts, samples = x@samples))
     
   }
@@ -503,14 +503,14 @@ setGeneric("plotProportions", function(x, ...)
 #' 
 #' ## To make the analysis reproducible
 #' set.seed(123)
-#' ## Calculate dispersion
-#' d <- dmDispersion(d, design = design)
+#' ## Calculate precision
+#' d <- dmPrecision(d, design = design)
 #' 
-#' plotDispersion(d)
+#' plotPrecision(d)
 #' 
 #' head(mean_expression(d))
-#' common_dispersion(d)
-#' head(genewise_dispersion(d))
+#' common_precision(d)
+#' head(genewise_precision(d))
 #' 
 #' ## Fit full model proportions
 #' d <- dmFit(d, design = design)
@@ -546,7 +546,7 @@ setGeneric("plotProportions", function(x, ...)
 #'   plot_type = "ribbonplot")
 #' }
 #' @author Malgorzata Nowicka
-#' @seealso  \code{\link{plotData}}, \code{\link{plotDispersion}}, 
+#' @seealso  \code{\link{plotData}}, \code{\link{plotPrecision}}, 
 #'   \code{\link{plotPValues}}
 #' @rdname plotProportions
 #' @export
@@ -590,9 +590,9 @@ setMethod("plotProportions", "dmDSfit", function(x, gene_id, group_variable,
     main <- paste0(gene_id, "\n Mean expression = ", 
       round(mean_expression_gene))
     
-    dispersion_gene <- x@genewise_dispersion[gene_id]
+    precision_gene <- x@genewise_precision[gene_id]
     
-    main <- paste0(main, ", Precision = ", round(dispersion_gene, 2))
+    main <- paste0(main, ", Precision = ", round(precision_gene, 2))
     
   }
   

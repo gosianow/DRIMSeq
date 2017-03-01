@@ -1,10 +1,10 @@
 ##############################################################################
-## estimate prop for given dispersion
+## estimate prop for given precision
 ##############################################################################
 
 #' @importFrom stats constrOptim
 
-dm_fitOneGroup <- function(y, disp, 
+dm_fitOneGroup <- function(y, prec, 
   prop_mode = "constrOptim", prop_tol = 1e-12){
   # y matrix q x n
   # If something is wrong, return NAs
@@ -12,7 +12,7 @@ dm_fitOneGroup <- function(y, disp,
   q <- nrow(y)
   
   # NAs for genes with one feature
-  if(q < 2 || is.na(disp)) 
+  if(q < 2 || is.na(prec)) 
     return(list(prop = rep(NA, q), lik = NA))
   
   # Check for 0s in rows (features)
@@ -38,7 +38,7 @@ dm_fitOneGroup <- function(y, disp,
   # If there is only one replicate, use empirical props as output
   if(sum(keep_col) == 1){
     
-    lik <- dm_likG(prop = prop_init[-q], disp = disp, y = y)
+    lik <- dm_likG(prop = prop_init[-q], prec = prec, y = y)
     
     keep_row[keep_row] <- prop_init
     prop <- keep_row
@@ -62,7 +62,7 @@ dm_fitOneGroup <- function(y, disp,
         grad = dm_scoreG_neg, 
         ui = ui, ci = ci, control = list(reltol = prop_tol), 
         method = "BFGS",
-        disp = disp, y = y)
+        prec = prec, y = y)
       
       if(co$convergence == 0){
         prop <- co$par
@@ -85,7 +85,7 @@ dm_fitOneGroup <- function(y, disp,
 
 
 
-bb_fitOneGroup <- function(y, disp, prop){
+bb_fitOneGroup <- function(y, prec, prop){
   # Recalculates likelihood for BB, where prop is estimated with DM
   
   q <- nrow(y)
@@ -95,7 +95,7 @@ bb_fitOneGroup <- function(y, disp, prop){
     return(list(prop = rep(NA, q), lik = rep(NA, q)))
   
   # NAs for genes with one feature
-  if(q < 2 || is.na(disp)) 
+  if(q < 2 || is.na(prec)) 
     return(list(prop = rep(NA, q), lik = rep(NA, q)))
   
   # Check for 0s in rows (features with zero proportions)
@@ -113,7 +113,7 @@ bb_fitOneGroup <- function(y, disp, prop){
   
   lik <- rep(NA, q)
   
-  lik[keep_row] <- bb_likG(prop = prop, disp = disp, y = y)
+  lik[keep_row] <- bb_likG(prop = prop, prec = prec, y = y)
   
   keep_row[keep_row] <- prop
   prop <- keep_row

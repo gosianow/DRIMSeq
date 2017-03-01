@@ -1,7 +1,7 @@
 # Fitting the Dirichlet-multinomial model
 
 dmSQTL_fitManyGroups_gene <- function(g, counts, genotypes,
-  disp, prop_mode, prop_tol, verbose){  
+  prec, prop_mode, prop_tol, verbose){  
   # g = 6
   
   if(verbose >= 2) message(" Gene:", g)
@@ -24,7 +24,7 @@ dmSQTL_fitManyGroups_gene <- function(g, counts, genotypes,
     
     f <- dm_fitManyGroups(y = yy, 
       ngroups = ngroups, lgroups = lgroups, igroups = igroups, 
-      disp = disp[[g]][i], prop_mode = prop_mode, prop_tol = prop_tol)
+      prec = prec[[g]][i], prop_mode = prop_mode, prop_tol = prop_tol)
     
     lik <- sum(f$lik)
     
@@ -50,7 +50,7 @@ dmSQTL_fitManyGroups_gene <- function(g, counts, genotypes,
 
 dmSQTL_fitRegression_gene <- function(g, counts, genotypes, 
   group_formula = ~ group,
-  disp, coef_mode, coef_tol, verbose){  
+  prec, coef_mode, coef_tol, verbose){  
   
   if(verbose >= 2) message(" Gene:", g)
   
@@ -67,7 +67,7 @@ dmSQTL_fitRegression_gene <- function(g, counts, genotypes,
     design <- model.matrix(group_formula, data = data.frame(group = xx))
     
     f <- dm_fitRegression(y = yy, 
-      design = design, disp = disp[[g]][i], 
+      design = design, prec = prec[[g]][i], 
       coef_mode = coef_mode, coef_tol = coef_tol)
     
     fit <- matrix(NA, nrow = nrow(y), ncol = ncol(y))
@@ -89,8 +89,7 @@ dmSQTL_fitRegression_gene <- function(g, counts, genotypes,
 }
 
 
-
-dmSQTL_fit <- function(counts, genotypes, dispersion,
+dmSQTL_fit <- function(counts, genotypes, precision,
   one_way = TRUE, group_formula = ~ group,
   prop_mode = "constrOptim", prop_tol = 1e-12, 
   coef_mode = "optim", coef_tol = 1e-12, 
@@ -102,11 +101,11 @@ dmSQTL_fit <- function(counts, genotypes, dispersion,
   
   inds <-  1:length(counts)
   
-  # Prepare dispersion
-  if(class(dispersion) == "numeric"){ 
-    disp <- relist(rep(dispersion, nrow(genotypes)), genotypes@partitioning)
+  # Prepare precision
+  if(class(precision) == "numeric"){ 
+    prec <- relist(rep(precision, nrow(genotypes)), genotypes@partitioning)
   } else {
-    disp <- dispersion
+    prec <- precision
   }
   
   # Approach from edgeR glmFit.default:
@@ -117,7 +116,7 @@ dmSQTL_fit <- function(counts, genotypes, dispersion,
     
     ff <- BiocParallel::bplapply(inds, dmSQTL_fitManyGroups_gene, 
       counts = counts, genotypes = genotypes,
-      disp = disp, prop_mode = prop_mode, prop_tol = prop_tol, 
+      prec = prec, prop_mode = prop_mode, prop_tol = prop_tol, 
       verbose = verbose, BPPARAM = BPPARAM)
     
     names(ff) <- names(counts)
@@ -136,7 +135,7 @@ dmSQTL_fit <- function(counts, genotypes, dispersion,
     
     ff <- BiocParallel::bplapply(inds, dmSQTL_fitRegression_gene, 
       counts = counts, genotypes = genotypes, group_formula = group_formula,
-      disp = disp, coef_mode = coef_mode, coef_tol = coef_tol, 
+      prec = prec, coef_mode = coef_mode, coef_tol = coef_tol, 
       verbose = verbose, BPPARAM = BPPARAM)
     
     names(ff) <- names(counts)

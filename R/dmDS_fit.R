@@ -1,34 +1,34 @@
 # Fitting the Dirichlet-multinomial model
 
 dmDS_fitManyGroups_gene <- function(g, counts, 
-  ngroups, lgroups, igroups, disp, prop_mode, prop_tol, verbose){  
+  ngroups, lgroups, igroups, prec, prop_mode, prop_tol, verbose){  
 
   if(verbose >= 2)
     message(" Gene:", g)
   
   f <- dm_fitManyGroups(y = counts[[g]], 
     ngroups = ngroups, lgroups = lgroups, igroups = igroups, 
-    disp = disp[g], prop_mode = prop_mode, prop_tol = prop_tol)
+    prec = prec[g], prop_mode = prop_mode, prop_tol = prop_tol)
   
   return(f)
   
 }
 
 dmDS_fitRegression_gene <- function(g, counts, 
-  design, disp, coef_mode, coef_tol, verbose){  
+  design, prec, coef_mode, coef_tol, verbose){  
 
   if(verbose >= 2)
     message(" Gene:", g)
   
   f <- dm_fitRegression(y = counts[[g]], 
-    design = design, disp = disp[g], 
+    design = design, prec = prec[g], 
     coef_mode = coef_mode, coef_tol = coef_tol)
   
   return(f)
   
 }
 
-dmDS_fit <- function(counts, design, dispersion,
+dmDS_fit <- function(counts, design, precision,
   one_way = TRUE,
   prop_mode = "constrOptim", prop_tol = 1e-12, 
   coef_mode = "optim", coef_tol = 1e-12, 
@@ -39,11 +39,11 @@ dmDS_fit <- function(counts, design, dispersion,
   
   inds <-  1:length(counts)
   
-  # Prepare dispersion
-  if(length(dispersion) == 1){
-    disp <- rep(dispersion, length(inds))
+  # Prepare precision
+  if(length(precision) == 1){
+    prec <- rep(precision, length(inds))
   } else {
-    disp <- dispersion
+    prec <- precision
   }
   
   # Approach from edgeR glmFit.default:
@@ -63,7 +63,7 @@ dmDS_fit <- function(counts, design, dispersion,
     ff <- BiocParallel::bplapply(inds, dmDS_fitManyGroups_gene, 
       counts = counts, 
       ngroups = ngroups, lgroups = lgroups, igroups = igroups, 
-      disp = disp, prop_mode = prop_mode, prop_tol = prop_tol, 
+      prec = prec, prop_mode = prop_mode, prop_tol = prop_tol, 
       verbose = verbose, BPPARAM = BPPARAM)
     
     names(ff) <- names(counts)
@@ -94,7 +94,7 @@ dmDS_fit <- function(counts, design, dispersion,
     if(verbose) message("   Using the regression approach. \n")
     
     ff <- BiocParallel::bplapply(inds, dmDS_fitRegression_gene, 
-      counts = counts, design = design, disp = disp, 
+      counts = counts, design = design, prec = prec, 
       coef_mode = coef_mode, coef_tol = coef_tol, 
       verbose = verbose, BPPARAM = BPPARAM)
     
@@ -129,14 +129,14 @@ dmDS_fit <- function(counts, design, dispersion,
 # DM fittings/proportions
 
 bbDS_fitManyGroups_gene <- function(g, counts, prop,
-  ngroups, lgroups, igroups, disp, verbose){  
+  ngroups, lgroups, igroups, prec, verbose){  
 
   if(verbose >= 2)
     message(" Gene:", g)
   
   f <- bb_fitManyGroups(y = counts[[g]], prop = prop[[g]],
     ngroups = ngroups, lgroups = lgroups, igroups = igroups, 
-    disp = disp[g])
+    prec = prec[g])
   
   return(f)
   
@@ -144,20 +144,20 @@ bbDS_fitManyGroups_gene <- function(g, counts, prop,
 
 
 bbDS_fitRegression_gene <- function(g, counts, 
-  design, disp, fit, verbose){  
+  design, prec, fit, verbose){  
 
   if(verbose >= 2)
     message(" Gene:", g)
   
   f <- bb_fitRegression(y = counts[[g]], 
-    design = design, disp = disp[g], fit = fit[[g]])
+    design = design, prec = prec[g], fit = fit[[g]])
   
   return(f)
   
 }
 
 
-bbDS_fit <- function(counts, fit, design, dispersion,
+bbDS_fit <- function(counts, fit, design, precision,
   one_way = TRUE, verbose = FALSE, BPPARAM = BiocParallel::SerialParam()){
   
   time_start <- Sys.time()
@@ -165,11 +165,11 @@ bbDS_fit <- function(counts, fit, design, dispersion,
   
   inds <-  1:length(counts)
   
-  # Prepare dispersion
-  if(length(dispersion) == 1){
-    disp <- rep(dispersion, length(inds))
+  # Prepare precision
+  if(length(precision) == 1){
+    prec <- rep(precision, length(inds))
   } else {
-    disp <- dispersion
+    prec <- precision
   }
   
   # Approach from edgeR:
@@ -193,7 +193,7 @@ bbDS_fit <- function(counts, fit, design, dispersion,
     ff <- BiocParallel::bplapply(inds, bbDS_fitManyGroups_gene, 
       counts = counts, prop = prop,
       ngroups = ngroups, lgroups = lgroups, igroups = igroups, 
-      disp = disp,
+      prec = prec,
       verbose = verbose, BPPARAM = BPPARAM)
     
     lik <- lapply(ff, function(f){rowSums(f[["lik"]])})
@@ -221,7 +221,7 @@ bbDS_fit <- function(counts, fit, design, dispersion,
     if(verbose) message("   Using the regression approach. \n")
 
     ff <- BiocParallel::bplapply(inds, bbDS_fitRegression_gene, 
-      counts = counts, design = design, disp = disp, 
+      counts = counts, design = design, prec = prec, 
       fit = fit, verbose = verbose, BPPARAM = BPPARAM)
     
     names(ff) <- names(counts)

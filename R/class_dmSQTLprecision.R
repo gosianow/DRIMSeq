@@ -2,20 +2,20 @@
 NULL
 
 ###############################################################################
-### dmSQTLdispersion class
+### dmSQTLprecision class
 ###############################################################################
 
-#' dmSQTLdispersion object
+#' dmSQTLprecision object
 #' 
-#' dmSQTLdispersion extends the \code{\linkS4class{dmSQTLdata}} by adding the 
+#' dmSQTLprecision extends the \code{\linkS4class{dmSQTLdata}} by adding the 
 #' precision estimates of Dirichlet-multinomial distribution used to model the 
 #' feature (e.g., transcript, exon, exonic bin) counts for each gene-SNP pair in
-#' the QTL analysis. Result of \code{\link{dmDispersion}}.
+#' the QTL analysis. Result of \code{\link{dmPrecision}}.
 #' 
 #' @slot mean_expression Numeric vector of mean gene expression.
-#' @slot common_dispersion Numeric value of estimated common dispersion.
-#' @slot genewise_dispersion List of estimated gene-wise dispersions. Each 
-#'   element of this list is a vector of dispersions estimated for all the 
+#' @slot common_precision Numeric value of estimated common precision.
+#' @slot genewise_precision List of estimated gene-wise precisions. Each 
+#'   element of this list is a vector of precisions estimated for all the 
 #'   genotype blocks assigned to a given gene.
 #'   
 #' @examples 
@@ -51,25 +51,25 @@ NULL
 #' 
 #' ## To make the analysis reproducible
 #' set.seed(123)
-#' ## Calculate dispersion
-#' d <- dmDispersion(d)
+#' ## Calculate precision
+#' d <- dmPrecision(d)
 #' 
-#' plotDispersion(d)
+#' plotPrecision(d)
 #' }
 #' @author Malgorzata Nowicka
 #' @seealso \code{\linkS4class{dmSQTLdata}}, \code{\linkS4class{dmSQTLfit}},
 #'   \code{\linkS4class{dmSQTLtest}}
-setClass("dmSQTLdispersion", 
+setClass("dmSQTLprecision", 
   contains = "dmSQTLdata",
   representation(mean_expression = "numeric", 
-    common_dispersion = "numeric",
-    genewise_dispersion = "list"))
+    common_precision = "numeric",
+    genewise_precision = "list"))
 
 
 # -----------------------------------------------------------------------------
 
 
-setValidity("dmSQTLdispersion", function(object){
+setValidity("dmSQTLprecision", function(object){
   # Has to return TRUE when valid object!
   
   out <- TRUE
@@ -85,24 +85,24 @@ setValidity("dmSQTLdispersion", function(object){
       return("Unequal length of 'counts' and 'mean_expression'")
   }
   
-  if(length(object@genewise_dispersion) > 0){
-    if(length(object@genewise_dispersion) == length(object@counts)){
-      if(all(lapply(object@genewise_dispersion, length) == 
+  if(length(object@genewise_precision) > 0){
+    if(length(object@genewise_precision) == length(object@counts)){
+      if(all(lapply(object@genewise_precision, length) == 
           elementNROWS(object@genotypes)))
         out <- TRUE
       else
         return("Different numbers of blocks in 'genotypes' and in 
-          'genewise_dispersion'")
+          'genewise_precision'")
     }
     else 
-      return("Unequal number of genes in 'counts' and in 'genewise_dispersion'")
+      return("Unequal number of genes in 'counts' and in 'genewise_precision'")
   }
   
-  if(length(object@common_dispersion) > 0){
-    if(length(object@common_dispersion) == 1)
+  if(length(object@common_precision) > 0){
+    if(length(object@common_precision) == 1)
       out <- TRUE
     else
-      return("'common_dispersion' must be a vector of length 1")
+      return("'common_precision' must be a vector of length 1")
   }
   
   return(out)
@@ -114,9 +114,9 @@ setValidity("dmSQTLdispersion", function(object){
 ### accessing methods
 ################################################################################
 
-#' @rdname dmSQTLdispersion-class
+#' @rdname dmSQTLprecision-class
 #' @export
-setMethod("mean_expression", "dmSQTLdispersion", function(x){
+setMethod("mean_expression", "dmSQTLprecision", function(x){
   
   data.frame(gene_id = names(x@mean_expression), 
     mean_expression = x@mean_expression, 
@@ -125,20 +125,20 @@ setMethod("mean_expression", "dmSQTLdispersion", function(x){
 })
 
 
-#' @rdname dmSQTLdispersion-class
+#' @rdname dmSQTLprecision-class
 #' @export
-setMethod("common_dispersion", "dmSQTLdispersion", function(x) 
-  x@common_dispersion )
+setMethod("common_precision", "dmSQTLprecision", function(x) 
+  x@common_precision )
 
 
-#' @rdname dmSQTLdispersion-class
+#' @rdname dmSQTLprecision-class
 #' @export
-setMethod("genewise_dispersion", "dmSQTLdispersion", function(x){
+setMethod("genewise_precision", "dmSQTLprecision", function(x){
   
-  data.frame(gene_id = rep(names(x@genewise_dispersion), 
-    sapply(x@genewise_dispersion, length)), 
-    block_id = unlist(lapply(x@genewise_dispersion, names)),
-    genewise_dispersion = unlist(x@genewise_dispersion), 
+  data.frame(gene_id = rep(names(x@genewise_precision), 
+    sapply(x@genewise_precision, length)), 
+    block_id = unlist(lapply(x@genewise_precision, names)),
+    genewise_precision = unlist(x@genewise_precision), 
     stringsAsFactors = FALSE, row.names = NULL)
   
 })
@@ -147,32 +147,32 @@ setMethod("genewise_dispersion", "dmSQTLdispersion", function(x){
 ### show methods
 ################################################################################
 
-setMethod("show", "dmSQTLdispersion", function(object){
+setMethod("show", "dmSQTLprecision", function(object){
   
   callNextMethod(object)
   
-  cat("  mean_expression(), common_dispersion(), genewise_dispersion()\n")
+  cat("  mean_expression(), common_precision(), genewise_precision()\n")
   
 })
 
 
 ################################################################################
-### dmDispersion
+### dmPrecision
 ################################################################################
 
-#' @rdname dmDispersion
-#' @param speed Logical. If \code{FALSE}, dispersion is calculated per each
+#' @rdname dmPrecision
+#' @param speed Logical. If \code{FALSE}, precision is calculated per each
 #'   gene-block. Such calculation may take a long time, since there can be
 #'   hundreds of SNPs/blocks per gene. If \code{TRUE}, there will be only one
 #'   dipsersion calculated per gene and it will be assigned to all the blocks
 #'   matched with this gene.
 #' @export
-setMethod("dmDispersion", "dmSQTLdata", function(x, mean_expression = TRUE, 
-  common_dispersion = TRUE, genewise_dispersion = TRUE, 
-  disp_adjust = TRUE, disp_subset = 0.1,
-  disp_interval = c(0, 1e+5), disp_tol = 1e+01, 
-  disp_init = 100, disp_grid_length = 21, disp_grid_range = c(-10, 10),
-  disp_moderation = "none", disp_prior_df = 0, disp_span = 0.1, 
+setMethod("dmPrecision", "dmSQTLdata", function(x, mean_expression = TRUE, 
+  common_precision = TRUE, genewise_precision = TRUE, 
+  prec_adjust = TRUE, prec_subset = 0.1,
+  prec_interval = c(0, 1e+5), prec_tol = 1e+01, 
+  prec_init = 100, prec_grid_length = 21, prec_grid_range = c(-10, 10),
+  prec_moderation = "none", prec_prior_df = 0, prec_span = 0.1, 
   one_way = TRUE, speed = TRUE,
   prop_mode = "constrOptim", prop_tol = 1e-12, 
   coef_mode = "optim", coef_tol = 1e-12,
@@ -180,26 +180,26 @@ setMethod("dmDispersion", "dmSQTLdata", function(x, mean_expression = TRUE,
   
   ### Parameter checks:
   stopifnot(is.logical(mean_expression))
-  stopifnot(is.logical(common_dispersion))
-  stopifnot(is.logical(genewise_dispersion))
-  stopifnot(is.logical(disp_adjust))
-  stopifnot(length(disp_subset) == 1)
-  stopifnot(is.numeric(disp_subset) && disp_subset > 0 && disp_subset <= 1)
-  stopifnot(length(disp_interval) == 2)
-  stopifnot(disp_interval[1] < disp_interval[2])
-  stopifnot(length(disp_tol) == 1)
-  stopifnot(is.numeric(disp_tol) && disp_tol > 0)
-  stopifnot(length(disp_init) == 1)
-  stopifnot(is.numeric(disp_init))
-  stopifnot(disp_grid_length > 2)
-  stopifnot(length(disp_grid_range) == 2)
-  stopifnot(disp_grid_range[1] < disp_grid_range[2])
-  stopifnot(length(disp_moderation) == 1)
-  stopifnot(disp_moderation %in% c("none", "common", "trended"))
-  stopifnot(length(disp_prior_df) == 1)
-  stopifnot(is.numeric(disp_prior_df) && disp_prior_df >= 0)
-  stopifnot(length(disp_span) == 1)
-  stopifnot(is.numeric(disp_span) && disp_span > 0 && disp_span < 1)
+  stopifnot(is.logical(common_precision))
+  stopifnot(is.logical(genewise_precision))
+  stopifnot(is.logical(prec_adjust))
+  stopifnot(length(prec_subset) == 1)
+  stopifnot(is.numeric(prec_subset) && prec_subset > 0 && prec_subset <= 1)
+  stopifnot(length(prec_interval) == 2)
+  stopifnot(prec_interval[1] < prec_interval[2])
+  stopifnot(length(prec_tol) == 1)
+  stopifnot(is.numeric(prec_tol) && prec_tol > 0)
+  stopifnot(length(prec_init) == 1)
+  stopifnot(is.numeric(prec_init))
+  stopifnot(prec_grid_length > 2)
+  stopifnot(length(prec_grid_range) == 2)
+  stopifnot(prec_grid_range[1] < prec_grid_range[2])
+  stopifnot(length(prec_moderation) == 1)
+  stopifnot(prec_moderation %in% c("none", "common", "trended"))
+  stopifnot(length(prec_prior_df) == 1)
+  stopifnot(is.numeric(prec_prior_df) && prec_prior_df >= 0)
+  stopifnot(length(prec_span) == 1)
+  stopifnot(is.numeric(prec_span) && prec_span > 0 && prec_span < 1)
   
   stopifnot(is.logical(one_way))
   stopifnot(is.logical(speed))
@@ -217,23 +217,23 @@ setMethod("dmDispersion", "dmSQTLdata", function(x, mean_expression = TRUE,
   stopifnot(verbose %in% 0:2)
   
   
-  if(mean_expression || (genewise_dispersion &&
-      disp_moderation == "trended")){
+  if(mean_expression || (genewise_precision &&
+      prec_moderation == "trended")){
     mean_expression <- dm_estimateMeanExpression(counts = x@counts, 
       verbose = verbose)
   }else{
     mean_expression <- numeric()
   }
   
-  if(common_dispersion){
+  if(common_precision){
     
-    if(disp_subset < 1){
+    if(prec_subset < 1){
       
-      message(paste0("! Using a subset of ", disp_subset, 
-        " genes to estimate common dispersion !\n"))
+      message(paste0("! Using a subset of ", prec_subset, 
+        " genes to estimate common precision !\n"))
       
       genes2keep <- sample(1:length(x@counts), 
-        max(round(disp_subset * length(x@counts)), 1), replace = FALSE)
+        max(round(prec_subset * length(x@counts)), 1), replace = FALSE)
       
     }else{
       genes2keep <- 1:length(x@counts)
@@ -247,25 +247,25 @@ setMethod("dmDispersion", "dmSQTLdata", function(x, mean_expression = TRUE,
         factor(names(x@genotypes[genes2keep, ]), 
           levels = names(x@genotypes[genes2keep, ]))))
     
-    common_dispersion <- dmSQTL_estimateCommonDispersion(
+    common_precision <- dmSQTL_estimateCommonPrecision(
       counts = x@counts[genes2keep, ], genotypes = genotypes_null, 
-      disp_adjust = disp_adjust, 
-      disp_interval = disp_interval, disp_tol = disp_tol,
+      prec_adjust = prec_adjust, 
+      prec_interval = prec_interval, prec_tol = prec_tol,
       one_way = one_way, group_formula = ~ 1,
       prop_mode = prop_mode, prop_tol = prop_tol, 
       coef_mode = coef_mode, coef_tol = coef_tol,
       verbose = verbose, BPPARAM = BPPARAM)
     
   }else{
-    common_dispersion <- numeric()
+    common_precision <- numeric()
   }
   
-  if(genewise_dispersion){
+  if(genewise_precision){
     
-    if(length(common_dispersion)){
-      message("! Using common_dispersion = ", round(common_dispersion, 4), 
-        " as disp_init !")
-      disp_init <- common_dispersion
+    if(length(common_precision)){
+      message("! Using common_precision = ", round(common_precision, 4), 
+        " as prec_init !")
+      prec_init <- common_precision
     }
     
     if(speed){
@@ -279,28 +279,28 @@ setMethod("dmDispersion", "dmSQTLdata", function(x, mean_expression = TRUE,
         partitioning = split(inds, factor(names(x@genotypes), 
           levels = names(x@genotypes))) )
       
-      genewise_dispersion <- dmSQTL_estimateTagwiseDispersion(counts = x@counts, 
+      genewise_precision <- dmSQTL_estimateTagwisePrecision(counts = x@counts, 
         genotypes = genotypes_null, mean_expression = mean_expression, 
-        disp_adjust = disp_adjust, disp_init = disp_init, 
-        disp_grid_length = disp_grid_length, disp_grid_range = disp_grid_range, 
-        disp_moderation = disp_moderation, disp_prior_df = disp_prior_df, 
-        disp_span = disp_span, one_way = one_way, group_formula = ~ 1,
+        prec_adjust = prec_adjust, prec_init = prec_init, 
+        prec_grid_length = prec_grid_length, prec_grid_range = prec_grid_range, 
+        prec_moderation = prec_moderation, prec_prior_df = prec_prior_df, 
+        prec_span = prec_span, one_way = one_way, group_formula = ~ 1,
         prop_mode = prop_mode, prop_tol = prop_tol, 
         coef_mode = coef_mode, coef_tol = coef_tol,
         verbose = verbose, BPPARAM = BPPARAM)
       
       ### Replicate the values for all the snps
-      genewise_dispersion <- relist(rep(unlist(genewise_dispersion), 
+      genewise_precision <- relist(rep(unlist(genewise_precision), 
         times = elementNROWS(x@genotypes)), x@genotypes@partitioning)
       
     }else{
       
-      genewise_dispersion <- dmSQTL_estimateTagwiseDispersion(counts = x@counts, 
+      genewise_precision <- dmSQTL_estimateTagwisePrecision(counts = x@counts, 
         genotypes = x@genotypes, mean_expression = mean_expression, 
-        disp_adjust = disp_adjust, disp_init = disp_init, 
-        disp_grid_length = disp_grid_length, disp_grid_range = disp_grid_range, 
-        disp_moderation = disp_moderation, disp_prior_df = disp_prior_df, 
-        disp_span = disp_span, one_way = one_way, group_formula = ~ group,
+        prec_adjust = prec_adjust, prec_init = prec_init, 
+        prec_grid_length = prec_grid_length, prec_grid_range = prec_grid_range, 
+        prec_moderation = prec_moderation, prec_prior_df = prec_prior_df, 
+        prec_span = prec_span, one_way = one_way, group_formula = ~ group,
         prop_mode = prop_mode, prop_tol = prop_tol, 
         coef_mode = coef_mode, coef_tol = coef_tol,
         verbose = verbose, BPPARAM = BPPARAM)
@@ -308,12 +308,12 @@ setMethod("dmDispersion", "dmSQTLdata", function(x, mean_expression = TRUE,
     }
     
   }else{
-    genewise_dispersion <- list()
+    genewise_precision <- list()
   }
   
-  return(new("dmSQTLdispersion", mean_expression = mean_expression, 
-    common_dispersion = common_dispersion, 
-    genewise_dispersion = genewise_dispersion, 
+  return(new("dmSQTLprecision", mean_expression = mean_expression, 
+    common_precision = common_precision, 
+    genewise_precision = genewise_precision, 
     counts = x@counts, genotypes = x@genotypes, blocks = x@blocks, 
     samples = x@samples))
   
@@ -321,35 +321,35 @@ setMethod("dmDispersion", "dmSQTLdata", function(x, mean_expression = TRUE,
 
 
 ###############################################################################
-### plotDispersion
+### plotPrecision
 ###############################################################################
 
 
-#' @rdname plotDispersion
+#' @rdname plotPrecision
 #' @export
-setMethod("plotDispersion", "dmSQTLdispersion", function(x){
+setMethod("plotPrecision", "dmSQTLprecision", function(x){
   
-  if(!length(x@genewise_dispersion) == length(x@counts))
-    stop("Genewise dispersion must be estimated for each gene!")
-  if(!length(x@genewise_dispersion) == length(x@mean_expression))
+  if(!length(x@genewise_precision) == length(x@counts))
+    stop("Genewise precision must be estimated for each gene!")
+  if(!length(x@genewise_precision) == length(x@mean_expression))
     stop("Mean expression must be estimated for each gene!")
   
-  w <- sapply(x@genewise_dispersion, length)
+  w <- sapply(x@genewise_precision, length)
   
   mean_expression <- rep(x@mean_expression, w)
   nr_features <- rep(elementNROWS(x@counts), w)
   
-  genewise_dispersion <- unlist(x@genewise_dispersion)
+  genewise_precision <- unlist(x@genewise_precision)
   
-  if(length(x@common_dispersion) == 0){
-    common_dispersion <- NULL
+  if(length(x@common_precision) == 0){
+    common_precision <- NULL
   }else{
-    common_dispersion <- x@common_dispersion
+    common_precision <- x@common_precision
   }
   
-  ggp <- dm_plotDispersion(genewise_dispersion = genewise_dispersion, 
+  ggp <- dm_plotPrecision(genewise_precision = genewise_precision, 
     mean_expression = mean_expression, nr_features = nr_features, 
-    common_dispersion = common_dispersion)
+    common_precision = common_precision)
   
   return(ggp)
   

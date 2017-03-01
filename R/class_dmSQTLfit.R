@@ -1,4 +1,4 @@
-#' @include class_dmSQTLdispersion.R class_dmDSfit.R
+#' @include class_dmSQTLprecision.R class_dmDSfit.R
 NULL
 
 ################################################################################
@@ -7,7 +7,7 @@ NULL
 
 #' dmSQTLfit object
 #' 
-#' dmSQTLfit extends the \code{\linkS4class{dmSQTLdispersion}} class by adding 
+#' dmSQTLfit extends the \code{\linkS4class{dmSQTLprecision}} class by adding 
 #' the full model Dirichlet-multinomial (DM) likelihoods,
 #' regression coefficients and feature proportion estimates needed for the 
 #' transcript/exon usage QTL analysis. Full model is defined by the genotype of
@@ -54,19 +54,19 @@ NULL
 #' 
 #' ## To make the analysis reproducible
 #' set.seed(123)
-#' ## Calculate dispersion
-#' d <- dmDispersion(d)
+#' ## Calculate precision
+#' d <- dmPrecision(d)
 #' 
-#' plotDispersion(d)
+#' plotPrecision(d)
 #' 
 #' ## Fit full model proportions
 #' d <- dmFit(d)
 #' }
 #' @author Malgorzata Nowicka
 #' @seealso \code{\linkS4class{dmSQTLdata}}, 
-#'   \code{\linkS4class{dmSQTLdispersion}}, \code{\linkS4class{dmSQTLtest}}
+#'   \code{\linkS4class{dmSQTLprecision}}, \code{\linkS4class{dmSQTLtest}}
 setClass("dmSQTLfit", 
-  contains = "dmSQTLdispersion",
+  contains = "dmSQTLprecision",
   representation(fit_full = "list",
     lik_full = "list",
     coef_full = "list"))
@@ -110,7 +110,7 @@ setMethod("show", "dmSQTLfit", function(object){
 #' continous (not categorical) varialbe with values 0, 1, and 2.
 #' @rdname dmFit
 #' @export
-setMethod("dmFit", "dmSQTLdispersion", function(x, one_way = TRUE, 
+setMethod("dmFit", "dmSQTLprecision", function(x, one_way = TRUE, 
   prop_mode = "constrOptim", prop_tol = 1e-12, 
   coef_mode = "optim", coef_tol = 1e-12,
   verbose = 0, BPPARAM = BiocParallel::SerialParam()){
@@ -131,7 +131,7 @@ setMethod("dmFit", "dmSQTLdispersion", function(x, one_way = TRUE,
   stopifnot(verbose %in% 0:3)
   
   fit <- dmSQTL_fit(counts = x@counts, genotypes = x@genotypes, 
-    dispersion = x@genewise_dispersion,
+    precision = x@genewise_precision,
     one_way = one_way, group_formula = ~ group,
     prop_mode = prop_mode, prop_tol = prop_tol, 
     coef_mode = coef_mode, coef_tol = coef_tol,
@@ -140,8 +140,8 @@ setMethod("dmFit", "dmSQTLdispersion", function(x, one_way = TRUE,
   
   return(new("dmSQTLfit", lik_full = fit[["lik"]], fit_full = fit[["fit"]],
     mean_expression = x@mean_expression, 
-    common_dispersion = x@common_dispersion, 
-    genewise_dispersion = x@genewise_dispersion, 
+    common_precision = x@common_precision, 
+    genewise_precision = x@genewise_precision, 
     counts = x@counts, genotypes = x@genotypes,
     blocks = x@blocks, samples = x@samples))
   
@@ -209,9 +209,9 @@ setMethod("plotProportions", "dmSQTLfit", function(x, gene_id, snp_id,
     main <- paste0(gene_id, " : ", snp_id, " : ", block_id,
       "\n Mean expression = ", round(mean_expression_gene))
     
-    dispersion_gene <- x@genewise_dispersion[[gene_id]][block_id]
+    precision_gene <- x@genewise_precision[[gene_id]][block_id]
     
-    main <- paste0(main, ", Precision = ", round(dispersion_gene, 2))
+    main <- paste0(main, ", Precision = ", round(precision_gene, 2))
     
   }
   

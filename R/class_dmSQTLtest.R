@@ -63,10 +63,10 @@ NULL
 #' 
 #' ## To make the analysis reproducible
 #' set.seed(123)
-#' ## Calculate dispersion
-#' d <- dmDispersion(d)
+#' ## Calculate precision
+#' d <- dmPrecision(d)
 #' 
-#' plotDispersion(d)
+#' plotPrecision(d)
 #' 
 #' ## Fit full model proportions
 #' d <- dmFit(d)
@@ -83,7 +83,7 @@ NULL
 #' 
 #' @author Malgorzata Nowicka
 #' @seealso \code{\linkS4class{dmSQTLdata}}, 
-#'   \code{\linkS4class{dmSQTLdispersion}}, \code{\linkS4class{dmSQTLfit}}
+#'   \code{\linkS4class{dmSQTLprecision}}, \code{\linkS4class{dmSQTLfit}}
 setClass("dmSQTLtest", 
   contains = "dmSQTLfit",
   representation(lik_null = "list",
@@ -142,7 +142,6 @@ setMethod("show", "dmSQTLtest", function(object){
 #'   option.
 #' @rdname dmTest
 #' @export
-#' @importFrom utils relist
 setMethod("dmTest", "dmSQTLfit", function(x, 
   permutation_mode = "all_genes", one_way = TRUE, 
   prop_mode = "constrOptim", prop_tol = 1e-12, 
@@ -171,7 +170,7 @@ setMethod("dmTest", "dmSQTLfit", function(x,
   
   # Fit the DM null model
   fit0 <- dmSQTL_fit(counts = x@counts, genotypes = genotypes_null, 
-    dispersion = x@genewise_dispersion,
+    precision = x@genewise_precision,
     one_way = one_way, group_formula = ~ 1,
     prop_mode = prop_mode, prop_tol = prop_tol, 
     coef_mode = coef_mode, coef_tol = coef_tol,
@@ -260,8 +259,8 @@ setMethod("dmTest", "dmSQTLfit", function(x,
   return(new("dmSQTLtest", lik_null = fit0[["lik"]], results_gene = results_new,
     lik_full = x@lik_full, fit_full = x@fit_full,
     mean_expression = x@mean_expression, 
-    common_dispersion = x@common_dispersion, 
-    genewise_dispersion = x@genewise_dispersion, 
+    common_precision = x@common_precision, 
+    genewise_precision = x@genewise_precision, 
     counts = x@counts, genotypes = x@genotypes,
     blocks = x@blocks, samples = x@samples))
   

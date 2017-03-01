@@ -84,14 +84,14 @@ NULL
 #' 
 #' ## To make the analysis reproducible
 #' set.seed(123)
-#' ## Calculate dispersion
-#' d <- dmDispersion(d, design = design)
+#' ## Calculate precision
+#' d <- dmPrecision(d, design = design)
 #' 
-#' plotDispersion(d)
+#' plotPrecision(d)
 #' 
 #' head(mean_expression(d))
-#' common_dispersion(d)
-#' head(genewise_dispersion(d))
+#' common_precision(d)
+#' head(genewise_precision(d))
 #' 
 #' ## Fit full model proportions
 #' d <- dmFit(d, design = design)
@@ -127,7 +127,7 @@ NULL
 #'   plot_type = "ribbonplot")
 #' 
 #' @author Malgorzata Nowicka
-#' @seealso \code{\linkS4class{dmDSdata}}, \code{\linkS4class{dmDSdispersion}},
+#' @seealso \code{\linkS4class{dmDSdata}}, \code{\linkS4class{dmDSprecision}},
 #'   \code{\linkS4class{dmDSfit}}
 setClass("dmDStest", 
   contains = "dmDSfit",
@@ -280,14 +280,14 @@ setGeneric("dmTest", function(x, ...) standardGeneric("dmTest"))
 #' 
 #' ## To make the analysis reproducible
 #' set.seed(123)
-#' ## Calculate dispersion
-#' d <- dmDispersion(d, design = design)
+#' ## Calculate precision
+#' d <- dmPrecision(d, design = design)
 #' 
-#' plotDispersion(d)
+#' plotPrecision(d)
 #' 
 #' head(mean_expression(d))
-#' common_dispersion(d)
-#' head(genewise_dispersion(d))
+#' common_precision(d)
+#' head(genewise_precision(d))
 #' 
 #' ## Fit full model proportions
 #' d <- dmFit(d, design = design)
@@ -426,7 +426,7 @@ setMethod("dmTest", "dmDSfit", function(x,
   
   # Fit the DM null model: proportions and likelihoods
   fit0 <- dmDS_fit(counts = x@counts, design = design0, 
-    dispersion = x@genewise_dispersion,
+    precision = x@genewise_precision,
     one_way = one_way,
     prop_mode = prop_mode, prop_tol = prop_tol, 
     coef_mode = coef_mode, coef_tol = coef_tol, 
@@ -447,7 +447,7 @@ setMethod("dmTest", "dmDSfit", function(x,
   if(bb_model && length(x@lik_full_bb) > 0){
     
     fit0_bb <- bbDS_fit(counts = x@counts, fit = fit0[["fit"]], 
-      design = design0, dispersion = x@genewise_dispersion,
+      design = design0, precision = x@genewise_precision,
       one_way = one_way, verbose = verbose, BPPARAM = BPPARAM)
     
     # Calculate the BB degrees of freedom for the LR test
@@ -471,9 +471,9 @@ setMethod("dmTest", "dmDSfit", function(x,
       fit_full = x@fit_full, lik_full = x@lik_full, coef_full = x@coef_full,
       lik_full_bb = x@lik_full_bb,  coef_full_bb = x@coef_full_bb,
       mean_expression = x@mean_expression, 
-      common_dispersion = x@common_dispersion, 
-      genewise_dispersion = x@genewise_dispersion, 
-      design_dispersion = x@design_dispersion,
+      common_precision = x@common_precision, 
+      genewise_precision = x@genewise_precision, 
+      design_precision = x@design_precision,
       counts = x@counts, samples = x@samples))
     
   }else{
@@ -490,9 +490,9 @@ setMethod("dmTest", "dmDSfit", function(x,
       fit_full = x@fit_full, lik_full = x@lik_full, coef_full = x@coef_full,
       lik_full_bb = x@lik_full_bb,  coef_full_bb = x@coef_full_bb,
       mean_expression = x@mean_expression, 
-      common_dispersion = x@common_dispersion, 
-      genewise_dispersion = x@genewise_dispersion, 
-      design_dispersion = x@design_dispersion,
+      common_precision = x@common_precision, 
+      genewise_precision = x@genewise_precision, 
+      design_precision = x@design_precision,
       counts = x@counts, samples = x@samples))
     
   }
@@ -571,14 +571,14 @@ setGeneric("plotPValues", function(x, ...) standardGeneric("plotPValues"))
 #' 
 #' ## To make the analysis reproducible
 #' set.seed(123)
-#' ## Calculate dispersion
-#' d <- dmDispersion(d, design = design)
+#' ## Calculate precision
+#' d <- dmPrecision(d, design = design)
 #' 
-#' plotDispersion(d)
+#' plotPrecision(d)
 #' 
 #' head(mean_expression(d))
-#' common_dispersion(d)
-#' head(genewise_dispersion(d))
+#' common_precision(d)
+#' head(genewise_precision(d))
 #' 
 #' ## Fit full model proportions
 #' d <- dmFit(d, design = design)
@@ -614,7 +614,7 @@ setGeneric("plotPValues", function(x, ...) standardGeneric("plotPValues"))
 #'   plot_type = "ribbonplot")
 #' }
 #' @author Malgorzata Nowicka
-#' @seealso \code{\link{plotData}}, \code{\link{plotDispersion}},
+#' @seealso \code{\link{plotData}}, \code{\link{plotPrecision}},
 #'   \code{\link{plotProportions}}
 #' @rdname plotPValues
 #' @export

@@ -1,4 +1,4 @@
-%\VignetteIndexEntry{Differential splicing and sQTL analyses in RNA-seq with 'DRIMSeq' package}
+%\VignetteIndexEntry{Differential transcript usage and transcript usage QTL analyses in RNA-seq with 'DRIMSeq' package}
 %\VignettePackage{DRIMSeq}
 %\VignetteEngine{knitr::knitr}
 
@@ -11,7 +11,7 @@ BiocStyle::latex(use.unsrturl=FALSE)
 @
 
 
-\bioctitle[Differential splicing and sQTL analyses in RNA-seq with \Rpackage{DRIMSeq} package]{DRIMSeq: Dirichlet-multinomial framework for differential splicing and sQTL analyses in RNA-seq}
+\bioctitle[Differential transcript usage and transcript usage QTL analyses in RNA-seq with \Rpackage{DRIMSeq} package]{DRIMSeq: Dirichlet-multinomial framework for differential transcript usage and transcript usage QTL analyses in RNA-seq}
 %% also: \bioctitle{Title used for both header and title page}
 %% or... \title{Title used for both header and title page}
 \author{Malgorzata Nowicka\footnote{gosia.nowicka@uzh.ch}, Mark Robinson}
@@ -47,6 +47,10 @@ opts_chunk$set(cache = FALSE, tidy = FALSE, tidy.opts = list(blank = FALSE),
 %------------------------------------------------------------------------------
 % Introduction
 %------------------------------------------------------------------------------
+
+\section{Main changes in the DRIMSeq package}
+
+
 
 \section{Overview of Dirichlet-multinomial model}
 

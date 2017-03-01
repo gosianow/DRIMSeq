@@ -1,13 +1,13 @@
 
 
 dmDS_CRadjustmentManyGroups_gene <- function(g, counts, 
-  ngroups, lgroups, igroups, disp, prop, verbose){  
+  ngroups, lgroups, igroups, prec, prop, verbose){  
 
   if(verbose >= 2) message(" Gene:", g)
   
   a <- dm_CRadjustmentManyGroups(y = counts[[g]], 
     ngroups = ngroups, lgroups = lgroups, igroups = igroups, 
-    disp = disp[g], prop = prop[[g]])
+    prec = prec[g], prop = prop[[g]])
   
   return(a)
   
@@ -15,12 +15,12 @@ dmDS_CRadjustmentManyGroups_gene <- function(g, counts,
 
 
 dmDS_CRadjustmentRegression_gene <- function(g, counts, 
-  design, disp, fit, verbose){  
+  design, prec, fit, verbose){  
 
   if(verbose >= 2) message(" Gene:", g)
   
   a <- dm_CRadjustmentRegression(y = counts[[g]], x = design, 
-    disp = disp[g], prop = fit[[g]])
+    prec = prec[g], prop = fit[[g]])
   
   return(a)
   
@@ -28,7 +28,7 @@ dmDS_CRadjustmentRegression_gene <- function(g, counts,
 
 
 
-dmDS_CRadjustment <- function(counts, fit, design, dispersion,
+dmDS_CRadjustment <- function(counts, fit, design, precision,
   one_way = TRUE,
   verbose = FALSE, BPPARAM = BiocParallel::SerialParam()){
   
@@ -37,11 +37,11 @@ dmDS_CRadjustment <- function(counts, fit, design, dispersion,
   
   inds <-  1:length(counts)
   
-  # Prepare dispersion
-  if(length(dispersion) == 1){
-    disp <- rep(dispersion, length(inds))
+  # Prepare precision
+  if(length(precision) == 1){
+    prec <- rep(precision, length(inds))
   } else {
-    disp <- dispersion
+    prec <- precision
   }
   
   # If the design is equivalent to a oneway layout, use a shortcut algorithm
@@ -62,7 +62,7 @@ dmDS_CRadjustment <- function(counts, fit, design, dispersion,
     a <- BiocParallel::bplapply(inds, 
       dmDS_CRadjustmentManyGroups_gene, counts = counts, 
       ngroups = ngroups, lgroups = lgroups, igroups = igroups, 
-      disp = disp, prop = prop, 
+      prec = prec, prop = prop, 
       verbose = verbose, BPPARAM = BPPARAM)
     
     names(a) <- names(counts)
@@ -72,7 +72,7 @@ dmDS_CRadjustment <- function(counts, fit, design, dispersion,
     
     a <- BiocParallel::bplapply(inds, 
       dmDS_CRadjustmentRegression_gene, counts = counts, 
-      design = design, disp = disp, fit = fit, 
+      design = design, prec = prec, fit = fit, 
       verbose = verbose, BPPARAM = BPPARAM)
     
     names(a) <- names(counts)

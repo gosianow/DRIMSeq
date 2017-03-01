@@ -78,14 +78,14 @@ design <- model.matrix(~ group, data = samples(d))
 
 ## To make the analysis reproducible
 set.seed(123)
-## Calculate dispersion
-d <- dmDispersion(d, design = design)
+## Calculate precision
+d <- dmPrecision(d, design = design)
 
-plotDispersion(d)
+plotPrecision(d)
 
 head(mean_expression(d))
-common_dispersion(d)
-head(genewise_dispersion(d))
+common_precision(d)
+head(genewise_precision(d))
 
 ## Fit full model proportions
 d <- dmFit(d, design = design)
@@ -122,7 +122,7 @@ plotProportions(d, gene_id = top_gene_id, group_variable = "group",
 }
 }
 \seealso{
-\code{\link{plotData}}, \code{\link{plotDispersion}},
+\code{\link{plotData}}, \code{\link{plotPrecision}},
   \code{\link{plotProportions}}
 }
 \author{

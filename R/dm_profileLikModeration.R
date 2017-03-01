@@ -5,18 +5,18 @@
 #' @importFrom stats loess predict loess.control
 
 dm_profileLikModeration <- function(loglik, mean_expression, 
-  disp_moderation = "trended", disp_prior_df, disp_span){
+  prec_moderation = "trended", prec_prior_df, prec_span){
   
-  disp_grid_length <- ncol(loglik)
+  prec_grid_length <- ncol(loglik)
   
   ### Check where the grid is maximized 
   grid_max <- apply(loglik, 1, which.max)
   
   # In the calculation of moderation, do not take into account genes 
-  # that have dispersion on the top and bottom boundry of the grid 
+  # that have precision on the top and bottom boundry of the grid 
   # (skipp 4 last grid points and 1 first grid point)
-  not_boundry <- grid_max < (disp_grid_length - 3) & grid_max > 1
-  boundry_last <- grid_max == disp_grid_length
+  not_boundry <- grid_max < (prec_grid_length - 3) & grid_max > 1
+  boundry_last <- grid_max == prec_grid_length
   
   ### Calculate the span of the boundry loglikelihoods
   if(sum(boundry_last) > 1){
@@ -25,7 +25,7 @@ dm_profileLikModeration <- function(loglik, mean_expression,
   }
   
   
-  switch(disp_moderation, 
+  switch(prec_moderation, 
     
     common={
       
@@ -49,7 +49,7 @@ dm_profileLikModeration <- function(loglik, mean_expression,
         priorN <- quantile(priorN, 0.5)
         
       }else{
-        priorN <- disp_prior_df
+        priorN <- prec_prior_df
       }
       
 
@@ -65,7 +65,7 @@ dm_profileLikModeration <- function(loglik, mean_expression,
       
       moderation <- dm_movingAverageByCol(loglik = loglik, 
         mean_expression = mean_expression, not_boundry = not_boundry, 
-        disp_span = disp_span)
+        prec_span = prec_span)
       
       
       # Estimate priorN - calculate the ratio between moderation lik span 
@@ -99,7 +99,7 @@ dm_profileLikModeration <- function(loglik, mean_expression,
         }
         
       }else{
-        priorN <- disp_prior_df
+        priorN <- prec_prior_df
       }
       
       if(length(priorN) == 1){
@@ -121,13 +121,13 @@ dm_profileLikModeration <- function(loglik, mean_expression,
 
 
 dm_movingAverageByCol <- function(loglik, mean_expression, 
-  not_boundry, disp_span){
+  not_boundry, prec_span){
   
   if(sum(not_boundry) == length(not_boundry)){
     
     o <- order(mean_expression)
     oo <- order(o)
-    width <- floor(disp_span * nrow(loglik))
+    width <- floor(prec_span * nrow(loglik))
     
     moderation <- edgeR::movingAverageByCol(loglik[o,], width = width)[oo,]
     
@@ -140,7 +140,7 @@ dm_movingAverageByCol <- function(loglik, mean_expression,
     o <- order(mean_expression_not_boundry)
     oo <- order(o)
     
-    width <- floor(disp_span * nrow(loglik_not_boundry))
+    width <- floor(prec_span * nrow(loglik_not_boundry))
     
     moderation_not_boundry <- edgeR::movingAverageByCol(
       loglik_not_boundry[o, , drop = FALSE], width = width)[oo, , drop = FALSE]

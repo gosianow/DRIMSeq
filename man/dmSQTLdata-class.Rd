@@ -7,9 +7,8 @@
 \alias{samples,dmSQTLdata-method}
 \alias{names,dmSQTLdata-method}
 \alias{length,dmSQTLdata-method}
-\alias{[,dmSQTLdata,ANY,ANY,ANY-method}
-\alias{[,dmSQTLdata-method}
 \alias{[,dmSQTLdata,ANY-method}
+\alias{[,dmSQTLdata-method}
 \title{dmSQTLdata object}
 \usage{
 \S4method{counts}{dmSQTLdata}(object)
@@ -20,7 +19,7 @@
 
 \S4method{length}{dmSQTLdata}(x)
 
-\S4method{[}{dmSQTLdata,ANY,ANY,ANY}(x, i, j)
+\S4method{[}{dmSQTLdata,ANY}(x, i, j)
 }
 \arguments{
 \item{x}{dmSQTLdata object.}

@@ -109,7 +109,7 @@ plotData(d)
 }
 }
 \seealso{
-\code{\link{plotDispersion}}, \code{\link{plotProportions}},
+\code{\link{plotPrecision}}, \code{\link{plotProportions}},
   \code{\link{plotPValues}}
 }
 \author{

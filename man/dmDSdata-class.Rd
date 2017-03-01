@@ -8,9 +8,8 @@
 \alias{samples,dmDSdata-method}
 \alias{names,dmDSdata-method}
 \alias{length,dmDSdata-method}
-\alias{[,dmDSdata,ANY,ANY,ANY-method}
-\alias{[,dmDSdata-method}
 \alias{[,dmDSdata,ANY-method}
+\alias{[,dmDSdata-method}
 \title{dmDSdata object}
 \usage{
 \S4method{counts}{dmDSdata}(object)
@@ -23,7 +22,7 @@ samples(x, ...)
 
 \S4method{length}{dmDSdata}(x)
 
-\S4method{[}{dmDSdata,ANY,ANY,ANY}(x, i, j)
+\S4method{[}{dmDSdata,ANY}(x, i, j)
 }
 \arguments{
 \item{object, x}{dmDSdata object.}
@@ -92,7 +91,7 @@ d <- d[names(d) \%in\% gene_id_subset, ]
 }
 }
 \seealso{
-\code{\linkS4class{dmDSdispersion}}, \code{\linkS4class{dmDSfit}},
+\code{\linkS4class{dmDSprecision}}, \code{\linkS4class{dmDSfit}},
   \code{\linkS4class{dmDStest}}
 }
 \author{

@@ -1,16 +1,16 @@
 #' @importFrom stats optimize
 
 
-dmDS_profileLikCommon <- function(disp, counts, design, 
-  disp_adjust = TRUE, one_way = TRUE, 
+dmDS_profileLikCommon <- function(prec, counts, design, 
+  prec_adjust = TRUE, one_way = TRUE, 
   prop_mode = "constrOptim", prop_tol = 1e-12, 
   coef_mode = "optim", coef_tol = 1e-12,
   verbose = FALSE, BPPARAM = BiocParallel::SerialParam()){
   
-  if(verbose >= 2) message("Gamma in optimize:", disp)
+  if(verbose >= 2) message("Gamma in optimize:", prec)
   
-  adj_lik <- dmDS_profileLik(disp = disp, counts = counts, design = design, 
-    disp_adjust = disp_adjust, one_way = one_way, 
+  adj_lik <- dmDS_profileLik(prec = prec, counts = counts, design = design, 
+    prec_adjust = prec_adjust, one_way = one_way, 
     prop_mode = prop_mode, prop_tol = prop_tol, 
     coef_mode = coef_mode, coef_tol = coef_tol,
     verbose = verbose, BPPARAM = BPPARAM)
@@ -22,31 +22,31 @@ dmDS_profileLikCommon <- function(disp, counts, design,
 }
 
 
-dmDS_estimateCommonDispersion <- function(counts, design, 
-  disp_adjust = TRUE, disp_interval = c(0, 1e+5), disp_tol = 1e-01, 
+dmDS_estimateCommonPrecision <- function(counts, design, 
+  prec_adjust = TRUE, prec_interval = c(0, 1e+5), prec_tol = 1e-01, 
   one_way = TRUE,
   prop_mode = "constrOptim", prop_tol = 1e-12, 
   coef_mode = "optim", coef_tol = 1e-12,
   verbose = FALSE, BPPARAM = BiocParallel::SerialParam()){
   
   time_start <- Sys.time()
-  if(verbose) message("* Estimating common dispersion.. \n")
+  if(verbose) message("* Estimating common precision.. \n")
   
   optimum <- optimize(f = dmDS_profileLikCommon, 
-    interval = disp_interval,
+    interval = prec_interval,
     counts = counts, design = design, 
-    disp_adjust = disp_adjust, one_way = one_way,
+    prec_adjust = prec_adjust, one_way = one_way,
     prop_mode = prop_mode, prop_tol = prop_tol, 
     coef_mode = coef_mode, coef_tol = coef_tol,
     verbose = max(0, verbose-1), BPPARAM = BPPARAM,
-    maximum = TRUE, tol = disp_tol)
+    maximum = TRUE, tol = prec_tol)
   
-  dispersion <- optimum$maximum
+  precision <- optimum$maximum
   
   time_end <- Sys.time()
   if(verbose) message("Took ", round(time_end - time_start, 4), " seconds.\n")
   
-  return(dispersion)
+  return(precision)
   
 }
 

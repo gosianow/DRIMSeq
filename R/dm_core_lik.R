@@ -2,9 +2,9 @@
 ## Computes the DM log-likelihood -- with gamma functions -- for q-1 parameters
 ##############################################################################
 
-dm_likG <- function(prop, disp, y){
+dm_likG <- function(prop, prec, y){
   # prop has length of q-1
-  # disp has length 1
+  # prec has length 1
   # y has q rows and n columns
   # This function returns likelihhod without normalizing component, 
   # but it is OK for optimization and the LR test
@@ -14,8 +14,8 @@ dm_likG <- function(prop, disp, y){
   
   prop <- c(prop, 1 - sum(prop))
   
-  l <- n * lgamma(disp) - sum(lgamma(m + disp)) + 
-    sum( colSums( lgamma(y + prop * disp) - lgamma(prop * disp) ) )
+  l <- n * lgamma(prec) - sum(lgamma(m + prec)) + 
+    sum( colSums( lgamma(y + prop * prec) - lgamma(prop * prec) ) )
   
   # normalizing_part <- sum(lgamma(m + 1) - colSums(lgamma(y + 1)))
   
@@ -23,12 +23,12 @@ dm_likG <- function(prop, disp, y){
   
 }
 
-dm_likG_neg <- function(prop, disp, y) 
-  -dm_likG(prop, disp, y)
+dm_likG_neg <- function(prop, prec, y) 
+  -dm_likG(prop, prec, y)
 
 
 
-dm_lik_regG_prop <- function(y, disp, prop){
+dm_lik_regG_prop <- function(y, prec, prop){
   # y n x q matrix !!!
   # prop n x q matrix of fitted proportions
   
@@ -36,8 +36,8 @@ dm_lik_regG_prop <- function(y, disp, prop){
   
   m <- rowSums(y)
   
-  l <- n * lgamma(disp) - sum(lgamma(m + disp)) + 
-    sum(rowSums(lgamma(y + disp * prop) - lgamma(prop * disp)))
+  l <- n * lgamma(prec) - sum(lgamma(m + prec)) + 
+    sum(rowSums(lgamma(y + prec * prop) - lgamma(prop * prec)))
   
   # normalizing_part <- sum(lgamma(m + 1) - rowSums(lgamma(y + 1)))
   
@@ -46,10 +46,10 @@ dm_lik_regG_prop <- function(y, disp, prop){
 }
 
 
-dm_lik_regG <- function(b, x, disp, y){
+dm_lik_regG <- function(b, x, prec, y){
   ## b has length of (q-1) * p
   ## x is a matrix n x p
-  ## disp has length 1
+  ## prec has length 1
   ## y q x n matrix
   ## This function returns likelihhod without normalizing component, 
   ## but it is OK for optimization and the LR test
@@ -66,22 +66,22 @@ dm_lik_regG <- function(b, x, disp, y){
   prop <- z/(1 + rowSums(z)) # n x (q-1)
   prop <- cbind(prop, 1 - rowSums(prop))
   
-  l <- dm_lik_regG_prop(y = y, disp = disp, prop = prop)
+  l <- dm_lik_regG_prop(y = y, prec = prec, prop = prop)
 
   return(l)
   
 }
 
-dm_lik_regG_neg <- function(b, design, disp, y) 
-  -dm_lik_regG(b, x = design, disp, y)
+dm_lik_regG_neg <- function(b, design, prec, y) 
+  -dm_lik_regG(b, x = design, prec, y)
 
 ##############################################################################
 ## Computes the DM log-likelihood -- with sums -- for q-1 parameters
 ##############################################################################
 
-dm_lik <- function(prop, disp, y){
+dm_lik <- function(prop, prec, y){
   # prop has length q-1
-  # disp has length 1
+  # prec has length 1
   # y has q rows and n columns
   # This function returns likelihhod without normalizing component, 
   # but it is OK for optimization and the LR test
@@ -96,7 +96,7 @@ dm_lik <- function(prop, disp, y){
   for(i in 1:n){  
     # i=1
     
-    l <- l - sum(log(disp + 1:m[i] - 1))  
+    l <- l - sum(log(prec + 1:m[i] - 1))  
     
     for(j in 1:q){   
       # j=3
@@ -104,7 +104,7 @@ dm_lik <- function(prop, disp, y){
       if(y[j, i] == 0){
         lji <- 0
       }else{
-        lji <- sum(log(prop[j] * disp + 1:y[j, i] - 1)) 
+        lji <- sum(log(prop[j] * prec + 1:y[j, i] - 1)) 
       }     
       
       l <- l + lji      
@@ -123,9 +123,9 @@ dm_lik <- function(prop, disp, y){
 ##############################################################################
 
 
-bb_likG <- function(prop, disp, y){
+bb_likG <- function(prop, prec, y){
   # prop has length of q
-  # disp has length 1
+  # prec has length 1
   # y has q rows and n number of columns
   
   m <- colSums(y)
@@ -135,7 +135,7 @@ bb_likG <- function(prop, disp, y){
   
   for(i in 1:q){
     
-    l[i] <- dm_likG(prop = prop[i], disp = disp, 
+    l[i] <- dm_likG(prop = prop[i], prec = prec, 
       y = rbind(y[i, ], m - y[i, ]))
     
   }
@@ -147,7 +147,7 @@ bb_likG <- function(prop, disp, y){
 
 
   
-bb_lik_regG_prop <- function(y, disp, prop){
+bb_lik_regG_prop <- function(y, prec, prop){
   # y n x q matrix !!!
   # prop n x q matrix of fitted proportions
   
@@ -158,7 +158,7 @@ bb_lik_regG_prop <- function(y, disp, prop){
   
   for(i in 1:q){
     
-    l[i] <- dm_lik_regG_prop(y = cbind(y[, i], m - y[, i]), disp = disp, 
+    l[i] <- dm_lik_regG_prop(y = cbind(y[, i], m - y[, i]), prec = prec, 
       prop = cbind(prop[, i], 1 - prop[, i]))
     
   }

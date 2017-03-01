@@ -1,5 +1,5 @@
 
-dm_CRadjustmentOneGroup <- function(y, disp, prop){
+dm_CRadjustmentOneGroup <- function(y, prec, prop){
   # y martix q x n
   # prop vector of length q
   # If something is wrong, return NAs
@@ -10,7 +10,7 @@ dm_CRadjustmentOneGroup <- function(y, disp, prop){
   q <- nrow(y)
   
   # NAs for genes with one feature
-  if(q < 2 || is.na(disp)) 
+  if(q < 2 || is.na(prec)) 
     return(NA)
   
   # Check for 0s in rows (features)
@@ -34,7 +34,7 @@ dm_CRadjustmentOneGroup <- function(y, disp, prop){
   prop <- prop[keep_row]
   n <- ncol(y) 
   
-  adj <- log(det(n * (- dm_HessianG(prop = prop[-q], disp, y)) ))/2 
+  adj <- log(det(n * (- dm_HessianG(prop = prop[-q], prec, y)) ))/2 
   ## with Gamma functions ## if prop is NULL then:
   # Error in is.data.frame(x) :
   # dims [product 6] do not match the length of object [0]

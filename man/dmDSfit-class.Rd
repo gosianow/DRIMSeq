@@ -15,7 +15,7 @@ proportions(x, ...)
 \S4method{coefficients}{dmDSfit}(object, level = "gene")
 }
 \arguments{
-\item{x}{dmDSdispersion object.}
+\item{x}{dmDSprecision object.}
 
 \item{...}{Other parameters that can be defined by methods using this 
 generic.}
@@ -29,7 +29,7 @@ feature ratios for each sample. \item \code{coefficients(x)}: get the DM or
 BB regression coefficients. }
 }
 \description{
-dmDSfit extends the \code{\linkS4class{dmDSdispersion}} class by adding the 
+dmDSfit extends the \code{\linkS4class{dmDSprecision}} class by adding the 
 full model Dirichlet-multinomial (DM) and beta-binomial (BB) likelihoods,
 regression coefficients and feature proportion estimates. Result of calling
 the \code{\link{dmFit}} function.
@@ -106,14 +106,14 @@ design <- model.matrix(~ group, data = samples(d))
 
 ## To make the analysis reproducible
 set.seed(123)
-## Calculate dispersion
-d <- dmDispersion(d, design = design)
+## Calculate precision
+d <- dmPrecision(d, design = design)
 
-plotDispersion(d)
+plotPrecision(d)
 
 head(mean_expression(d))
-common_dispersion(d)
-head(genewise_dispersion(d))
+common_precision(d)
+head(genewise_precision(d))
 
 ## Fit full model proportions
 d <- dmFit(d, design = design)
@@ -128,7 +128,7 @@ head(coefficients(d), level = "feature")
 }
 \seealso{
 \code{\link{data_dmDSdata}}, \code{\linkS4class{dmDSdata}}, 
-  \code{\linkS4class{dmDSdispersion}}, \code{\linkS4class{dmDStest}}
+  \code{\linkS4class{dmDSprecision}}, \code{\linkS4class{dmDStest}}
 }
 \author{
 Malgorzata Nowicka

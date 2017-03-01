@@ -1,6 +1,6 @@
 
 dm_fitManyGroups <- function(y, ngroups, lgroups, igroups, 
-  disp, prop_mode = "constrOptim", prop_tol = 1e-12){
+  prec, prop_mode = "constrOptim", prop_tol = 1e-12){
   # y can not have any rowSums(y) == 0 - assured during dmFilter
   
   q <- nrow(y)
@@ -11,14 +11,14 @@ dm_fitManyGroups <- function(y, ngroups, lgroups, igroups,
   lik <- rep(NA, ngroups)
   names(lik) <- lgroups
   
-  if(q < 2 || is.na(disp)) 
+  if(q < 2 || is.na(prec)) 
     return(list(prop = prop, lik = lik))
   
   for(gr in 1:ngroups){
     # gr = 1
     
     fit_gr <- dm_fitOneGroup(y = y[, igroups[[gr]], 
-      drop = FALSE], disp = disp, prop_mode = prop_mode, 
+      drop = FALSE], prec = prec, prop_mode = prop_mode, 
       prop_tol = prop_tol) 
     
     if(is.na(fit_gr[["lik"]])) {
@@ -44,7 +44,7 @@ dm_fitManyGroups <- function(y, ngroups, lgroups, igroups,
 
 
 bb_fitManyGroups <- function(y, ngroups, lgroups, igroups, 
-  disp, prop){
+  prec, prop){
   # This function calculates BB likelihoods 
   # Proportions prop are estimated with the DM model
   # y can not have any rowSums(y) == 0 - assured during dmFilter
@@ -54,14 +54,14 @@ bb_fitManyGroups <- function(y, ngroups, lgroups, igroups,
   lik <- matrix(NA, nrow = q, ncol = ngroups)
   colnames(lik) <- lgroups
   
-  if(is.na(disp)) 
+  if(is.na(prec)) 
     return(list(prop = prop, lik = lik))
   
   for(gr in 1:ngroups){
     # gr = 1
     
     fit_gr <- bb_fitOneGroup(y = y[, igroups[[gr]], drop = FALSE], 
-      disp = disp, prop = prop[, gr])
+      prec = prec, prop = prop[, gr])
     
     lik[, gr] <- fit_gr[["lik"]]
     

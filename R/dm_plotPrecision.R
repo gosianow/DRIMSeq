@@ -3,20 +3,20 @@
 #' @importFrom stats quantile na.omit
 
 
-dm_plotDispersion <- function(genewise_dispersion, mean_expression, 
-  nr_features = NULL, common_dispersion = NULL, low_color = "royalblue2", 
+dm_plotPrecicion <- function(genewise_precicion, mean_expression, 
+  nr_features = NULL, common_precicion = NULL, low_color = "royalblue2", 
   high_color = "red2", na_value_color = "red2"){
   
   if(!is.null(nr_features)){
     
     df <- data.frame(mean_expression = log10(mean_expression + 1), 
-      dispersion = log10(genewise_dispersion), nr_features = nr_features)
+      precicion = log10(genewise_precicion), nr_features = nr_features)
     
     df_quant <- min(quantile(na.omit(df$nr_features), probs = 0.95), 30)
     breaks <- seq(2, df_quant, ceiling(df_quant/10))
     
     
-    ggp <- ggplot(df, aes_string(x = "mean_expression", y = "dispersion", 
+    ggp <- ggplot(df, aes_string(x = "mean_expression", y = "precicion", 
       colour = "nr_features" )) +
       theme_bw() +
       xlab("Log10 of mean expression") +
@@ -36,9 +36,9 @@ dm_plotDispersion <- function(genewise_dispersion, mean_expression,
   }else{
     
     df <- data.frame(mean_expression = log10(mean_expression + 1), 
-      dispersion = log10(genewise_dispersion))
+      precicion = log10(genewise_precicion))
     
-    ggp <- ggplot(df, aes_string(x = "mean_expression", y = "dispersion")) +
+    ggp <- ggplot(df, aes_string(x = "mean_expression", y = "precicion")) +
       theme_bw() +
       xlab("Log10 of mean expression") +
       ylab("Log10 of precision") +
@@ -52,8 +52,8 @@ dm_plotDispersion <- function(genewise_dispersion, mean_expression,
   }
   
   
-  if(!is.null(common_dispersion)){
-    ggp <- ggp + geom_hline(yintercept = log10(common_dispersion), 
+  if(!is.null(common_precicion)){
+    ggp <- ggp + geom_hline(yintercept = log10(common_precicion), 
       colour = "black", linetype = "dashed")
   }
   

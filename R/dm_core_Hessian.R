@@ -2,9 +2,9 @@
 # Hessian for q-1 parameters -- with gamma functions
 ##############################################################################
 
-dm_HessianG <- function(prop, disp, y){  
+dm_HessianG <- function(prop, prec, y){  
   # prop has length of q-1
-  # disp has length 1
+  # prec has length 1
   # y has q rows and n columns
   
   q <- nrow(y)
@@ -14,9 +14,9 @@ dm_HessianG <- function(prop, disp, y){
   yq <- y[q, ]
   y <- y[-q, , drop=FALSE]
   
-  Djl <- disp^2 * sum(trigamma(yq + propq * disp) - trigamma(propq * disp))
+  Djl <- prec^2 * sum(trigamma(yq + propq * prec) - trigamma(propq * prec))
   
-  Djj <- disp^2 * rowSums(trigamma(y + prop * disp) - trigamma(prop * disp))
+  Djj <- prec^2 * rowSums(trigamma(y + prop * prec) - trigamma(prop * prec))
   
   H <- matrix(Djl, q-1, q-1)
   
@@ -29,7 +29,7 @@ dm_HessianG <- function(prop, disp, y){
 
 
 
-dm_Hessian_regG_prop <- function(y, disp, prop, x){
+dm_Hessian_regG_prop <- function(y, prec, prop, x){
   # y n x q matrix !!!
   # prop n x q matrix of fitted proportions
   # x n x p matrix with the design
@@ -37,19 +37,19 @@ dm_Hessian_regG_prop <- function(y, disp, prop, x){
   q <- ncol(y)
   p <- ncol(x)
   
-  prop_disp <- prop * disp
+  prop_prec <- prop * prec
   
   # Some calculations for later
-  ldg_y <- digamma(y + prop_disp)
-  ldg <- digamma(prop_disp)
+  ldg_y <- digamma(y + prop_prec)
+  ldg <- digamma(prop_prec)
   
   ldgp_y <- ldg_y * prop
   ldgp_y_sum <- rowSums(ldgp_y)
   ldgp <- ldg * prop
   ldgp_sum <- rowSums(ldgp)
   
-  ltgp_y <- trigamma(y + prop_disp) * prop * disp
-  ltgp <- trigamma(prop_disp) * prop * disp
+  ltgp_y <- trigamma(y + prop_prec) * prop * prec
+  ltgp <- trigamma(prop_prec) * prop * prec
   
   ltgpp_y <- ltgp_y * prop
   ltgpp_y_sum <- rowSums(ltgpp_y)
@@ -68,7 +68,7 @@ dm_Hessian_regG_prop <- function(y, disp, prop, x){
     for(jpp in 1:jp){
       # jp = 1; jpp = 1
       
-      W <- disp * ( - prop[, jp] * prop[, jpp] * 
+      W <- prec * ( - prop[, jp] * prop[, jpp] * 
           (-ldgp_y_sum + ldg_y[, jp] + ldgp_sum - ldg[, jp]) +
           prop[, jp] * 
           (ltgpp_y_sum * prop[, jpp] - ltgpp_y[, jpp] +
@@ -80,7 +80,7 @@ dm_Hessian_regG_prop <- function(y, disp, prop, x){
       
       if(jp == jpp){
         
-        W <- W + disp * ( prop[, jp] *
+        W <- W + prec * ( prop[, jp] *
             (-ldgp_y_sum + ldg_y[, jp] + ldgp_sum - ldg[, jp]) +
             prop[, jp] * (ltgp_y[, jp] + ltgp[, jp]) )
         
@@ -105,7 +105,7 @@ dm_Hessian_regG_prop <- function(y, disp, prop, x){
 }
 
 
-dm_Hessian_regG <- function(b, x, disp, y){  
+dm_Hessian_regG <- function(b, x, prec, y){  
   ## b has length of (q-1) * p
   ## x is a matrix n x p
   ## y has q rows and n columns
@@ -123,7 +123,7 @@ dm_Hessian_regG <- function(b, x, disp, y){
   
   prop <- cbind(prop_qm1, 1 - rowSums(prop_qm1)) # n x q
   
-  H <- dm_Hessian_regG_prop(y = y, disp = disp, prop = prop, x = x)
+  H <- dm_Hessian_regG_prop(y = y, prec = prec, prop = prop, x = x)
   
   return(H)
   
@@ -192,9 +192,9 @@ m_Hessian_regG <- function(b, x, y){
 # Hessian for q-1 parameters -- with sums
 ##############################################################################
 
-dm_Hessian <- function(prop, disp, y){  
+dm_Hessian <- function(prop, prec, y){  
   # prop has length of q-1
-  # disp has length 1
+  # prec has length 1
   # y has q rows and n columns
   
   q <- nrow(y)
@@ -210,7 +210,7 @@ dm_Hessian <- function(prop, disp, y){
     if(y[q, i] == 0){
       Djl <- Djl + 0
     }else{
-      Djl <- Djl +  sum(-disp^2 / (propq * disp + 1:y[q, i] - 1) ^2) 
+      Djl <- Djl +  sum(-prec^2 / (propq * prec + 1:y[q, i] - 1) ^2) 
     } 
     
     for(j in 1:(q-1)){
@@ -219,7 +219,7 @@ dm_Hessian <- function(prop, disp, y){
       if(y[j,i] == 0){
         Djj[j] <- Djj[j] + 0
       }else{
-        Djj[j] <- Djj[j] + sum(-disp^2 / (prop[j] * disp + 1:y[j,i] - 1) ^2)
+        Djj[j] <- Djj[j] + sum(-prec^2 / (prop[j] * prec + 1:y[j,i] - 1) ^2)
       }  
       
     }

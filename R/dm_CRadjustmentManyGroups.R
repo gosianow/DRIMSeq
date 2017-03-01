@@ -1,7 +1,7 @@
 
 
 dm_CRadjustmentManyGroups <- function(y, ngroups, lgroups, igroups, 
-  disp, prop){  
+  prec, prop){  
   # y can not have any rowSums(y) == 0 - assured during dmFilter
   # prop matrix q x ngroups
   
@@ -16,7 +16,7 @@ dm_CRadjustmentManyGroups <- function(y, ngroups, lgroups, igroups,
     prop_tmp <- prop[, gr]
     y_tmp  <- y[, igroups[[gr]], drop = FALSE]
     
-    a <- dm_CRadjustmentOneGroup(y = y_tmp, disp, prop = prop_tmp)
+    a <- dm_CRadjustmentOneGroup(y = y_tmp, prec, prop = prop_tmp)
     
     adj[gr] <- a
     

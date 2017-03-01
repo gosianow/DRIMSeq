@@ -14,12 +14,10 @@
 \alias{dim,MatrixList-method}
 \alias{nrow,MatrixList-method}
 \alias{ncol,MatrixList-method}
-\alias{[[,MatrixList,ANY,ANY-method}
 \alias{[[,MatrixList-method}
 \alias{$,MatrixList-method}
-\alias{[,MatrixList,ANY,ANY,ANY-method}
-\alias{[,MatrixList-method}
 \alias{[,MatrixList,ANY-method}
+\alias{[,MatrixList-method}
 \title{MatrixList object}
 \usage{
 \S4method{names}{MatrixList}(x)
@@ -44,11 +42,11 @@
 
 \S4method{ncol}{MatrixList}(x)
 
-\S4method{[[}{MatrixList,ANY,ANY}(x, i, j)
+\S4method{[[}{MatrixList}(x, i, j)
 
 \S4method{$}{MatrixList}(x, name)
 
-\S4method{[}{MatrixList,ANY,ANY,ANY}(x, i, j)
+\S4method{[}{MatrixList,ANY}(x, i, j)
 }
 \arguments{
 \item{x}{MatrixList object.}

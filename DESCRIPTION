@@ -20,6 +20,9 @@ License: GPL (>= 3)
 Depends:
     R (>= 3.3.0)
 Imports:
+    utils,
+    stats,
+    MASS,
     GenomicRanges,
     IRanges,
     S4Vectors,
@@ -28,9 +31,6 @@ Imports:
     BiocParallel,
     limma,
     edgeR,
-    utils,
-    stats,
-    MASS,
     Rcgmin,
     ggplot2,
     reshape2
@@ -49,22 +49,22 @@ Collate:
     'class_show_utils.R'
     'class_MatrixList.R'
     'class_dmDSdata.R'
-    'class_dmDSdispersion.R'
+    'class_dmDSprecision.R'
     'class_dmDSfit.R'
     'class_dmDStest.R'
     'class_dmSQTLdata.R'
-    'class_dmSQTLdispersion.R'
+    'class_dmSQTLprecision.R'
     'class_dmSQTLfit.R'
     'class_dmSQTLtest.R'
     'dmDS_CRadjustment.R'
-    'dmDS_estimateCommonDispersion.R'
-    'dmDS_estimateTagwiseDispersion.R'
+    'dmDS_estimateCommonPrecision.R'
+    'dmDS_estimateTagwisePrecision.R'
     'dmDS_filter.R'
     'dmDS_fit.R'
     'dmDS_profileLik.R'
     'dmSQTL_CRadjustment.R'
-    'dmSQTL_estimateCommonDispersion.R'
-    'dmSQTL_estimateTagwiseDispersion.R'
+    'dmSQTL_estimateCommonPrecision.R'
+    'dmSQTL_estimateTagwisePrecision.R'
     'dmSQTL_filter.R'
     'dmSQTL_fit.R'
     'dmSQTL_permutations.R'
@@ -83,7 +83,7 @@ Collate:
     'dm_fitOneGroup.R'
     'dm_fitRegression.R'
     'dm_plotData.R'
-    'dm_plotDispersion.R'
+    'dm_plotPrecision.R'
     'dm_plotProportions.R'
     'dm_plotPvalues.R'
     'dm_profileLikModeration.R'

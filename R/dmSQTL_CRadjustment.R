@@ -1,7 +1,7 @@
 
 
 dmSQTL_CRadjustmentManyGroups_gene <- function(g, counts, genotypes,
-  disp, fit, verbose){  
+  prec, fit, verbose){  
   
   if(verbose >= 2) message(" Gene:", g)
   
@@ -28,7 +28,7 @@ dmSQTL_CRadjustmentManyGroups_gene <- function(g, counts, genotypes,
     
     a[i] <- dm_CRadjustmentManyGroups(y = yy, 
       ngroups = ngroups, lgroups = lgroups, igroups = igroups, 
-      disp = disp[[g]][i], prop = ff[, figroups, drop = FALSE])
+      prec = prec[[g]][i], prop = ff[, figroups, drop = FALSE])
     
   }
   
@@ -40,7 +40,7 @@ dmSQTL_CRadjustmentManyGroups_gene <- function(g, counts, genotypes,
 #' @importFrom stats model.matrix
 
 dmSQTL_CRadjustmentRegression_gene <- function(g, counts, genotypes,
-  group_formula = ~ group, disp, fit, verbose){  
+  group_formula = ~ group, prec, fit, verbose){  
   
   if(verbose >= 2) message(" Gene:", g)
   
@@ -60,7 +60,7 @@ dmSQTL_CRadjustmentRegression_gene <- function(g, counts, genotypes,
     design <- model.matrix(group_formula, data = data.frame(group = xx))
     
     a[i] <- dm_CRadjustmentRegression(y = yy, x = design, 
-      disp = disp[[g]][i], prop = ff)
+      prec = prec[[g]][i], prop = ff)
     
   }
   
@@ -70,9 +70,8 @@ dmSQTL_CRadjustmentRegression_gene <- function(g, counts, genotypes,
 }
 
 
-
 dmSQTL_CRadjustment <- function(counts, fit, genotypes, 
-  group_formula = ~ group, dispersion, one_way = TRUE,
+  group_formula = ~ group, precision, one_way = TRUE,
   verbose = FALSE, BPPARAM = BiocParallel::SerialParam()){
   
   time_start <- Sys.time()
@@ -80,18 +79,18 @@ dmSQTL_CRadjustment <- function(counts, fit, genotypes,
   
   inds <-  1:length(counts)
   
-  # Prepare dispersion
-  if(class(dispersion) == "numeric"){ 
-    disp <- relist(rep(dispersion, nrow(genotypes)), genotypes@partitioning)
+  # Prepare precision
+  if(class(precision) == "numeric"){ 
+    prec <- relist(rep(precision, nrow(genotypes)), genotypes@partitioning)
   } else {
-    disp <- dispersion
+    prec <- precision
   }
   
   if(one_way){
     
     adj <- BiocParallel::bplapply(inds, 
       dmSQTL_CRadjustmentManyGroups_gene, counts = counts, 
-      genotypes = genotypes, disp = disp, fit = fit, 
+      genotypes = genotypes, prec = prec, fit = fit, 
       verbose = verbose, BPPARAM = BPPARAM)
     
     names(adj) <- names(counts)
@@ -100,7 +99,7 @@ dmSQTL_CRadjustment <- function(counts, fit, genotypes,
     
     adj <- BiocParallel::bplapply(inds, 
       dmSQTL_CRadjustmentRegression_gene, counts = counts, 
-      genotypes = genotypes, group_formula = ~ group, disp = disp, fit = fit, 
+      genotypes = genotypes, group_formula = ~ group, prec = prec, fit = fit, 
       verbose = verbose, BPPARAM = BPPARAM)
     
     names(adj) <- names(counts)

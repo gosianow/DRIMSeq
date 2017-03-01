@@ -54,14 +54,14 @@ NULL
 # 
 # ## To make the analysis reproducible
 # set.seed(123)
-# ## Calculate dispersion
-# d <- dmDispersion(d, design = design)
+# ## Calculate precision
+# d <- dmPrecision(d, design = design)
 # 
-# plotDispersion(d)
+# plotPrecision(d)
 # 
 # head(mean_expression(d))
-# common_dispersion(d)
-# head(genewise_dispersion(d))
+# common_precision(d)
+# head(genewise_precision(d))
 # 
 # ## Fit full model proportions
 # d <- dmFit(d, design = design)
@@ -96,9 +96,6 @@ NULL
 # plotProportions(d, gene_id = top_gene_id, group_variable = "group", 
 #   plot_type = "ribbonplot")
 # 
-# ## Perform the two-stage test to get the feature-level adjusted p-values
-# res2 <- dmTwoStageTest(d)
-# res2[res2$gene_id %in% top_gene_id, ]
 # 
 # 
 # 
@@ -136,10 +133,10 @@ NULL
 # 
 # ## To make the analysis reproducible
 # set.seed(123)
-# ## Calculate dispersion
-# d <- dmDispersion(d)
+# ## Calculate precision
+# d <- dmPrecision(d)
 # 
-# plotDispersion(d)
+# plotPrecision(d)
 # 
 # ## Fit full model proportions
 # d <- dmFit(d)
