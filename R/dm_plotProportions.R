@@ -351,7 +351,8 @@ dm_plotProportions <- function(counts, group, fit_full = NULL,
         
         prop_fit <- prop_fit[keep, , drop = FALSE]
         
-        if(sum(duplicated(prop_fit$group)) > 0){
+        if(nlevels(factor(prop_fit$sample_id)) != 
+        	nlevels(factor(prop_fit$group))){
           message("Ribbonplot can not be generated.")
         }else{
           dm_plotProportions_ribbonplot(prop_fit,

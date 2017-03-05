@@ -1,4 +1,6 @@
 ^data-raw$
+^data$
+^inst$
 ^vignettes/cache$
 ^vignettes/figure$
 ^.*\.Rproj$

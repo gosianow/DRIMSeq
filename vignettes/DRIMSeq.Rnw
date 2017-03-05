@@ -2,30 +2,40 @@
 %\VignettePackage{DRIMSeq}
 %\VignetteEngine{knitr::knitr}
 
-\documentclass[11pt]{article}
-\usepackage[utf8]{inputenc}
+\documentclass[10pt]{article}
 
-
-<<style-knitr, eval=TRUE, echo=FALSE, results="asis">>=
-BiocStyle::latex(use.unsrturl=FALSE)
+<<style, eval=TRUE, echo=FALSE, results='asis'>>=
+BiocStyle::latex2()
 @
 
+\usepackage[utf8]{inputenc}
+\usepackage[sort]{cite}
+\usepackage{xstring}
 
 \bioctitle[Differential transcript usage and transcript usage QTL analyses in RNA-seq with the DRIMSeq package]{DRIMSeq: Dirichlet-multinomial framework for differential transcript usage and transcript usage QTL analyses in RNA-seq}
-\author{Malgorzata Nowicka\footnote{gosia.nowicka@uzh.ch}, Mark D. Robinson}
+
+\author{
+Malgorzata Nowicka\thanks{\email{gosia.nowicka@uzh.ch}},
+Mark D. Robinson\\
+Institute for Molecular Life Sciences, University of Zurich, Switzerland\\
+SIB Swiss Institute of Bioinformatics, University of Zurich, Switzerland
+}
 
 
 \begin{document}
 
 
 \maketitle
-\noindent This vignette describes \Rpackage{DRIMSeq} version \Sexpr{packageDescription("DRIMSeq")$Version}.
-\tableofcontents
 
+\packageVersion{\Sexpr{BiocStyle::pkg_ver("DRIMSeq")}}
+
+\newpage
+\tableofcontents
+\newpage
 
 <<setup_knitr, include=FALSE, cache=FALSE>>=
 library(knitr)
-opts_chunk$set(cache = FALSE, highlight=FALSE, out.width = "7cm", out.height = "7cm", fig.align = "center", warning = FALSE)
+opts_chunk$set(cache = FALSE, warning = FALSE, out.width = "7cm", fig.width = 7, out.height = "7cm", fig.height = 7)
 @
 
 
@@ -42,15 +52,14 @@ news(package = "DRIMSeq")
 @
 
 
-\itemize{
-\item Implementation of the regression framework in differential transcript usage analysis. It allows fitting more complicated than multiple group comparison experimental designs, for example, one can account for the batch effects or the fact that samples are paired or model continuous time course changes. It enables also testing of more complicated contrasts.
+Implementation of the regression framework in differential transcript usage analysis. It allows fitting more complicated than multiple group comparison experimental designs, for example, one can account for the batch effects or the fact that samples are paired or model continuous time course changes. It enables also testing of more complicated contrasts.
 
-\item Transcript-level analysis based on the beta-binomial model. In this case, each transcript ratio is modeled separately assuming it follows the beta-binomial distribution which is a one-dimensional version of the Dirichlet-multinomial distribution. Based on the fact that when $(Y_1,\ldots,Y_q) \sim DM(\pi_1,\ldots,\pi_q, \gamma_0)$ then $Y_j \sim BB(\pi_j,\gamma_0)$, we do not need to reestimate the beta-binomial parameters, only the likelihoods are recalculated.
+Transcript-level analysis based on the beta-binomial model. In this case, each transcript ratio is modeled separately assuming it follows the beta-binomial distribution which is a one-dimensional version of the Dirichlet-multinomial distribution. Based on the fact that when $(Y_1,\ldots,Y_q) \sim DM(\pi_1,\ldots,\pi_q, \gamma_0)$ then $Y_j \sim BB(\pi_j,\gamma_0)$ \cite{Danaher1988}, we do not need to reestimate the beta-binomial parameters, only the likelihoods are recalculated.
 \Rpackage{DRIMSeq} returns gene-level and transcript-level p-values which can be used as input to the stage-wise testing procedure \cite{VandenBerge2017} as screening and confirmation p-values, respectively. Such approach provides increased power to identify transcripts which are actually differentially used in a gene detected as gene with DTU. 
 
-\item Usage of term 'precision' instead of 'dispersion'. In the differential analysis based on the negative-binomial model, dispersion parameter is estimated. This dispersion parameter captures all sources of the inter-library variation between replicates present in the RNA-seq data. 
+Usage of term 'precision' instead of 'dispersion'. In the differential analysis based on the negative-binomial model, dispersion parameter is estimated. This dispersion parameter captures all sources of the inter-library variation between replicates present in the RNA-seq data. 
 In the DM model, we do not directly estimate dispersion but a parameter called precision which is closely linked to dispersion via the formula: $dispersion = 1 / (1 + precision)$. In the previous version of \cite{Nowicka2016}, we used 'dispersion' as a name for the functions and variables calculating and storing, in fact, the precision estimates. Now, we use the term 'precision'.
-}
+
 
 \section{Overview of the Dirichlet-multinomial model}
 
@@ -66,28 +75,22 @@ Therefore, other types of multivariate differential analyses can be performed su
 
 In short, the method consists of three statistical steps:
 
-\iterate{
-
-\item First, we use the profile likelihood to estimate the precision which is inverse proportional to dispersion, i.e., the variability of transcript ratios between samples (replicates) within conditions. 
+First, we use the Cox-Reid adjusted profile likelihood to estimate the precision which is inverse proportional to dispersion, i.e., the variability of transcript ratios between samples (replicates) within conditions. 
 Dispersion is needed in order to find the significant changes in transcript ratios between conditions which should be sufficiently stronger than the changes/variability within conditions. 
 
-\item Second, we use maximum likelihood to estimate at the gene-level the regression coefficients in the Dirichlet-multinomial (DM) regression, the fitted transcript proportions in each sample and the full model likelihoods. For the analysis at the transcript-level we apply the beta-binomial (BB) regression to each transcript separately.
+Second, we use maximum likelihood to estimate at the gene-level the regression coefficients in the Dirichlet-multinomial (DM) regression, the fitted transcript proportions in each sample and the full model likelihoods. For the analysis at the transcript-level we apply the beta-binomial (BB) regression to each transcript separately.
 In the differential transcript usage analysis, the full model is defined by the user with the design matrix.
 In the QTL analysis, full models are defined by the genotypes of SNPs associated with a given gene. 
 
-\item Finally, we fit the null model DM and BB regression and use the likelihood ratio statistics to test for the differences in transcript proportions between the full and null models at the gene and transcript level.
+Finally, we fit the null model DM and BB regression and use the likelihood ratio statistics to test for the differences in transcript proportions between the full and null models at the gene and transcript level.
 In the differential transcript usage analysis, the null model is again defined by the user. 
 In the QTL analysis, null models correspond to regression with intercept only.
-}
 
 \section{Important notes}
 
-\itemize{
-\item Currently, transcript-level analysis based on the BB model are implemented only in the DTU analysis (\Rcode{bb\_model = TRUE}). 
+Currently, transcript-level analysis based on the BB model are implemented only in the DTU analysis (\Rcode{bb\_model = TRUE}). 
 
-\item When the model (full or null) of interest corresponds to multiple (or one) group fitting, then a shortcut algorithm called 'one way' (\Rcode{one\_way = TRUE}), which we adapted from the \Rfunction{glmFit} function in \Biocpkg{edgeR} \cite{McCarthy2012}, can be used. Choosing it is equivalent to running the original \Rpackage{DRIMSeq} implementation. In such a case, we use maximum likelihood to estimate the transcript proportions in each group separately and then the regression coefficients are calculated using matrix operations. Otherwise, the regression coefficients are directly estimated with the maximum likelihood approach.
-}
-
+When the model (full or null) of interest corresponds to multiple (or one) group fitting, then a shortcut algorithm called 'one way' (\Rcode{one\_way = TRUE}), which we adapted from the \Rfunction{glmFit} function in \Biocpkg{edgeR} \cite{McCarthy2012}, can be used. Choosing it is equivalent to running the original \Rpackage{DRIMSeq} implementation. In such a case, we use maximum likelihood to estimate the transcript proportions in each group separately and then the regression coefficients are calculated using matrix operations. Otherwise, the regression coefficients are directly estimated with the maximum likelihood approach.
 
 \section{Hints for DRIMSeq pipelines}
 
@@ -109,7 +112,7 @@ It is indeed feasible to perform tuQTL analysis for small chunks of genome, for 
 % Differential transcript usage analysis workflow
 %------------------------------------------------------------------------------
 
-\section{DRIMSeq differential transcript usage analysis workflow}
+\section{Differential transcript usage analysis workflow}
 
 \subsection{Example data}
 
@@ -117,7 +120,7 @@ To demonstrate the application of \Rpackage{DRIMSeq} in differential transcript 
 The aim of their study was to identify exons that are regulated by pasilla protein, the Drosophila melanogaster ortholog of mammalian NOVA1 and NOVA2 (well studied transcript usage factors). 
 In their RNA-seq experiment, the libraries were prepared from 7 biologically independent samples: 4 control samples and 3 samples in which pasilla was knocked-down. 
 The libraries were sequenced on Illumina Genome Analyzer II using single-end and paired-end sequencing and different read lengths. 
-The RNA-seq data can be downloaded from the NCBI’s Gene Expression Omnibus (GEO) under the accession 
+The RNA-seq data can be downloaded from the NCBI Gene Expression Omnibus (GEO) under the accession 
 number GSE18508. 
 In the examples below, we use a subset of \software{kallisto} \cite{Bray2016} counts available in \Biocexptpkg{PasillaTranscriptExpr} package, where you can find all the steps needed, for preprocessing the GEO data, to get a table with transcript counts.
 
@@ -362,7 +365,7 @@ Currently, plots can be done only for categorical variables. We choose the \Rcod
 Estimated proportions are marked with diamond shapes. 
 As an example, we plot the top significant gene.
 
-<<DSdmLRT_plotProportions, out.width = "16cm", fig.width = 16>>=
+<<DSdmLRT_plotProportions, out.width = "14cm", fig.width = 14>>=
 res <- results(d)
 res <- res[order(res$pvalue, decreasing = FALSE), ]
 top_gene_id <- res$gene_id[1]
@@ -469,7 +472,7 @@ plotPValues(d2)
 @
 
 
-<<DRIMSeq_batch_plotProportions, out.width = "16cm", fig.width = 16>>=
+<<DRIMSeq_batch_plotProportions, out.width = "14cm", fig.width = 14>>=
 ## Plot the top significant gene
 res2 <- results(d2)
 res2 <- res2[order(res2$pvalue, decreasing = FALSE), ]
@@ -644,7 +647,7 @@ You can plot the observed transcript ratios for the tuQTLs of interest. Plotting
 When the sample size is large, we recommend using box plots as a \Rcode{plot\_type}. We plot a tuQTL with the lowest p-value.
 
 
-<<SQTLplotProportions, out.width = "16cm", fig.width = 16>>=
+<<SQTLplotProportions, out.width = "14cm", fig.width = 14>>=
 res <- results(d)
 res <- res[order(res$pvalue, decreasing = FALSE), ]
 
