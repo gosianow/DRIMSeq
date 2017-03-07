@@ -34,7 +34,9 @@ dm_CRadjustmentOneGroup <- function(y, prec, prop){
   prop <- prop[keep_row]
   n <- ncol(y) 
   
-  adj <- log(det(n * (- dm_HessianG(prop = prop[-q], prec, y)) ))/2 
+  H <- dm_HessianG(prop = prop[-q], prec, y)
+  
+  adj <- log(det(n * (- H) ))/2 
   ## with Gamma functions ## if prop is NULL then:
   # Error in is.data.frame(x) :
   # dims [product 6] do not match the length of object [0]

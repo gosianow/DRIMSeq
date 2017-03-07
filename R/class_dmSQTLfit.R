@@ -124,7 +124,7 @@ setMethod("dmFit", "dmSQTLprecision", function(x, one_way = TRUE,
   stopifnot(is.numeric(prop_tol) && prop_tol > 0)
   
   stopifnot(length(coef_mode) == 1)
-  stopifnot(coef_mode %in% c("optim", "nlminb", "Rcgmin"))
+  stopifnot(coef_mode %in% c("optim", "nlminb", "nlm"))
   stopifnot(length(coef_tol) == 1)
   stopifnot(is.numeric(coef_tol) && coef_tol > 0)
   

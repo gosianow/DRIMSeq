@@ -218,7 +218,7 @@ setMethod("dmPrecision", "dmSQTLdata", function(x, mean_expression = TRUE,
   stopifnot(is.numeric(prop_tol) && prop_tol > 0)
   
   stopifnot(length(coef_mode) == 1)
-  stopifnot(coef_mode %in% c("optim"))
+  stopifnot(coef_mode %in% c("optim", "nlminb", "nlm"))
   stopifnot(length(coef_tol) == 1)
   stopifnot(is.numeric(coef_tol) && coef_tol > 0)
   

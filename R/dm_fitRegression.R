@@ -1,5 +1,5 @@
 
-#' @importFrom stats optim
+#' @importFrom stats optim nlminb nlm
 
 dm_fitRegression <- function(y, design, 
   prec, coef_mode = "optim", coef_tol = 1e-12){
@@ -32,15 +32,49 @@ dm_fitRegression <- function(y, design,
     
     optim = { 
       
-      # Minimization
-      co <- optim(par = b_init, fn = dm_lik_regG_neg, gr = dm_score_regG_neg,
-        design = design, prec = prec, y = y,
+      # Maximization
+      co <- optim(par = b_init, fn = dm_lik_regG, gr = dm_score_regG,
+        x = design, prec = prec, y = y,
         method = "BFGS",
-        control = list(reltol = coef_tol))
+        control = list(fnscale = -1, reltol = coef_tol))
       
       if(co$convergence == 0){
         b <- rbind(t(matrix(co$par, p, q-1)), rep(0, p))
-        lik <- -co$value
+        lik <- co$value
+      }else{
+        b <- matrix(NA, nrow = q, ncol = p)
+        lik <- NA
+      }
+      
+    },
+    
+    nlminb = {
+      
+      # Minimization
+      co <- nlminb(start = b_init, objective = dm_lik_regG_neg,
+        gradient = dm_score_regG_neg, hessian = NULL,
+        design = design, prec = prec, y = y,
+        control = list(rel.tol = coef_tol))
+      
+      if(co$convergence == 0){
+        b <- rbind(t(matrix(co$par, p, q-1)), rep(0, p))
+        lik <- -co$objective
+      }else{
+        b <- matrix(NA, nrow = q, ncol = p)
+        lik <- NA
+      }
+      
+    }, 
+    
+    nlm = {
+      
+      # Minimization
+      co <- nlm(f = dm_lik_regG_neg, p = b_init,
+        design = design, prec = prec, y = y)
+      
+      if(co$code < 5){
+        b <- rbind(t(matrix(co$estimate, p, q-1)), rep(0, p))
+        lik <- -co$minimum
       }else{
         b <- matrix(NA, nrow = q, ncol = p)
         lik <- NA
@@ -48,41 +82,6 @@ dm_fitRegression <- function(y, design,
       
     }
     
-    # nlminb = { 
-    #   
-    #   # Minimization
-    #   co <- nlminb(start = b_init, objective = dm_lik_regG_neg, 
-    #     gradient = dm_score_regG_neg, hessian = NULL,
-    #     design = design, prec = prec, y = y,
-    #     control = list(rel.tol = coef_tol))
-    #   
-    #   if(co$convergence == 0){
-    #     b <- rbind(t(matrix(co$par, p, q-1)), rep(0, p))
-    #     lik <- -co$objective
-    #   }else{
-    #     b <- matrix(NA, nrow = q, ncol = p)
-    #     lik <- NA
-    #   }
-    #   
-    # },
-    # 
-    # Rcgmin = {
-    #   
-    #   # Minimization
-    #   # Can not use x as an argument because grad() uses x
-    #   co <- Rcgmin::Rcgmin(par = b_init, fn = dm_lik_regG_neg, 
-    #     gr = dm_score_regG_neg, 
-    #     design = design, prec = prec, y = y) 
-    #   
-    #   if(co$convergence == 0){
-    #     b <- rbind(t(matrix(co$par, p, q-1)), rep(0, p))
-    #     lik <- -co$value
-    #   }else{
-    #     b <- matrix(NA, nrow = q, ncol = p)
-    #     lik <- NA
-    #   }
-    #   
-    # }
   )
   
   # Compute the fitted proportions

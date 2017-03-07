@@ -57,17 +57,17 @@ dm_fitOneGroup <- function(y, prec,
       # ui <- rbind(diag(rep(1, q-1)), diag(rep(-1, q-1)))
       # ci <- c(rep(0, q-1), rep(-1, q-1))
       
-      # Minimization
-      co <- constrOptim(theta = prop_init[-q], f = dm_likG_neg, 
-        grad = dm_scoreG_neg, 
-        ui = ui, ci = ci, control = list(reltol = prop_tol), 
+      # Maximization
+      co <- constrOptim(theta = prop_init[-q], f = dm_likG, 
+        grad = dm_scoreG, 
+        ui = ui, ci = ci, control = list(fnscale = -1, reltol = prop_tol), 
         method = "BFGS",
         prec = prec, y = y)
       
       if(co$convergence == 0){
         prop <- co$par
-        prop <- c(prop, 1-sum(prop))
-        lik <- -co$value
+        prop <- c(prop, 1 - sum(prop))
+        lik <- co$value
       }else{
         return(list(prop = rep(NA, length(keep_row)), lik = NA))
       }

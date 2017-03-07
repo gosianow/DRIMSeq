@@ -35,7 +35,7 @@ SIB Swiss Institute of Bioinformatics, University of Zurich, Switzerland
 
 <<setup_knitr, include=FALSE, cache=FALSE>>=
 library(knitr)
-opts_chunk$set(cache = TRUE, warning = FALSE, out.width = "7cm", fig.width = 7, out.height = "7cm", fig.height = 7)
+opts_chunk$set(cache = FALSE, warning = FALSE, out.width = "7cm", fig.width = 7, out.height = "7cm", fig.height = 7)
 @
 
 
@@ -454,8 +454,8 @@ set.seed(123)
 ## Calculate precision
 d2 <- dmPrecision(d2, design = design_full2)
 
-common_precision(d)
-head(genewise_precision(d))
+common_precision(d2)
+head(genewise_precision(d2))
 
 plotPrecision(d2)
 
