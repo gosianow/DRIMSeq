@@ -108,11 +108,10 @@ d <- dmFilter(d, min_samps_gene_expr = 70, min_samps_feature_expr = 5,
 plotData(d)
 }
 }
-\author{
-Malgorzata Nowicka
-}
 \seealso{
 \code{\link{plotPrecision}}, \code{\link{plotProportions}},
   \code{\link{plotPValues}}
 }
-
+\author{
+Malgorzata Nowicka
+}

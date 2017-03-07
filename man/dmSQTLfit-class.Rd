@@ -25,6 +25,7 @@ likelihoods.}
 \item{\code{coef_full}}{\code{\linkS4class{MatrixList}} with the regression 
 coefficients based on the DM model.}
 }}
+
 \examples{
 # --------------------------------------------------------------------------
 # Create dmSQTLdata object
@@ -67,11 +68,10 @@ plotPrecision(d)
 d <- dmFit(d)
 }
 }
-\author{
-Malgorzata Nowicka
-}
 \seealso{
 \code{\linkS4class{dmSQTLdata}}, 
   \code{\linkS4class{dmSQTLprecision}}, \code{\linkS4class{dmSQTLtest}}
 }
-
+\author{
+Malgorzata Nowicka
+}

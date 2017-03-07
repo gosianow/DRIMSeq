@@ -161,8 +161,9 @@ setMethod("dmFit", "dmSQTLprecision", function(x, one_way = TRUE,
 #' @rdname plotProportions
 #' @export
 setMethod("plotProportions", "dmSQTLfit", function(x, gene_id, snp_id, 
-  plot_type = "boxplot1", order = TRUE, plot_fit = FALSE, 
-  plot_main = TRUE, group_colors = NULL, feature_colors = NULL){
+  plot_type = "boxplot1", order_features = TRUE, order_samples = TRUE,
+  plot_fit = FALSE, plot_main = TRUE, 
+  group_colors = NULL, feature_colors = NULL){
   
   stopifnot(gene_id %in% names(x@blocks))
   
@@ -171,7 +172,8 @@ setMethod("plotProportions", "dmSQTLfit", function(x, gene_id, snp_id,
   
   stopifnot(plot_type %in% c("barplot", "boxplot1", "boxplot2", "lineplot", 
     "ribbonplot"))
-  stopifnot(is.logical(order))
+  stopifnot(is.logical(order_features))
+  stopifnot(is.logical(order_samples))
   stopifnot(is.logical(plot_fit))
   stopifnot(is.logical(plot_main))
   
@@ -221,7 +223,8 @@ setMethod("plotProportions", "dmSQTLfit", function(x, gene_id, snp_id,
 
   ggp <- dm_plotProportions(counts = counts_gene, group = group, 
     fit_full = fit_full, main = main, plot_type = plot_type, 
-    order = order, group_colors = group_colors, feature_colors = feature_colors)
+    order_features = order_features, order_samples = order_samples,
+    group_colors = group_colors, feature_colors = feature_colors)
   
   return(ggp)  
   

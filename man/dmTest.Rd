@@ -184,9 +184,6 @@ plotProportions(d, gene_id = top_gene_id, group_variable = "group",
   plot_type = "ribbonplot")
 }
 }
-\author{
-Malgorzata Nowicka
-}
 \references{
 McCarthy, DJ, Chen, Y, Smyth, GK (2012). Differential expression 
   analysis of multifactor RNA-Seq experiments with respect to biological 
@@ -195,4 +192,6 @@ McCarthy, DJ, Chen, Y, Smyth, GK (2012). Differential expression
 \seealso{
 \code{\link{plotPValues}} \code{\link[edgeR]{glmLRT}}
 }
-
+\author{
+Malgorzata Nowicka
+}

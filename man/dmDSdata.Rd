@@ -55,10 +55,9 @@ gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
 d <- d[names(d) \%in\% gene_id_subset, ]
 }
 }
-\author{
-Malgorzata Nowicka
-}
 \seealso{
 \code{\link{plotData}}
 }
-
+\author{
+Malgorzata Nowicka
+}

@@ -2,8 +2,8 @@
 % Please edit documentation in R/class_dmDStest.R
 \docType{class}
 \name{dmDStest-class}
-\alias{design,dmDStest-method}
 \alias{dmDStest-class}
+\alias{design,dmDStest-method}
 \alias{results}
 \alias{results,dmDStest-method}
 \title{dmDStest object}
@@ -58,6 +58,7 @@ likelihood ratio statistics based on the BB model, \code{df} - degrees of
 freedom, \code{pvalue} - p-values and \code{adj_pvalue} - Benjamini & 
 Hochberg adjusted p-values.}
 }}
+
 \examples{
 # --------------------------------------------------------------------------
 # Create dmDSdata object 
@@ -150,11 +151,10 @@ plotProportions(d, gene_id = top_gene_id, group_variable = "group",
   plot_type = "ribbonplot")
 
 }
-\author{
-Malgorzata Nowicka
-}
 \seealso{
 \code{\linkS4class{dmDSdata}}, \code{\linkS4class{dmDSprecision}},
   \code{\linkS4class{dmDSfit}}
 }
-
+\author{
+Malgorzata Nowicka
+}

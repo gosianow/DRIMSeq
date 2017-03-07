@@ -159,9 +159,6 @@ head(coefficients(d))
 head(coefficients(d), level = "feature")
 }
 }
-\author{
-Malgorzata Nowicka
-}
 \references{
 McCarthy, DJ, Chen, Y, Smyth, GK (2012). Differential expression 
   analysis of multifactor RNA-Seq experiments with respect to biological 
@@ -170,4 +167,6 @@ McCarthy, DJ, Chen, Y, Smyth, GK (2012). Differential expression
 \seealso{
 \code{\link{plotProportions}} \code{\link[edgeR]{glmFit}}
 }
-
+\author{
+Malgorzata Nowicka
+}

@@ -77,10 +77,9 @@ d <- dmSQTLdata(counts = geuv_counts, gene_ranges = geuv_gene_ranges,
   samples = geuv_samples, window = 5e3)
 }
 }
-\author{
-Malgorzata Nowicka
-}
 \seealso{
 \code{\link{plotData}}
 }
-
+\author{
+Malgorzata Nowicka
+}

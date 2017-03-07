@@ -85,4 +85,4 @@ Collate:
     'dm_plotProportions.R'
     'dm_plotPvalues.R'
     'dm_profileLikModeration.R'
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1

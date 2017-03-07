@@ -2,11 +2,11 @@
 % Please edit documentation in R/class_dmDSfit.R
 \docType{class}
 \name{dmDSfit-class}
-\alias{coefficients,dmDSfit-method}
-\alias{design,dmDSfit-method}
 \alias{dmDSfit-class}
+\alias{design,dmDSfit-method}
 \alias{proportions}
 \alias{proportions,dmDSfit-method}
+\alias{coefficients,dmDSfit-method}
 \title{dmDSfit object}
 \usage{
 \S4method{design}{dmDSfit}(object, type = "full_model")
@@ -64,6 +64,7 @@ feature ratios in each sample based on the full beta-binomial (BB) model.}
 \item{\code{coef_full_bb}}{\code{\linkS4class{MatrixList}} with the regression 
 coefficients based on the BB model.}
 }}
+
 \examples{
 # --------------------------------------------------------------------------
 # Create dmDSdata object 
@@ -133,11 +134,10 @@ head(coefficients(d))
 head(coefficients(d), level = "feature")
 }
 }
-\author{
-Malgorzata Nowicka
-}
 \seealso{
 \code{\linkS4class{dmDSdata}}, \code{\linkS4class{dmDSprecision}}, 
   \code{\linkS4class{dmDStest}}
 }
-
+\author{
+Malgorzata Nowicka
+}

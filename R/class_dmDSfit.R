@@ -463,8 +463,10 @@ setGeneric("plotProportions", function(x, ...)
 #' @param plot_type Character defining the type of the plot produced. Possible 
 #'   values \code{"barplot"}, \code{"boxplot1"}, \code{"boxplot2"}, 
 #'   \code{"lineplot"}, \code{"ribbonplot"}.
-#' @param order Logical. Whether to plot the features ordered by their 
+#' @param order_features Logical. Whether to plot the features ordered by their 
 #'   expression.
+#' @param order_samples Logical. Whether to plot the samples ordered by the 
+#'   group variable. If \code{FALSE} order from the \code{sample(x)} is kept.
 #' @param plot_fit Logical. Whether to plot the proportions estimated by the 
 #'   full model.
 #' @param plot_main Logical. Whether to plot a title with the information about 
@@ -571,13 +573,15 @@ setGeneric("plotProportions", function(x, ...)
 #' @rdname plotProportions
 #' @export
 setMethod("plotProportions", "dmDSfit", function(x, gene_id, group_variable, 
-  plot_type = "barplot", order = TRUE, plot_fit = TRUE, plot_main = TRUE,
+  plot_type = "barplot", order_features = TRUE, order_samples = TRUE,
+  plot_fit = TRUE, plot_main = TRUE,
   group_colors = NULL, feature_colors = NULL){
   
   stopifnot(gene_id %in% names(x@counts))
   stopifnot(plot_type %in% c("barplot", "boxplot1", "boxplot2", "lineplot", 
     "ribbonplot"))
-  stopifnot(is.logical(order))
+  stopifnot(is.logical(order_features))
+  stopifnot(is.logical(order_samples))
   stopifnot(is.logical(plot_fit))
   stopifnot(is.logical(plot_main))
   stopifnot(length(group_variable) == 1)
@@ -624,9 +628,11 @@ setMethod("plotProportions", "dmDSfit", function(x, gene_id, group_variable,
     fit_full <- x@fit_full[[gene_id]]
   }
   
-  ggp <- dm_plotProportions(counts = counts_gene, group = group, 
+  ggp <- dm_plotProportions(counts = counts_gene, 
+    group = group, md = x@samples,
     fit_full = fit_full, main = main, plot_type = plot_type, 
-    order = order, group_colors = group_colors, feature_colors = feature_colors)
+    order_features = order_features, order_samples = order_samples,
+    group_colors = group_colors, feature_colors = feature_colors)
   
   return(ggp)  
   

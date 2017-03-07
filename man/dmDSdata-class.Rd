@@ -2,14 +2,14 @@
 % Please edit documentation in R/class_dmDSdata.R
 \docType{class}
 \name{dmDSdata-class}
-\alias{[,dmDSdata,ANY-method}
-\alias{[,dmDSdata-method}
-\alias{counts,dmDSdata-method}
 \alias{dmDSdata-class}
-\alias{length,dmDSdata-method}
-\alias{names,dmDSdata-method}
+\alias{counts,dmDSdata-method}
 \alias{samples}
 \alias{samples,dmDSdata-method}
+\alias{names,dmDSdata-method}
+\alias{length,dmDSdata-method}
+\alias{[,dmDSdata,ANY-method}
+\alias{[,dmDSdata-method}
 \title{dmDSdata object}
 \usage{
 \S4method{counts}{dmDSdata}(object)
@@ -57,6 +57,7 @@ way that each of the matrices in a list contains counts for a single gene.}
 \code{sample_id} variable with unique sample names and other covariates 
 that desribe samples and are needed for the differential analysis.}
 }}
+
 \examples{
 # --------------------------------------------------------------------------
 # Create dmDSdata object 
@@ -89,11 +90,10 @@ gene_id_subset <- readLines(file.path(data_dir, "gene_id_subset.txt"))
 d <- d[names(d) \%in\% gene_id_subset, ]
 }
 }
-\author{
-Malgorzata Nowicka
-}
 \seealso{
 \code{\linkS4class{dmDSprecision}}, \code{\linkS4class{dmDSfit}},
   \code{\linkS4class{dmDStest}}
 }
-
+\author{
+Malgorzata Nowicka
+}

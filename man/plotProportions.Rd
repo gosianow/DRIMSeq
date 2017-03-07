@@ -10,12 +10,14 @@
 plotProportions(x, ...)
 
 \S4method{plotProportions}{dmDSfit}(x, gene_id, group_variable,
-  plot_type = "barplot", order = TRUE, plot_fit = TRUE,
-  plot_main = TRUE, group_colors = NULL, feature_colors = NULL)
+  plot_type = "barplot", order_features = TRUE, order_samples = TRUE,
+  plot_fit = TRUE, plot_main = TRUE, group_colors = NULL,
+  feature_colors = NULL)
 
 \S4method{plotProportions}{dmSQTLfit}(x, gene_id, snp_id,
-  plot_type = "boxplot1", order = TRUE, plot_fit = FALSE,
-  plot_main = TRUE, group_colors = NULL, feature_colors = NULL)
+  plot_type = "boxplot1", order_features = TRUE, order_samples = TRUE,
+  plot_fit = FALSE, plot_main = TRUE, group_colors = NULL,
+  feature_colors = NULL)
 }
 \arguments{
 \item{x}{\code{\linkS4class{dmDSfit}}, \code{\linkS4class{dmDStest}} or 
@@ -33,8 +35,11 @@ of the columns in the \code{samples} slot of \code{x}.}
 values \code{"barplot"}, \code{"boxplot1"}, \code{"boxplot2"}, 
 \code{"lineplot"}, \code{"ribbonplot"}.}
 
-\item{order}{Logical. Whether to plot the features ordered by their 
+\item{order_features}{Logical. Whether to plot the features ordered by their 
 expression.}
+
+\item{order_samples}{Logical. Whether to plot the samples ordered by the 
+group variable. If \code{FALSE} order from the \code{sample(x)} is kept.}
 
 \item{plot_fit}{Logical. Whether to plot the proportions estimated by the 
 full model.}
@@ -157,11 +162,10 @@ plotProportions(d, gene_id = top_gene_id, group_variable = "group",
   plot_type = "ribbonplot")
 }
 }
-\author{
-Malgorzata Nowicka
-}
 \seealso{
 \code{\link{plotData}}, \code{\link{plotPrecision}}, 
   \code{\link{plotPValues}}
 }
-
+\author{
+Malgorzata Nowicka
+}

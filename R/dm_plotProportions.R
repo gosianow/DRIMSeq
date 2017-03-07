@@ -229,6 +229,7 @@ dm_plotProportions_ribbonplot <- function(prop_fit,
 #' @param counts Matrix with rows corresponding to features and columns 
 #'   corresponding to samples. Row names are used as labels on the plot.
 #' @param group Factor that groups samples into conditions.
+#' @param md Data frame with additional sample information.
 #' @param fit_full Matrix of estimated proportions with rows corresponding to 
 #'   features and columns corresponding to samples. If \code{NULL}, nothing is
 #'   plotted.
@@ -237,8 +238,10 @@ dm_plotProportions_ribbonplot <- function(prop_fit,
 #' @param plot_type Character defining the type of the plot produced. Possible 
 #'   values \code{"barplot"}, \code{"boxplot1"}, \code{"boxplot2"}, 
 #'   \code{"lineplot"}, \code{"ribbonplot"}.
-#' @param order Logical. Whether to plot the features ordered by their 
+#' @param order_features Logical. Whether to plot the features ordered by their 
 #'   expression.
+#' @param order_samples Logical. Whether to plot the samples ordered by the 
+#'   group variable. If \code{FALSE} order from the \code{sample(x)} is kept.
 #' @param group_colors Character vector with colors for each group.
 #' @param feature_colors Character vector with colors for each feature.
 #'   
@@ -253,8 +256,9 @@ dm_plotProportions_ribbonplot <- function(prop_fit,
 #'   scale_x_discrete guide_legend geom_line geom_ribbon
 #' @importFrom stats aggregate median
 
-dm_plotProportions <- function(counts, group, fit_full = NULL, 
-  main = NULL, plot_type = "boxplot1", order = TRUE,
+dm_plotProportions <- function(counts, group, md = NULL, fit_full = NULL, 
+  main = NULL, plot_type = "boxplot1", 
+  order_features = TRUE, order_samples = TRUE,
   group_colors = NULL, feature_colors = NULL){
   
   ## Calculate observed proportions
@@ -271,7 +275,7 @@ dm_plotProportions <- function(counts, group, fit_full = NULL,
       stringsAsFactors = FALSE)
   
   ## Order transcipts by decreasing proportion 
-  if(order){
+  if(order_features){
     oo <- order(apply(aggregate(t(prop_samp[, -1]), 
       by = list(group = group), median)[, -1], 2, max), decreasing = TRUE)
     feature_levels <- rownames(prop_samp)[oo]  
@@ -280,25 +284,48 @@ dm_plotProportions <- function(counts, group, fit_full = NULL,
   }
   
   ## Order samples by group
-  o <- order(group)
-  sample_levels <- colnames(counts)[o]
+  if(order_samples){
+    o <- order(group)
+    sample_levels <- colnames(counts)[o]
+  }else{
+    sample_levels <- colnames(counts)
+  }
   
   ## Melt prop_samp
   prop_samp <- melt(prop_samp, id.vars = "feature_id", 
     variable.name = "sample_id", value.name = "proportion", 
     factorsAsStrings = FALSE)
+  
   prop_samp$feature_id <- factor(prop_samp$feature_id, levels = feature_levels)
   prop_samp$group <- rep(group, each = nrow(counts))
   prop_samp$sample_id <- factor(prop_samp$sample_id, levels = sample_levels)
   
+  ## Add extra info from md about samples
+  if(!is.null(md)){
+    mm <- match(prop_samp$sample_id, md$sample_id)
+    for(i in setdiff(colnames(md), c("sample_id", "group"))){
+      prop_samp[, i] <- md[mm, i]
+    }
+  }
+  
   ## Melt prop_fit
   if(!is.null(prop_fit)){
+    
     prop_fit <- melt(prop_fit, id.vars = "feature_id", 
       variable.name = "sample_id", value.name = "proportion", 
       factorsAsStrings = FALSE)
     prop_fit$feature_id <- factor(prop_fit$feature_id, levels = feature_levels)
     prop_fit$group <- rep(group, each = nrow(fit_full))
     prop_fit$sample_id <- factor(prop_fit$sample_id, levels = sample_levels)
+    
+    ## Add extra info from md about samples
+    if(!is.null(md)){
+      mm <- match(prop_fit$sample_id, md$sample_id)
+      for(i in setdiff(colnames(md), c("sample_id", "group"))){
+        prop_fit[, i] <- md[mm, i]
+      }
+    }
+    
   }
   
   ## Prepare colors for groups
@@ -347,12 +374,12 @@ dm_plotProportions <- function(counts, group, fit_full = NULL,
       
       if(!is.null(prop_fit)){
         
-        keep <- !duplicated(prop_fit[, c("proportion", "group")])
+        keep <- !duplicated(prop_fit[, c("feature_id", "proportion", "group")])
         
         prop_fit <- prop_fit[keep, , drop = FALSE]
         
         if(nlevels(factor(prop_fit$sample_id)) != 
-        	nlevels(factor(prop_fit$group))){
+            nlevels(factor(prop_fit$group))){
           message("Ribbonplot can not be generated.")
         }else{
           dm_plotProportions_ribbonplot(prop_fit,

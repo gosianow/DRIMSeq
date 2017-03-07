@@ -4,15 +4,17 @@
 \alias{dm_plotProportions}
 \title{Plot feature proportions}
 \usage{
-dm_plotProportions(counts, group, fit_full = NULL, main = NULL,
-  plot_type = "boxplot1", order = TRUE, group_colors = NULL,
-  feature_colors = NULL)
+dm_plotProportions(counts, group, md = NULL, fit_full = NULL, main = NULL,
+  plot_type = "boxplot1", order_features = TRUE, order_samples = TRUE,
+  group_colors = NULL, feature_colors = NULL)
 }
 \arguments{
 \item{counts}{Matrix with rows corresponding to features and columns 
 corresponding to samples. Row names are used as labels on the plot.}
 
 \item{group}{Factor that groups samples into conditions.}
+
+\item{md}{Data frame with additional sample information.}
 
 \item{fit_full}{Matrix of estimated proportions with rows corresponding to 
 features and columns corresponding to samples. If \code{NULL}, nothing is
@@ -25,8 +27,11 @@ nothing is plotted.}
 values \code{"barplot"}, \code{"boxplot1"}, \code{"boxplot2"}, 
 \code{"lineplot"}, \code{"ribbonplot"}.}
 
-\item{order}{Logical. Whether to plot the features ordered by their 
+\item{order_features}{Logical. Whether to plot the features ordered by their 
 expression.}
+
+\item{order_samples}{Logical. Whether to plot the samples ordered by the 
+group variable. If \code{FALSE} order from the \code{sample(x)} is kept.}
 
 \item{group_colors}{Character vector with colors for each group.}
 
@@ -40,4 +45,3 @@ expression.}
 \description{
 Plot observed and/or estimated feature proportions.
 }
-
