@@ -35,7 +35,7 @@ SIB Swiss Institute of Bioinformatics, University of Zurich, Switzerland
 
 <<setup_knitr, include=FALSE, cache=FALSE>>=
 library(knitr)
-opts_chunk$set(cache = FALSE, warning = FALSE, out.width = "7cm", fig.width = 7, out.height = "7cm", fig.height = 7)
+opts_chunk$set(cache = TRUE, warning = FALSE, out.width = "7cm", fig.width = 7, out.height = "7cm", fig.height = 7)
 @
 
 
@@ -477,7 +477,8 @@ plotPValues(d2)
 res2 <- results(d2)
 res2 <- res2[order(res2$pvalue, decreasing = FALSE), ]
 top_gene_id2 <- res2$gene_id[1]
-plotProportions(d2, gene_id = top_gene_id2, group_variable = "group")
+ggp <- plotProportions(d2, gene_id = top_gene_id2, group_variable = "group")
+ggp + facet_wrap(~ library_layout)
 @
 
 
@@ -656,7 +657,7 @@ top_snp_id <- res$snp_id[1]
 
 plotProportions(d, gene_id = top_gene_id, snp_id = top_snp_id)
 plotProportions(d, gene_id = top_gene_id, snp_id = top_snp_id,
-  plot_type = "boxplot2", order = FALSE)
+  plot_type = "boxplot2")
 @
 
 
