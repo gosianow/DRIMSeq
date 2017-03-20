@@ -35,7 +35,7 @@ SIB Swiss Institute of Bioinformatics, University of Zurich, Switzerland
 
 <<setup_knitr, include=FALSE, cache=FALSE>>=
 library(knitr)
-opts_chunk$set(cache = FALSE, warning = FALSE, out.width = "7cm", fig.width = 7, out.height = "7cm", fig.height = 7)
+opts_chunk$set(cache = TRUE, warning = FALSE, out.width = "7cm", fig.width = 7, out.height = "7cm", fig.height = 7)
 @
 
 
