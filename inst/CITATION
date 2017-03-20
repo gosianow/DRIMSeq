@@ -1,0 +1,19 @@
+citHeader("To cite DRIMSeq in publications use:")
+
+citEntry(entry 	= "Article",
+  title        	= "DRIMSeq: a Dirichlet-multinomial framework for multivariate count outcomes in genomics [version 2; referees: 2 approved]",
+  author       	= personList(as.person("Malgorzata Nowicka"),
+                   as.person("Mark D. Robinson")),
+  journal      	= "F1000Research",
+  year         	= "2016",
+  volume       	= "5",
+  number       	= "1356",
+  doi		= "10.12688/f1000research.8900.2",
+  url          	= "https://f1000research.com/articles/5-1356/v2",
+
+  textVersion  	=
+  paste("Malgorzata Nowicka, Mark D. Robinson (2016).",
+        "DRIMSeq: a Dirichlet-multinomial framework for multivariate count outcomes in genomics [version 2; referees: 2 approved].",
+        "F1000Research, 5(1356).",
+        "URL https://f1000research.com/articles/5-1356/v2.")
+)

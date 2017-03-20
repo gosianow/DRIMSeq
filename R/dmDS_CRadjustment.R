@@ -2,7 +2,7 @@
 
 dmDS_CRadjustmentManyGroups_gene <- function(g, counts, 
   ngroups, lgroups, igroups, prec, prop, verbose){  
-
+  
   if(verbose >= 2) message(" Gene:", g)
   
   a <- dm_CRadjustmentManyGroups(y = counts[[g]], 
@@ -16,7 +16,7 @@ dmDS_CRadjustmentManyGroups_gene <- function(g, counts,
 
 dmDS_CRadjustmentRegression_gene <- function(g, counts, 
   design, prec, fit, verbose){  
-	# g = 3
+  
   if(verbose >= 2) message(" Gene:", g)
   
   a <- dm_CRadjustmentRegression(y = counts[[g]], x = design, 
@@ -77,7 +77,7 @@ dmDS_CRadjustment <- function(counts, fit, design, precision,
     
     names(a) <- names(counts)
     adj <- unlist(a) 
-
+    
   }
   
   time_end <- Sys.time()
@@ -86,7 +86,7 @@ dmDS_CRadjustment <- function(counts, fit, design, precision,
   
   # adj is a vector of length G
   return(adj)
-
+  
 }
 
 
