@@ -1,0 +1,8 @@
+*._*
+*.DS_Store
+.Rproj.user
+*.Rhistory
+*.Rproj
+vignettes/*
+!vignettes/DRIMSeq.Rnw
+!vignettes/References.bib
