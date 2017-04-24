@@ -2,7 +2,7 @@ Package: DRIMSeq
 Type: Package
 Title: Differential transcript usage and tuQTL analyses with Dirichlet-multinomial model
     in RNA-seq
-Version: 1.3.4
+Version: 1.4.0
 Date: 2017-03-20
 Authors@R: c(person(given = "Malgorzata", family = "Nowicka", 
     role = c("aut", "cre"),
