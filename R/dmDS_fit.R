@@ -50,7 +50,7 @@ dmDS_fit <- function(counts, design, precision,
   # If the design is equivalent to a oneway layout, use a shortcut algorithm 
   groups <- edgeR::designAsFactor(design)
   
-  if(nlevels(groups) == ncol(design) && one_way){
+  if(nlevels(groups) == ncol(design) && one_way && all(c(design) %in% c(0, 1))){
     
     if(verbose) message("   Using the one way approach. \n")
     
@@ -176,7 +176,7 @@ bbDS_fit <- function(counts, fit, design, precision,
   # If the design is equivalent to a oneway layout, use a shortcut algorithm 
   groups <- edgeR::designAsFactor(design)
   
-  if(nlevels(groups) == ncol(design) && one_way){
+  if(nlevels(groups) == ncol(design) && one_way && all(c(design) %in% c(0, 1))){
     
     if(verbose) message("   Using the one way approach. \n")
     
