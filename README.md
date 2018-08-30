@@ -10,8 +10,9 @@
 
 ``` r
 ## try http:// if https:// URLs are not supported
-source("https://bioconductor.org/biocLite.R")
-biocLite("DRIMSeq")
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+BiocManager::install("DRIMSeq")
 ```
 
 The vignette containing all the instructions on how to use the DRIMSeq package for DTU and tuQTL analyses can be accessed by entering:
@@ -57,9 +58,10 @@ In order to run the examples from the vignette and the manual, you need to insta
 
 ``` r
 ## try http:// if https:// URLs are not supported
-source("https://bioconductor.org/biocLite.R")
-biocLite("PasillaTranscriptExpr")
-biocLite("GeuvadisTranscriptExpr")
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+BiocManager::install("PasillaTranscriptExpr")
+BiocManager::install("GeuvadisTranscriptExpr")
 ```
 
 
