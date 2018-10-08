@@ -353,6 +353,8 @@ setGeneric("dmFilter", function(x, ...) standardGeneric("dmFilter"))
 #'   be expressed. See details.
 #' @param min_feature_prop Minimal proportion for feature expression. This value
 #'   should be between 0 and 1.
+#' @param run_gene_twice Whether to re-run the gene-level filter
+#'   after the feature-level filters.
 #' @return Returns filtered \code{\linkS4class{dmDSdata}} or 
 #'   \code{\linkS4class{dmSQTLdata}} object.
 #' @examples 
@@ -405,7 +407,7 @@ setGeneric("dmFilter", function(x, ...) standardGeneric("dmFilter"))
 #' @export
 setMethod("dmFilter", "dmDSdata", function(x, min_samps_gene_expr = 0, 
   min_samps_feature_expr = 0, min_samps_feature_prop = 0, min_gene_expr = 0, 
-  min_feature_expr = 0, min_feature_prop = 0){
+  min_feature_expr = 0, min_feature_prop = 0, run_gene_twice = FALSE){
   
   stopifnot(min_samps_gene_expr >= 0 && 
       min_samps_gene_expr <= ncol(x@counts))
@@ -423,7 +425,8 @@ setMethod("dmFilter", "dmDSdata", function(x, min_samps_gene_expr = 0,
     min_samps_feature_expr = min_samps_feature_expr, 
     min_feature_expr = min_feature_expr,
     min_samps_feature_prop = min_samps_feature_prop, 
-    min_feature_prop = min_feature_prop)
+    min_feature_prop = min_feature_prop,
+    run_gene_twice = run_gene_twice)
   
   return(new("dmDSdata", counts = counts_filtered, samples = x@samples))
   

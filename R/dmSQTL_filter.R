@@ -48,7 +48,8 @@ dmSQTL_filter_genotypes_per_gene <- function(g, counts_new, genotypes,
 dmSQTL_filter <- function(counts, genotypes, blocks, samples, 
   min_samps_gene_expr = 70, min_gene_expr = 20, min_samps_feature_expr = 5, 
   min_feature_expr = 20, min_samps_feature_prop = 5, min_feature_prop = 0.05, 
-  minor_allele_freq = 5, BPPARAM = BiocParallel::SerialParam()){
+  minor_allele_freq = 5, run_gene_twice = FALSE,
+  BPPARAM = BiocParallel::SerialParam()){
   
   ########################################################
   # filtering on counts, put NA for samples with low gene expression
@@ -112,6 +113,17 @@ dmSQTL_filter <- function(counts, genotypes, blocks, samples,
 
     expr <- expr_features[features2keep, , drop = FALSE] 
     expr[, !samps2keep] <- NA
+
+    if (run_gene_twice) {
+      ### no genes with no expression
+      if(sum(expr_features, na.rm = TRUE) == 0)
+        return(NULL)
+      
+      ### genes with min expression
+      if(! sum(colSums(expr_features) >= min_gene_expr, na.rm = TRUE) >= 
+         min_samps_gene_expr )
+        return(NULL)
+    }
     
     return(expr)
     

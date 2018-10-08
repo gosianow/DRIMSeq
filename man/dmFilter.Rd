@@ -11,7 +11,8 @@ dmFilter(x, ...)
 
 \S4method{dmFilter}{dmDSdata}(x, min_samps_gene_expr = 0,
   min_samps_feature_expr = 0, min_samps_feature_prop = 0,
-  min_gene_expr = 0, min_feature_expr = 0, min_feature_prop = 0)
+  min_gene_expr = 0, min_feature_expr = 0, min_feature_prop = 0,
+  run_gene_twice = FALSE)
 
 \S4method{dmFilter}{dmSQTLdata}(x, min_samps_gene_expr = 0,
   min_samps_feature_expr = 0, min_samps_feature_prop = 0,
@@ -41,6 +42,9 @@ be expressed. See details.}
 
 \item{min_feature_prop}{Minimal proportion for feature expression. This value
 should be between 0 and 1.}
+
+\item{run_gene_twice}{Whether to re-run the gene-level filter
+after the feature-level filters.}
 
 \item{minor_allele_freq}{Minimal number of samples where each of the 
 genotypes has to be present.}
