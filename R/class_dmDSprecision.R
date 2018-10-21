@@ -380,6 +380,11 @@ setGeneric("dmPrecision", function(x, ...) standardGeneric("dmPrecision"))
 #' @param coef_tol The desired accuracy when estimating regression coefficients.
 #' @param verbose Numeric. Definie the level of progress messages displayed. 0 -
 #'   no messages, 1 - main messages, 2 - message for every gene fitting.
+#' @param add_uniform Whether to add a small fractional count to zeros,
+#' (adding a uniform random variable between 0 and 0.1).
+#' This option allows for the fitting of genewise precision and coefficients
+#' for genes with two features having all zero for one group, or the last
+#' feature having all zero for one group.
 #' @param BPPARAM Parallelization method used by 
 #'   \code{\link[BiocParallel]{bplapply}}.
 #'   
@@ -450,6 +455,7 @@ setGeneric("dmPrecision", function(x, ...) standardGeneric("dmPrecision"))
 #' variation. Nucleic Acids Research 40, 4288-4297.
 #' @rdname dmPrecision
 #' @importFrom limma nonEstimable
+#' @importFrom stats runif
 #' @export
 setMethod("dmPrecision", "dmDSdata", function(x, design, 
   mean_expression = TRUE, common_precision = TRUE, genewise_precision = TRUE,
@@ -460,7 +466,9 @@ setMethod("dmPrecision", "dmDSdata", function(x, design,
   one_way = TRUE, 
   prop_mode = "constrOptim", prop_tol = 1e-12, 
   coef_mode = "optim", coef_tol = 1e-12,
-  verbose = 0, BPPARAM = BiocParallel::SerialParam()){
+  verbose = 0,
+  add_uniform = FALSE,
+  BPPARAM = BiocParallel::SerialParam()){
   
   # Check design as in edgeR
   design <- as.matrix(design)
@@ -549,8 +557,11 @@ setMethod("dmPrecision", "dmDSdata", function(x, design,
         " as prec_init !\n")
       prec_init <- common_precision
     }
-    
-    genewise_precision <- dmDS_estimateTagwisePrecision(counts = x@counts, 
+
+    # add random small fractional counts to zeros
+    counts <- if (add_uniform) addUniform(x@counts) else x@counts
+
+    genewise_precision <- dmDS_estimateTagwisePrecision(counts = counts, 
       design = design, mean_expression = mean_expression, 
       prec_adjust = prec_adjust, prec_init = prec_init, 
       prec_grid_length = prec_grid_length, prec_grid_range = prec_grid_range, 
@@ -686,10 +697,14 @@ setMethod("plotPrecision", "dmDSprecision", function(x){
   
 })
 
-
-
-
-
-
-
-
+# function to add small fraction of counts to zeros
+addUniform <- function(counts, uniform_max=0.1) {
+  counts_new <- lapply(seq_along(counts), function(g) {
+    expr <- counts[[g]]
+    zeros <- expr == 0
+    expr[zeros] <- runif(sum(zeros), 0, uniform_max)
+    expr
+  })
+  names(counts_new) <- names(counts)
+  MatrixList(counts_new)
+}

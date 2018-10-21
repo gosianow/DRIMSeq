@@ -17,7 +17,7 @@ dmPrecision(x, ...)
   prec_moderation = "trended", prec_prior_df = 0, prec_span = 0.1,
   one_way = TRUE, prop_mode = "constrOptim", prop_tol = 1e-12,
   coef_mode = "optim", coef_tol = 1e-12, verbose = 0,
-  BPPARAM = BiocParallel::SerialParam())
+  add_uniform = FALSE, BPPARAM = BiocParallel::SerialParam())
 
 \S4method{dmPrecision}{dmSQTLdata}(x, mean_expression = TRUE,
   common_precision = TRUE, genewise_precision = TRUE, prec_adjust = TRUE,
@@ -98,6 +98,12 @@ coefficients. Possible value \code{"optim"}.}
 
 \item{verbose}{Numeric. Definie the level of progress messages displayed. 0 -
 no messages, 1 - main messages, 2 - message for every gene fitting.}
+
+\item{add_uniform}{Whether to add a small fractional count to zeros,
+(adding a uniform random variable between 0 and 0.1).
+This option allows for the fitting of genewise precision and coefficients
+for genes with two features having all zero for one group, or the last
+feature having all zero for one group.}
 
 \item{BPPARAM}{Parallelization method used by 
 \code{\link[BiocParallel]{bplapply}}.}

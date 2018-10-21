@@ -358,7 +358,9 @@ setMethod("dmFit", "dmDSprecision", function(x, design,
   one_way = TRUE, bb_model = TRUE,
   prop_mode = "constrOptim", prop_tol = 1e-12, 
   coef_mode = "optim", coef_tol = 1e-12,
-  verbose = 0, BPPARAM = BiocParallel::SerialParam()){
+  verbose = 0,
+  add_uniform = FALSE,
+  BPPARAM = BiocParallel::SerialParam()){
   
   # Check design as in edgeR
   design <- as.matrix(design)
@@ -387,9 +389,12 @@ setMethod("dmFit", "dmDSprecision", function(x, design,
   stopifnot(is.numeric(coef_tol) && coef_tol > 0)
   
   stopifnot(verbose %in% 0:2)
+
+  # add random small fractional counts to zeros
+  counts <- if (add_uniform) addUniform(x@counts) else x@counts
   
   # Fit the DM model: proportions and likelihoods
-  fit <- dmDS_fit(counts = x@counts, design = design, 
+  fit <- dmDS_fit(counts = counts, design = design, 
     precision = x@genewise_precision,
     one_way = one_way,
     prop_mode = prop_mode, prop_tol = prop_tol, 
@@ -399,7 +404,7 @@ setMethod("dmFit", "dmDSprecision", function(x, design,
   # Calculate the Beta-Binomial likelihoods for each feature
   if(bb_model){
     
-    fit_bb <- bbDS_fit(counts = x@counts, fit = fit[["fit"]], design = design, 
+    fit_bb <- bbDS_fit(counts = counts, fit = fit[["fit"]], design = design, 
       precision = x@genewise_precision,
       one_way = one_way,
       verbose = verbose, BPPARAM = BPPARAM)

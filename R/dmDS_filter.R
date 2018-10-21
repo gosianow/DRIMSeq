@@ -1,7 +1,8 @@
 
 dmDS_filter <- function(counts, min_samps_gene_expr = 6, 
   min_gene_expr = 10, min_samps_feature_expr = 3, min_feature_expr = 10, 
-  min_samps_feature_prop = 3, min_feature_prop = 0.01){
+  min_samps_feature_prop = 3, min_feature_prop = 0.01,
+  run_gene_twice=FALSE){
   
   inds <- which(elementNROWS(counts) > 1)
   
@@ -58,6 +59,17 @@ dmDS_filter <- function(counts, min_samps_gene_expr = 6,
       return(NULL)
     
     expr <- expr_features[features2keep, , drop = FALSE] 
+
+    if (run_gene_twice) {
+      ### no genes with no expression
+      if(sum(expr_features, na.rm = TRUE) == 0)
+        return(NULL)
+      
+      ### genes with min expression
+      if(! sum(colSums(expr_features) >= min_gene_expr, na.rm = TRUE) >= 
+         min_samps_gene_expr )
+        return(NULL)
+    }
     
     return(expr)
     
@@ -74,16 +86,3 @@ dmDS_filter <- function(counts, min_samps_gene_expr = 6,
   return(counts_new)
   
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
