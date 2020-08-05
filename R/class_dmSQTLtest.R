@@ -243,12 +243,12 @@ setMethod("dmTest", "dmSQTLfit", function(x,
   
   ## Output the original SNPs
   results_new <- lapply(inds, function(i){
-    # i = 1
+    # i = 4
     
     mm <- match(x@blocks[[i]][, "block_id"], rownames(x@genotypes[[i]]))
     
     out <- data.frame(gene_id = gene_ids[i], x@blocks[[i]], 
-      results_list[[i]][mm, ], stringsAsFactors = FALSE)
+      results_list[[i]][mm, , drop = FALSE], stringsAsFactors = FALSE)
     
     return(out)
     
